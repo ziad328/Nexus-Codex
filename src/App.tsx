@@ -84,7 +84,7 @@ function App() {
           
           {/* Dynamic Heading */}
           <div className="mb-6">
-            <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight">
+            <h1 className="text-3xl md:text-4xl font-medieval font-bold text-white leading-tight">
               {gameQuery.genre?.name || 'All Games'}
             </h1>
             <p className="text-zinc-500 text-sm mt-1">{gameQuery.searchText ? `Results for "${gameQuery.searchText}"` : 'Discover your next obsession'}</p>

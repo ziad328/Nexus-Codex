@@ -6,6 +6,7 @@
   --color-background-card: #18181b; /* zinc-900 */
   --color-accent: #ef4444; /* softer red, red-500 */
   --color-accent-hover: #dc2626; /* red-600 */
+  --font-medieval: 'MedievalSharp', cursive;
 }
 
 @layer base {
