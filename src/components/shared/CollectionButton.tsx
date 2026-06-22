@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import type { FC } from 'react';
-import { Bookmark, Check } from 'lucide-react';
+import type { FC, ElementType } from 'react';
+import { Bookmark, Check, Clock, Trophy, Star, ListPlus } from 'lucide-react';
 import useAppSelector from '../../hooks/useAppSelector';
 import useAppDispatch from '../../hooks/useAppDispatch';
 import { addToCollection, removeFromCollection } from '../../store/collectionsSlice';
@@ -13,11 +13,11 @@ interface Props {
   dropDirection?: 'up' | 'down';
 }
 
-const COLLECTIONS: { name: CollectionName; label: string; emoji: string }[] = [
-  { name: 'playing',  label: 'Playing Now', emoji: '🎮' },
-  { name: 'backlog',  label: 'Backlog',     emoji: '📋' },
-  { name: 'beaten',   label: 'Beaten',      emoji: '🏆' },
-  { name: 'wishlist', label: 'Wishlist',    emoji: '⭐' },
+const COLLECTIONS: { name: CollectionName; label: string; Icon: ElementType }[] = [
+  { name: 'playing',  label: 'Playing Now', Icon: Clock },
+  { name: 'backlog',  label: 'Backlog',     Icon: Bookmark },
+  { name: 'beaten',   label: 'Beaten',      Icon: Trophy },
+  { name: 'wishlist', label: 'Wishlist',    Icon: Star },
 ];
 
 const CollectionButton: FC<Props> = ({ game, className = '', dropDirection = 'down' }) => {
@@ -64,39 +64,43 @@ const CollectionButton: FC<Props> = ({ game, className = '', dropDirection = 'do
             : 'bg-zinc-800/80 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
         }`}
       >
-        <Bookmark className={`w-3.5 h-3.5 transition-all ${isInAny ? 'fill-white' : ''}`} />
+        <ListPlus className={`w-3.5 h-3.5 transition-all ${isInAny ? 'text-white' : ''}`} />
       </button>
 
       {open && (
         <div
           onClick={(e) => e.stopPropagation()}
-          className={`absolute z-50 w-44 bg-zinc-900 border border-zinc-700/80 rounded-xl shadow-2xl overflow-hidden ${
+          className={`absolute z-50 w-48 bg-zinc-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.5)] overflow-hidden ${
             dropDirection === 'up'
               ? 'bottom-full mb-2 right-0'
               : 'top-full mt-2 right-0'
           }`}
         >
-          <p className="px-3 pt-2.5 pb-1 text-[10px] font-semibold uppercase tracking-widest text-zinc-500">
-            Add to list
-          </p>
-          {COLLECTIONS.map(({ name, label, emoji }) => {
-            const active = memberOf.includes(name);
-            return (
-              <button
-                key={name}
-                onClick={() => toggle(name)}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors duration-150 ${
-                  active
-                    ? 'text-white bg-zinc-700/60'
-                    : 'text-zinc-300 hover:bg-zinc-800 hover:text-white'
-                }`}
-              >
-                <span className="text-base leading-none">{emoji}</span>
-                <span className="flex-1 text-left">{label}</span>
-                {active && <Check className="w-3.5 h-3.5 text-zinc-300 shrink-0" />}
-              </button>
-            );
-          })}
+          <div className="px-4 py-3 border-b border-white/5">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+              Add to list
+            </p>
+          </div>
+          <div className="p-1.5 flex flex-col gap-0.5">
+            {COLLECTIONS.map(({ name, label, Icon }) => {
+              const active = memberOf.includes(name);
+              return (
+                <button
+                  key={name}
+                  onClick={() => toggle(name)}
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 group ${
+                    active
+                      ? 'text-white bg-white/10 shadow-sm'
+                      : 'text-zinc-400 hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  <Icon className={`w-4 h-4 transition-colors ${active ? 'text-accent' : 'text-zinc-500 group-hover:text-zinc-300'}`} />
+                  <span className="flex-1 text-left">{label}</span>
+                  {active && <Check className="w-4 h-4 text-accent shrink-0" />}
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>
