@@ -15,6 +15,7 @@ import useGameTrailers from '../../hooks/useGameTrailers';
 import useGameStores from '../../hooks/useGameStores';
 import SimilarGamesCarousel from './SimilarGamesCarousel';
 import CustomVideoPlayer from '../shared/CustomVideoPlayer';
+import AchievementsList from './AchievementsList';
 
 interface Props {
   gameId: number | null;
@@ -298,12 +299,45 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
                         </div>
                       </div>
                     )}
+
+
+                    <AchievementsList gameId={game.id} />
+                    
+                    {(game.reddit_url || game.website) && (
+                      <div className="pt-2 border-t border-white/5">
+                        <p className="text-zinc-500 text-xs font-semibold uppercase tracking-widest mb-3">Official Links</p>
+                        <div className="flex flex-col gap-2">
+                          {game.website && (
+                            <a
+                              href={game.website}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-800/80 hover:bg-zinc-700 border border-white/5 hover:border-accent/40 transition-all group"
+                            >
+                              <span className="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">Official Website</span>
+                              <ExternalLink className="w-4 h-4 text-zinc-500 group-hover:text-accent transition-colors" />
+                            </a>
+                          )}
+                          {game.reddit_url && (
+                            <a
+                              href={game.reddit_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-800/80 hover:bg-zinc-700 border border-white/5 hover:border-accent/40 transition-all group"
+                            >
+                              <span className="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">Reddit Community</span>
+                              <ExternalLink className="w-4 h-4 text-zinc-500 group-hover:text-accent transition-colors" />
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
               </div>
               
-              <div className="px-6 pb-10 md:px-10">
+              <div className="px-6 pb-10 md:px-10 flex flex-col gap-4">
                 <SimilarGamesCarousel gameId={game.id} onSelectGame={onSelectGame} />
               </div>
             </div>

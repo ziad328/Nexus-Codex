@@ -37,6 +37,8 @@ export interface GameQuery {
   searchText?: string;
   developers?: string;
   publishers?: string;
+  storeId?: number | null;
+  tagSlug?: string;
 }
 
 export interface Publisher {
@@ -70,6 +72,8 @@ export interface GameDetails extends Game {
   publishers: Publisher[];
   developers: Developer[];
   stores: { id: number; store: Store }[];
+  reddit_url?: string;
+  website?: string;
 }
 
 export interface Screenshot {
@@ -105,4 +109,28 @@ export type CollectionName = 'playing' | 'beaten' | 'backlog' | 'wishlist';
 export interface Collection {
   name: CollectionName;
   games: FavoriteGame[];
+}
+
+export interface Tag {
+  id: number;
+  name: string;
+  slug: string;
+}
+
+export interface Achievement {
+  id: number;
+  name: string;
+  description: string;
+  image: string;
+  percent: string;
+}
+
+export interface RedditPost {
+  id: number;
+  name: string;
+  text: string;
+  image: string;
+  url: string;
+  username: string;
+  created: string;
 }
