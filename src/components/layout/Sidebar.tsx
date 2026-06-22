@@ -25,13 +25,13 @@ const Sidebar: FC<Props> = ({ selectedGenre, onSelectGenre }) => {
         {!isLoading && (
           <button
             onClick={() => onSelectGenre(null)}
-            className={`flex items-center gap-3 w-full p-2 transition-all duration-200 hover:bg-background-card clip-diagonal-btn ${
+            className={`flex items-center gap-3 w-full p-2 transition-all duration-300 rounded-xl hover:bg-background-card ${
               selectedGenre === null 
-                ? 'bg-background-card border-l-4 border-accent text-white' 
-                : 'text-gray-400 border-l-4 border-transparent'
+                ? 'bg-background-card ring-1 ring-accent text-white shadow-[0_0_15px_rgba(239,68,68,0.1)]' 
+                : 'text-gray-400 border border-transparent'
             }`}
           >
-            <div className="w-8 h-8 shrink-0 bg-gray-800 overflow-hidden clip-diagonal-btn flex items-center justify-center">
+            <div className="w-8 h-8 shrink-0 bg-zinc-800 rounded-lg overflow-hidden flex items-center justify-center">
               <span className="text-xl font-bold">∞</span>
             </div>
             <span className={`text-left text-lg ${selectedGenre === null ? 'font-bold' : 'font-normal'}`}>
@@ -45,13 +45,13 @@ const Sidebar: FC<Props> = ({ selectedGenre, onSelectGenre }) => {
           <button
             key={genre.id}
             onClick={() => onSelectGenre(genre)}
-            className={`flex items-center gap-3 w-full p-2 transition-all duration-200 hover:bg-background-card clip-diagonal-btn ${
+            className={`flex items-center gap-3 w-full p-2 transition-all duration-300 rounded-xl hover:bg-background-card ${
               selectedGenre?.id === genre.id 
-                ? 'bg-background-card border-l-4 border-accent text-white' 
-                : 'text-gray-400 border-l-4 border-transparent'
+                ? 'bg-background-card ring-1 ring-accent text-white shadow-[0_0_15px_rgba(239,68,68,0.1)]' 
+                : 'text-gray-400 border border-transparent'
             }`}
           >
-            <div className="w-8 h-8 shrink-0 bg-background-card overflow-hidden clip-diagonal-btn">
+            <div className="w-8 h-8 shrink-0 bg-background-card rounded-lg overflow-hidden">
               <img 
                 src={genre.image_background} 
                 className="w-full h-full object-cover filter brightness-75"

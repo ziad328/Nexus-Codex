@@ -3,21 +3,19 @@ import type { Game } from '../../types';
 import PlatformIconList from '../shared/PlatformIconList';
 import CriticScore from '../shared/CriticScore';
 
+import getCroppedImageUrl from '../../services/image-url';
+
 interface Props {
   game: Game;
+  onClick: (id: number) => void;
 }
 
-// Utility to crop RAWG images for better performance
-const getCroppedImageUrl = (url: string) => {
-  if (!url) return '';
-  const target = 'media/';
-  const index = url.indexOf(target) + target.length;
-  return url.slice(0, index) + 'crop/600/400/' + url.slice(index);
-};
-
-const GameCard: FC<Props> = ({ game }) => {
+const GameCard: FC<Props> = ({ game, onClick }) => {
   return (
-    <div className="flex flex-col w-full bg-background-card overflow-hidden clip-diagonal border-b-2 border-transparent transition-all duration-200 hover:border-accent hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(229,43,18,0.15)] group cursor-pointer">
+    <div 
+      onClick={() => onClick(game.id)}
+      className="flex flex-col w-full bg-background-card rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)] hover:ring-1 hover:ring-accent/50 group cursor-pointer"
+    >
       {/* Image Container with overlay */}
       <div className="relative overflow-hidden h-48 w-full">
         <img 

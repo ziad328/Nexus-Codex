@@ -24,8 +24,8 @@ const SearchInput: FC<Props> = ({ onSearch }) => {
       </div>
       <input
         type="text"
-        className="w-full bg-background-card border-2 border-transparent text-white placeholder-gray-400 focus:outline-none focus:border-accent clip-diagonal-btn py-2 pl-10 pr-4 transition-colors"
-        placeholder="Search the abyss..."
+        className="w-full bg-background-card border border-transparent text-white placeholder-gray-400 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/50 rounded-full py-2 pl-10 pr-4 transition-all duration-300 shadow-sm focus:shadow-[0_0_15px_rgba(239,68,68,0.2)]"
+        placeholder="Search games..."
         value={value}
         onChange={(e) => setValue(e.target.value)}
       />

@@ -6,14 +6,15 @@ import GameCardSkeleton from '../shared/GameCardSkeleton';
 
 interface Props {
   gameQuery: GameQuery;
+  onSelectGame: (id: number) => void;
 }
 
-const GameGrid: FC<Props> = ({ gameQuery }) => {
+const GameGrid: FC<Props> = ({ gameQuery, onSelectGame }) => {
   const { data, error, isLoading } = useGames(gameQuery);
   const skeletons = Array.from({ length: 12 });
 
   if (error) return (
-    <div className="text-red-500 font-bold p-4 bg-red-500/10 border-l-4 border-red-500 clip-diagonal-btn">
+    <div className="text-red-500 font-bold p-4 bg-red-500/10 border border-red-500/50 rounded-xl">
       {error}
     </div>
   );
@@ -23,7 +24,7 @@ const GameGrid: FC<Props> = ({ gameQuery }) => {
       {isLoading && skeletons.map((_, index) => <GameCardSkeleton key={index} />)}
       
       {!isLoading && data.map((game) => (
-        <GameCard key={game.id} game={game} />
+        <GameCard key={game.id} game={game} onClick={onSelectGame} />
       ))}
       
       {!isLoading && data.length === 0 && (

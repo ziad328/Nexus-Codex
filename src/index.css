@@ -2,10 +2,10 @@
 
 @theme {
   --font-sans: 'Inter', sans-serif;
-  --color-background: #0a0a0c;
-  --color-background-card: #121216;
-  --color-accent: #e52b12;
-  --color-accent-hover: #c61a09;
+  --color-background: #0a0a0a;
+  --color-background-card: #18181b; /* zinc-900 */
+  --color-accent: #ef4444; /* softer red, red-500 */
+  --color-accent-hover: #dc2626; /* red-600 */
 }
 
 @layer base {
@@ -18,12 +18,4 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-}
-
-@utility clip-diagonal {
-  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%);
-}
-
-@utility clip-diagonal-btn {
-  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
 }
