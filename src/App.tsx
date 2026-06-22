@@ -7,7 +7,7 @@ import SmoothScrollbar from './components/shared/SmoothScrollbar';
 function App() {
   return (
     <div className="h-screen w-screen overflow-hidden bg-background">
-      <SmoothScrollbar className="h-full w-full">
+      <SmoothScrollbar className="h-full w-full main-scroll-container">
         <Routes>
           <Route element={<Layout />}>
             <Route path="/" element={<HomePage />} />

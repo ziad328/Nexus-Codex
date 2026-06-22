@@ -38,9 +38,28 @@ function HomePage() {
   const genreName = genreSlug ? genres?.find(g => g.slug === genreSlug)?.name || 'Loading...' : 'All Games';
 
   useEffect(() => {
-    const handleScroll = () => setShowScrollButton(window.scrollY > 600);
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    // The main window scroll event will not fire when using SmoothScrollbar 
+    // on the main wrapping div. We need to find the os-viewport element.
+    const handleScroll = (e: Event) => {
+      const target = e.target as HTMLElement;
+      setShowScrollButton(target.scrollTop > 600);
+    };
+
+    // Wait a brief moment to ensure the OverlayScrollbars DOM is initialized
+    const timer = setTimeout(() => {
+      const viewport = document.querySelector('.main-scroll-container .os-viewport');
+      if (viewport) {
+        viewport.addEventListener('scroll', handleScroll, { passive: true });
+      }
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      const viewport = document.querySelector('.main-scroll-container .os-viewport');
+      if (viewport) {
+        viewport.removeEventListener('scroll', handleScroll);
+      }
+    };
   }, []);
 
 
@@ -58,7 +77,7 @@ function HomePage() {
 
   return (
     <>
-      <GameDetailsModal gameId={selectedGameId} onClose={handleCloseModal} />
+      <GameDetailsModal gameId={selectedGameId} onClose={handleCloseModal} onSelectGame={handleSelectGame} />
 
       <div className="grow flex flex-col w-full min-w-0">
         <RecentlyViewed onSelectGame={setSelectedGameId} />
@@ -91,7 +110,14 @@ function HomePage() {
           Viewing <span className="font-medieval text-accent tracking-widest uppercase font-bold ml-1">{genreName}</span>
         </span>
         <button
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          onClick={() => {
+            const viewport = document.querySelector('.main-scroll-container .os-viewport');
+            if (viewport) {
+              viewport.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          }}
           className="bg-zinc-800 hover:bg-zinc-700 hover:text-white hover:ring-1 hover:ring-accent text-zinc-300 rounded-full px-3 py-1 text-xs font-semibold flex items-center gap-1.5 transition-all duration-300 group whitespace-nowrap"
         >
           Scroll to top
