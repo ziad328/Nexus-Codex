@@ -13,6 +13,7 @@ const useGameDetails = (id: number | null) => {
     const controller = new AbortController();
 
     const fetchGame = async () => {
+      setData(null);
       setLoading(true);
       setError('');
 

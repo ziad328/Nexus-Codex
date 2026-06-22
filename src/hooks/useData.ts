@@ -6,7 +6,7 @@ import type { AxiosRequestConfig } from "axios";
 const useData = <T>(
   endpoint: string,
   requestConfig?: AxiosRequestConfig,
-  deps?: unknown[]
+  deps: unknown[] = []
 ) => {
   const [data, setData] = useState<T[]>([]);
   const [error, setError] = useState("");
@@ -18,6 +18,7 @@ const useData = <T>(
     const controller = new AbortController();
 
     const fetchData = async () => {
+      setData([]);
       setLoading(true);
       try {
         const res = await apiClient.get<FetchResponse<T>>(endpoint, {
@@ -37,7 +38,7 @@ const useData = <T>(
 
     return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps ? [...deps] : []);
+  }, [endpoint, requestConfig, ...deps]);
 
   return { data, error, isLoading };
 };

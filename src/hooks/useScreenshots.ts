@@ -6,7 +6,7 @@ const useScreenshots = (gameId: number | null) => {
   
   // Return empty/loading state manually if no gameId, or rely on useData's endpoint check
   // useData requires an endpoint string to not be empty, so we handle it gracefully.
-  const query = useData<Screenshot>(endpoint, {}, [gameId]);
+  const query = useData<Screenshot>(endpoint, undefined, [gameId]);
   
   // If gameId is null, override the hook response to be empty immediately
   if (!gameId) return { data: [], isLoading: false, error: '' };
