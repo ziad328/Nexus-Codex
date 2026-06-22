@@ -41,7 +41,7 @@ const SimilarGamesCarousel: FC<Props> = ({ gameId, onSelectGame }) => {
 
   return (
     <div className="mt-12 pt-8 border-t border-white/10 relative">
-      <h2 className="text-xl font-semibold text-white mb-6 font-medieval tracking-wide">You Might Also Like</h2>
+      <h2 className="text-xl font-semibold text-white mb-6 tracking-wide">You Might Also Like</h2>
       
       {canScrollLeft && (
         <button

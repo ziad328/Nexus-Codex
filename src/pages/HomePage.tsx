@@ -37,24 +37,12 @@ function HomePage() {
 
   useEffect(() => {
     const handleScroll = (e: Event) => {
-      const target = e.target as HTMLElement;
-      setShowScrollButton(target.scrollTop > 600);
+      const customEvent = e as CustomEvent<number>;
+      setShowScrollButton(customEvent.detail > 600);
     };
 
-    const timer = setTimeout(() => {
-      const viewport = document.querySelector('.main-scroll-container .os-viewport');
-      if (viewport) {
-        viewport.addEventListener('scroll', handleScroll, { passive: true });
-      }
-    }, 100);
-
-    return () => {
-      clearTimeout(timer);
-      const viewport = document.querySelector('.main-scroll-container .os-viewport');
-      if (viewport) {
-        viewport.removeEventListener('scroll', handleScroll);
-      }
-    };
+    window.addEventListener('nexusScroll', handleScroll);
+    return () => window.removeEventListener('nexusScroll', handleScroll);
   }, []);
 
 
@@ -105,14 +93,7 @@ function HomePage() {
           Viewing <span className="font-medieval text-accent tracking-widest uppercase font-bold ml-1">{genreName}</span>
         </span>
         <button
-          onClick={() => {
-            const viewport = document.querySelector('.main-scroll-container .os-viewport');
-            if (viewport) {
-              viewport.scrollTo({ top: 0, behavior: 'smooth' });
-            } else {
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-          }}
+          onClick={() => window.dispatchEvent(new CustomEvent('nexusScrollToTop'))}
           className="bg-zinc-800 hover:bg-zinc-700 hover:text-white hover:ring-1 hover:ring-accent text-zinc-300 rounded-full px-3 py-1 text-xs font-semibold flex items-center gap-1.5 transition-all duration-300 group whitespace-nowrap"
         >
           Scroll to top

@@ -36,7 +36,7 @@ const Sidebar: FC = () => {
         }`}>
           <BookMarked className="w-5 h-5" />
         </div>
-        <span className={`text-left text-lg ${location.pathname === '/collection' ? 'font-bold' : 'font-normal'}`}>
+        <span className={`text-left text-[15px] ${location.pathname === '/collection' ? 'font-bold' : 'font-medium'}`}>
           My Collection
         </span>
         {totalCollected > 0 && (
@@ -68,7 +68,7 @@ const Sidebar: FC = () => {
             }`}>
               <Gamepad2 className="w-5 h-5" />
             </div>
-            <span className={`text-left text-lg ${!genreSlug && location.pathname === '/' ? 'font-bold' : 'font-normal'}`}>
+            <span className={`text-left text-[15px] ${!genreSlug && location.pathname === '/' ? 'font-bold' : 'font-medium'}`}>
               All Games
             </span>
           </Link>
@@ -91,7 +91,7 @@ const Sidebar: FC = () => {
                 alt={genre.name}
               />
             </div>
-            <span className={`text-left text-lg ${genreSlug === genre.slug ? 'font-bold' : 'font-normal'}`}>
+            <span className={`text-left text-[15px] ${genreSlug === genre.slug ? 'font-bold' : 'font-medium'}`}>
               {genre.name}
             </span>
           </Link>
