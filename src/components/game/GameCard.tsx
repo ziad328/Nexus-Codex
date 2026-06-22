@@ -89,10 +89,10 @@ const GameCard: FC<Props> = ({ game, onClick, viewMode = 'grid', isFavoritePage 
   return (
     <div
       onClick={() => onClick(game.id, favoriteData)}
-      className="flex flex-col w-full bg-background-card rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_8px_30px_rgba(239,68,68,0.18)] hover:ring-1 hover:ring-accent/40 group cursor-pointer"
+      className="flex flex-col w-full bg-background-card rounded-2xl transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_8px_30px_rgba(239,68,68,0.18)] hover:ring-1 hover:ring-accent/40 group cursor-pointer relative"
     >
-      {/* Image area — overflow-hidden stays only here */}
-      <div className="relative overflow-hidden h-48 w-full">
+      {/* Image area */}
+      <div className="relative overflow-hidden h-48 w-full rounded-t-2xl shrink-0">
         <img
           src={getCroppedImageUrl(game.background_image)}
           alt={game.name}
