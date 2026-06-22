@@ -7,10 +7,11 @@ import GameCardSkeleton from '../shared/GameCardSkeleton';
 
 interface Props {
   gameQuery: GameQuery;
-  onSelectGame: (id: number) => void;
+  onSelectGame: (id: number, game: { name: string; slug: string; background_image: string; metacritic: number | null }) => void;
+  viewMode?: 'grid' | 'list';
 }
 
-const GameGrid: FC<Props> = ({ gameQuery, onSelectGame }) => {
+const GameGrid: FC<Props> = ({ gameQuery, onSelectGame, viewMode = 'grid' }) => {
   const { 
     data, 
     error, 
@@ -48,11 +49,11 @@ const GameGrid: FC<Props> = ({ gameQuery, onSelectGame }) => {
 
   return (
     <div className="w-full pb-10">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+      <div className={viewMode === 'list' ? 'flex flex-col gap-2' : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6'}>
         {isLoading && skeletons.map((_, index) => <GameCardSkeleton key={`skeleton-${index}`} />)}
         
         {!isLoading && data.map((game, index) => (
-          <GameCard key={`${game.id}-${index}`} game={game} onClick={onSelectGame} />
+          <GameCard key={`${game.id}-${index}`} game={game} onClick={onSelectGame} viewMode={viewMode} />
         ))}
         
         {!isLoading && data.length === 0 && (
