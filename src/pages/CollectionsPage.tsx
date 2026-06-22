@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import type { FC } from 'react';
 import { useOverlayScrollbars } from 'overlayscrollbars-react';
-import { Heart, Bookmark, Trophy, Clock, Star, LayoutGrid } from 'lucide-react';
+import { Heart, Bookmark, Trophy, Clock, Star, LayoutGrid, ListPlus } from 'lucide-react';
 import GameCard from '../components/game/GameCard';
 import GameDetailsModal from '../components/game/GameDetailsModal';
 import ViewToggle from '../components/shared/ViewToggle';
@@ -63,7 +63,9 @@ const CollectionsPage: FC = () => {
     g.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const activeLabel = FILTERS.find(f => f.id === activeFilter)?.label ?? 'All';
+  const activeFilterData = FILTERS.find(f => f.id === activeFilter) ?? FILTERS[0];
+  const activeLabel = activeFilterData.label;
+  const ActiveIcon = activeFilterData.Icon;
 
   const handleSelectGame = useCallback((id: number) => setSelectedGameId(id), []);
   const handleCloseModal = useCallback(() => setSelectedGameId(null), []);
@@ -113,13 +115,15 @@ const CollectionsPage: FC = () => {
           {/* Game grid / list */}
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 gap-3 text-zinc-600">
-              <Bookmark className="w-14 h-14" />
+              <ActiveIcon className="w-14 h-14" />
               <p className="text-lg font-semibold">
                 {searchQuery ? `No results for "${searchQuery}"` : `Nothing in ${activeLabel} yet`}
               </p>
-              <p className="text-sm">
-                {!searchQuery && 'Add games using the ♥ or 🔖 buttons on any game card.'}
-              </p>
+              {!searchQuery && (
+                <div className="flex items-center gap-1.5 mt-1">
+                  Add games using the <Heart className="w-4 h-4" /> or <ListPlus className="w-4 h-4" /> buttons on any game card.
+                </div>
+              )}
             </div>
           ) : (
             <div className={
