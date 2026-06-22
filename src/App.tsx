@@ -3,10 +3,12 @@ import type { GameQuery, Genre } from './types';
 import Header from './components/layout/Header';
 import Sidebar from './components/layout/Sidebar';
 import GameGrid from './components/game/GameGrid';
+import GameDetailsModal from './components/game/GameDetailsModal';
 
 function App() {
   // Global state for filtering and searching games
   const [gameQuery, setGameQuery] = useState<GameQuery>({} as GameQuery);
+  const [selectedGameId, setSelectedGameId] = useState<number | null>(null);
 
   // Memoize handlers to prevent infinite rerendering loops in child useEffects
   const handleSearch = useCallback((searchText: string) => {
@@ -19,6 +21,12 @@ function App() {
 
   return (
     <div className="min-h-screen bg-background text-white flex flex-col font-sans selection:bg-accent selection:text-white">
+      {/* Game Details Modal Overlay */}
+      <GameDetailsModal 
+        gameId={selectedGameId} 
+        onClose={() => setSelectedGameId(null)} 
+      />
+
       {/* Header with Search */}
       <Header onSearch={handleSearch} />
       
@@ -35,14 +43,14 @@ function App() {
         <div className="grow flex flex-col w-full min-w-0">
           
           {/* Dynamic Heading based on genre selection */}
-          <div className="mb-6 border-l-4 border-accent pl-4">
+          <div className="mb-6 pl-4 border-l-4 border-accent rounded-sm">
             <h1 className="text-4xl md:text-5xl font-black uppercase tracking-widest text-white leading-none">
               {gameQuery.genre?.name || 'All Games'}
             </h1>
           </div>
           
           {/* Game Grid Component */}
-          <GameGrid gameQuery={gameQuery} />
+          <GameGrid gameQuery={gameQuery} onSelectGame={setSelectedGameId} />
         </div>
       </main>
     </div>
