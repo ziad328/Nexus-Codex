@@ -40,9 +40,24 @@ const useGames = (gameQuery: GameQuery) => {
           signal: controller.signal,
         });
 
-        if (controller.signal.aborted) return;
+        const nsfwKeywords = /\b(hentai|nsfw|erotic|nudity|porn|pornograph|sexual|sex|nude|uncensored|lewd|smut|bdsm|fetish|18\+|18 plus|adults? only|ecchi|eroge|futanari|yaoi|yuri|bara|incest|tentacles?|netorare|netori|ntr)\b/i;
+        
+        const nsfwTags = [
+          'nsfw', 'hentai', 'erotic', 'nudity', 'full-nudity', 'partial-nudity',
+          'sexual-content', 'sexual-themes', 'explicit-sexual-content', 
+          'adult', 'adult-only', 'adults-only', '18', 'ao18', 'porn', 
+          'pornographic', 'pornography', 'nsfw-game', 'ecchi', 'eroge', 
+          'explicit', 'smut', 'lewd', 'bdsm', 'fetish', 'futanari', 
+          'yaoi', 'yuri', 'bara', 'incest', 'tentacle', 'netorare', 'ntr'
+        ];
+        
+        const safeResults = res.data.results.filter(game => {
+          if (nsfwKeywords.test(game.name) || nsfwKeywords.test(game.slug)) return false;
+          if (game.tags && game.tags.some(tag => nsfwTags.includes(tag.slug.toLowerCase()))) return false;
+          return true;
+        });
 
-        setData(prev => isFirstPage ? res.data.results : [...prev, ...res.data.results]);
+        setData(prev => isFirstPage ? safeResults : [...prev, ...safeResults]);
         setHasNextPage(!!res.data.next);
       } catch (err) {
         if (err instanceof CanceledError || controller.signal.aborted) return;

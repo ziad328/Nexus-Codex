@@ -18,10 +18,12 @@ export interface Genre {
 export interface Game {
   id: number;
   name: string;
+  slug: string;
   background_image: string;
   parent_platforms: PlatformInfo[];
   metacritic: number;
   rating_top: number;
+  tags?: Tag[];
 }
 
 export interface FetchResponse<T> {
