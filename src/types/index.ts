@@ -36,3 +36,26 @@ export interface GameQuery {
   searchText: string;
 }
 
+export interface Publisher {
+  id: number;
+  name: string;
+}
+
+export interface Developer {
+  id: number;
+  name: string;
+}
+
+export interface GameDetails extends Game {
+  description_raw: string;
+  released: string;
+  publishers: Publisher[];
+  developers: Developer[];
+}
+
+export interface Screenshot {
+  id: number;
+  image: string;
+  width: number;
+  height: number;
+}
