@@ -12,6 +12,21 @@ function App() {
   const [selectedGameId, setSelectedGameId] = useState<number | null>(null);
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showScrollButton, setShowScrollButton] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Show the button when scrolled down significantly
+      if (window.scrollY > 600) {
+        setShowScrollButton(true);
+      } else {
+        setShowScrollButton(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const [initialize] = useOverlayScrollbars({
     defer: true,
@@ -94,6 +109,22 @@ function App() {
           <GameGrid gameQuery={gameQuery} onSelectGame={setSelectedGameId} />
         </div>
       </main>
+
+      {/* Floating Scroll-to-Top / Current Genre Info */}
+      <div 
+        className={`fixed bottom-4 left-1/2 -translate-x-1/2 lg:left-3 lg:translate-x-0 z-10 bg-background-card/95 backdrop-blur-md border border-zinc-800/80 shadow-[0_0_30px_rgba(0,0,0,0.6)] rounded-full pl-4 pr-1.5 py-1.5 flex items-center gap-2.5 transition-all duration-500 ${showScrollButton ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}`}
+      >
+        <span className="text-zinc-400 font-sans text-xs whitespace-nowrap">
+          Viewing <span className="font-medieval text-accent tracking-widest uppercase font-bold ml-1">{gameQuery.genre?.name || 'All Games'}</span>
+        </span>
+        <button 
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="bg-zinc-800 hover:bg-zinc-700 hover:text-white hover:ring-1 hover:ring-accent text-zinc-300 rounded-full px-3 py-1 text-xs font-semibold flex items-center gap-1.5 transition-all duration-300 group whitespace-nowrap"
+        >
+          Scroll to top
+          <span className="text-[14px] group-hover:-translate-y-0.5 transition-transform">↑</span>
+        </button>
+      </div>
     </div>
   );
 }
