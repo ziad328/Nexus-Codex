@@ -31,7 +31,7 @@ export interface FetchResponse<T> {
 }
 
 export interface GameQuery {
-  genre: Genre | null;
+  genreSlug?: string;
   platform: Platform | null;
   sortOrder: string;
   searchText: string;

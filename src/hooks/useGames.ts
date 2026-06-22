@@ -27,7 +27,7 @@ const useGames = (gameQuery: GameQuery) => {
       try {
         const res = await apiClient.get<FetchResponse<Game>>("/games", {
           params: {
-            genres: gameQuery.genre?.id,
+            genres: gameQuery.genreSlug,
             parent_platforms: gameQuery.platform?.id,
             ordering: gameQuery.sortOrder,
             search: gameQuery.searchText || undefined,
@@ -58,7 +58,7 @@ const useGames = (gameQuery: GameQuery) => {
 
     return () => controller.abort();
   }, [
-    gameQuery.genre?.id, 
+    gameQuery.genreSlug, 
     gameQuery.platform?.id, 
     gameQuery.sortOrder, 
     gameQuery.searchText, 
@@ -71,7 +71,7 @@ const useGames = (gameQuery: GameQuery) => {
     setHasNextPage(true);
     setData([]);
   }, [
-    gameQuery.genre?.id, 
+    gameQuery.genreSlug, 
     gameQuery.platform?.id, 
     gameQuery.sortOrder, 
     gameQuery.searchText
