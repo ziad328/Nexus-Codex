@@ -5,6 +5,7 @@ import Header from './components/layout/Header';
 import Sidebar from './components/layout/Sidebar';
 import GameGrid from './components/game/GameGrid';
 import GameDetailsModal from './components/game/GameDetailsModal';
+import SmoothScrollbar from './components/shared/SmoothScrollbar';
 
 function App() {
   // Global state for filtering and searching games
@@ -28,7 +29,7 @@ function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const [initialize] = useOverlayScrollbars({
+  const [initialize, instance] = useOverlayScrollbars({
     defer: true,
     options: {
       scrollbars: {
@@ -38,6 +39,25 @@ function App() {
       }
     }
   });
+
+  // Global scroll lock effect for modals and mobile drawer
+  useEffect(() => {
+    const osInstance = instance();
+    const shouldLock = isMobileMenuOpen || selectedGameId !== null;
+
+    if (shouldLock) {
+      document.body.style.overflow = 'hidden';
+      if (osInstance) osInstance.options({ overflow: { y: 'hidden' } });
+    } else {
+      document.body.style.overflow = '';
+      if (osInstance) osInstance.options({ overflow: { y: 'scroll' } });
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+      if (osInstance) osInstance.options({ overflow: { y: 'scroll' } });
+    };
+  }, [isMobileMenuOpen, selectedGameId, instance]);
 
   useEffect(() => {
     initialize(document.body);
@@ -85,13 +105,29 @@ function App() {
 
         {/* Sidebar for Genres (Drawer on Mobile, Static on Desktop) */}
         <div className={`
-          fixed inset-y-0 left-0 z-50 w-72 bg-zinc-950 p-6 shadow-2xl transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:z-0 lg:w-auto lg:bg-transparent lg:p-0 lg:shadow-none
+          fixed inset-y-0 left-0 z-50 w-70 bg-background-card/95 backdrop-blur-xl border-r border-zinc-800/50 shadow-2xl transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:z-0 lg:w-auto lg:bg-transparent lg:border-none lg:backdrop-blur-none lg:shadow-none
           ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
         `}>
-          <Sidebar 
-            selectedGenre={gameQuery.genre || null} 
-            onSelectGenre={handleSelectGenre} 
-          />
+          
+          {/* Mobile Sidebar Content (with custom scrollbar) */}
+          <div className="h-full w-full lg:hidden">
+            <SmoothScrollbar className="h-full">
+              <div className="p-5 pb-24">
+                <Sidebar 
+                  selectedGenre={gameQuery.genre || null} 
+                  onSelectGenre={handleSelectGenre} 
+                />
+              </div>
+            </SmoothScrollbar>
+          </div>
+
+          {/* Desktop Sidebar Content (native scroll within the page) */}
+          <div className="hidden lg:block h-full">
+            <Sidebar 
+              selectedGenre={gameQuery.genre || null} 
+              onSelectGenre={handleSelectGenre} 
+            />
+          </div>
         </div>
         
         {/* Content Area */}

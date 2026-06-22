@@ -16,7 +16,7 @@ const Sidebar: FC<Props> = ({ selectedGenre, onSelectGenre }) => {
   if (error) return null; // Or render an error message state
 
   return (
-    <aside className="w-full h-full lg:h-auto overflow-y-auto lg:overflow-visible lg:w-64 shrink-0 lg:pr-8 pb-20 lg:pb-0">
+    <aside className="w-full lg:w-64 shrink-0 lg:pr-8">
       <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-4 px-2">
         Genres
       </h2>
