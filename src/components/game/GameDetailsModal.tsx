@@ -108,7 +108,6 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose }) => {
 
                 <div className="absolute bottom-0 left-0 w-full px-6 pb-6 md:px-10 md:pb-8">
                   <div className="flex items-center gap-3 mb-2">
-                    <PlatformIconList platforms={game.parent_platforms?.map(p => p.platform) || []} />
                     <CriticScore score={game.metacritic} />
                     <div className="ml-auto flex items-center gap-2">
                       {/* Collection button */}
@@ -201,6 +200,10 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose }) => {
 
                 <div className="space-y-4">
                   <div className="bg-zinc-800/50 rounded-2xl p-5 border border-white/5 space-y-5">
+                    <div>
+                      <p className="text-zinc-500 text-xs font-semibold uppercase tracking-widest mb-2">Platforms</p>
+                      <PlatformIconList platforms={game.parent_platforms?.map(p => p.platform) || []} />
+                    </div>
                     <div>
                       <p className="text-zinc-500 text-xs font-semibold uppercase tracking-widest mb-1">Release Date</p>
                       <p className="text-zinc-100 text-sm font-medium">{game.released || '—'}</p>

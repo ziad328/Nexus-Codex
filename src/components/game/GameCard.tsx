@@ -33,9 +33,10 @@ const GameCard: FC<Props> = ({ game, onClick, viewMode = 'grid', isFavoritePage 
     return (
       <div
         onClick={() => onClick(game.id, favoriteData)}
-        className="flex items-center gap-4 w-full bg-background-card rounded-xl transition-all duration-200 hover:ring-1 hover:ring-accent/40 hover:bg-zinc-800/60 cursor-pointer p-3 group"
+        className="flex items-center gap-3 w-full bg-background-card rounded-xl transition-all duration-200 hover:ring-1 hover:ring-accent/40 hover:bg-zinc-800/60 cursor-pointer p-2.5 sm:p-3 group"
       >
-        <div className="relative overflow-hidden h-16 w-28 rounded-lg shrink-0">
+        {/* Thumbnail — smaller on mobile */}
+        <div className="relative overflow-hidden h-14 w-20 sm:h-16 sm:w-28 rounded-lg shrink-0">
           <img
             src={getCroppedImageUrl(game.background_image)}
             alt={game.name}
@@ -43,16 +44,30 @@ const GameCard: FC<Props> = ({ game, onClick, viewMode = 'grid', isFavoritePage 
             loading="lazy"
           />
         </div>
+
+        {/* Info column */}
         <div className="flex flex-col gap-1 grow min-w-0">
           <h2 className="text-sm font-semibold text-zinc-100 group-hover:text-accent transition-colors truncate">
             {game.name}
           </h2>
-          <PlatformIconList platforms={game.parent_platforms?.map(p => p.platform) ?? []} />
+          {/* Platforms: visible on sm+ only */}
+          <div className="hidden sm:block">
+            <PlatformIconList platforms={game.parent_platforms?.map(p => p.platform) ?? []} />
+          </div>
+          {/* Score shown inline under title on mobile */}
+          <div className="flex sm:hidden items-center gap-2 mt-0.5">
+            <CriticScore score={game.metacritic} />
+          </div>
         </div>
-        {/* Actions — outside overflow-hidden so dropdown isn't clipped */}
-        <div className="flex items-center gap-2 shrink-0">
-          <CriticScore score={game.metacritic} />
-          <CollectionButton game={favoriteData} dropDirection="up" />
+
+        {/* Actions — always visible, score hidden on mobile (shown above) */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <div className="hidden sm:block">
+            <CriticScore score={game.metacritic} />
+          </div>
+          <div className="hidden sm:block">
+            <CollectionButton game={favoriteData} dropDirection="up" />
+          </div>
           {isFavoritePage ? (
             <button
               onClick={(e) => { e.stopPropagation(); dispatch(removeFavorite(game.id)); }}
@@ -68,6 +83,7 @@ const GameCard: FC<Props> = ({ game, onClick, viewMode = 'grid', isFavoritePage 
       </div>
     );
   }
+
 
   // ── GRID VIEW ────────────────────────────────────────────────────────────────
   return (
