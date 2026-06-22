@@ -8,6 +8,7 @@ import getCroppedImageUrl from '../../services/image-url';
 import SmoothScrollbar from '../shared/SmoothScrollbar';
 import FavoriteButton from '../shared/FavoriteButton';
 import CollectionButton from '../shared/CollectionButton';
+import { Link } from 'react-router-dom';
 import useShare from '../../hooks/useShare';
 import { Share2, Check, X, ExternalLink } from 'lucide-react';
 import useGameTrailers from '../../hooks/useGameTrailers';
@@ -249,11 +250,29 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
                     </div>
                     <div>
                       <p className="text-zinc-500 text-xs font-semibold uppercase tracking-widest mb-1">Developer</p>
-                      <p className="text-zinc-100 text-sm font-medium">{game.developers?.map(d => d.name).join(', ') || '—'}</p>
+                      <p className="text-zinc-100 text-sm font-medium flex flex-wrap gap-1">
+                        {game.developers?.map((d, i) => (
+                          <span key={d.id}>
+                            <Link to={`/developer/${d.slug}`} onClick={onClose} className="hover:text-accent hover:underline transition-colors">
+                              {d.name}
+                            </Link>
+                            {i < game.developers.length - 1 && ', '}
+                          </span>
+                        )) || '—'}
+                      </p>
                     </div>
                     <div>
                       <p className="text-zinc-500 text-xs font-semibold uppercase tracking-widest mb-1">Publisher</p>
-                      <p className="text-zinc-100 text-sm font-medium">{game.publishers?.map(p => p.name).join(', ') || '—'}</p>
+                      <p className="text-zinc-100 text-sm font-medium flex flex-wrap gap-1">
+                        {game.publishers?.map((p, i) => (
+                          <span key={p.id}>
+                            <Link to={`/publisher/${p.slug}`} onClick={onClose} className="hover:text-accent hover:underline transition-colors">
+                              {p.name}
+                            </Link>
+                            {i < game.publishers.length - 1 && ', '}
+                          </span>
+                        )) || '—'}
+                      </p>
                     </div>
 
                     {storeLinks.length > 0 && (
