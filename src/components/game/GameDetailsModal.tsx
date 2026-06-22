@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import type { FC } from 'react';
 import useGameDetails from '../../hooks/useGameDetails';
 import useScreenshots from '../../hooks/useScreenshots';
@@ -7,6 +7,7 @@ import PlatformIconList from '../shared/PlatformIconList';
 import getCroppedImageUrl from '../../services/image-url';
 import SmoothScrollbar from '../shared/SmoothScrollbar';
 import FavoriteButton from '../shared/FavoriteButton';
+import CollectionButton from '../shared/CollectionButton';
 import useShare from '../../hooks/useShare';
 import { Share2, Check, X } from 'lucide-react';
 
@@ -19,6 +20,13 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose }) => {
   const { data: game, isLoading, error } = useGameDetails(gameId);
   const { data: screenshots, isLoading: screenshotsLoading } = useScreenshots(gameId);
   const { share, status: shareStatus } = useShare();
+  const [accentColor, setAccentColor] = useState<string | null>(null);
+  const heroImgRef = useRef<HTMLImageElement>(null);
+
+  // Reset accent color on game change
+  useEffect(() => {
+    setAccentColor(null);
+  }, [gameId]);
 
   useEffect(() => {
     if (gameId) {
@@ -31,6 +39,18 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose }) => {
     };
   }, [gameId]);
 
+  const handleHeroLoad = async () => {
+    if (!heroImgRef.current) return;
+    try {
+      const mod = await import('colorthief');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const ColorThief = (mod as any).default ?? mod;
+      const ct = new ColorThief() as { getColor(img: HTMLImageElement): [number, number, number] };
+      const [r, g, b] = ct.getColor(heroImgRef.current);
+      setAccentColor(`rgb(${r}, ${g}, ${b})`);
+    } catch { /* ignore cross-origin or load errors */ }
+  };
+
   if (!gameId) return null;
 
   return (
@@ -40,7 +60,14 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose }) => {
         onClick={onClose}
       />
 
-      <div className="relative w-full max-w-5xl max-h-[92vh] bg-zinc-900 rounded-3xl overflow-hidden shadow-[0_0_60px_rgba(0,0,0,0.8)] ring-1 ring-white/5 flex flex-col z-10">
+      <div
+        className="relative w-full max-w-5xl max-h-[92vh] bg-zinc-900 rounded-3xl overflow-hidden ring-1 ring-white/5 flex flex-col z-10 transition-shadow duration-700"
+        style={{
+          boxShadow: accentColor
+            ? `0 0 0 1px rgba(255,255,255,0.05), 0 0 80px -10px ${accentColor}88`
+            : '0 0 60px rgba(0,0,0,0.8)',
+        }}
+      >
 
         <button
           onClick={onClose}
@@ -71,8 +98,10 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose }) => {
 
               <div className="relative w-full h-56 md:h-80 shrink-0">
                 <img
+                  ref={heroImgRef}
                   src={game.background_image}
                   alt={game.name}
+                  onLoad={handleHeroLoad}
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-linear-to-t from-zinc-900 via-zinc-900/50 to-transparent" />
@@ -82,6 +111,17 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose }) => {
                     <PlatformIconList platforms={game.parent_platforms?.map(p => p.platform) || []} />
                     <CriticScore score={game.metacritic} />
                     <div className="ml-auto flex items-center gap-2">
+                      {/* Collection button */}
+                      <CollectionButton
+                        game={{
+                          id: game.id,
+                          name: game.name,
+                          slug: (game as any).slug ?? '',
+                          background_image: game.background_image,
+                          metacritic: game.metacritic ?? null,
+                          parent_platforms: game.parent_platforms,
+                        }}
+                      />
                       {/* Favorite button */}
                       <FavoriteButton
                         game={{
