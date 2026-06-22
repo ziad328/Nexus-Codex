@@ -6,6 +6,9 @@ import CriticScore from '../shared/CriticScore';
 import PlatformIconList from '../shared/PlatformIconList';
 import getCroppedImageUrl from '../../services/image-url';
 import SmoothScrollbar from '../shared/SmoothScrollbar';
+import FavoriteButton from '../shared/FavoriteButton';
+import useShare from '../../hooks/useShare';
+import { Share2, Check, X } from 'lucide-react';
 
 interface Props {
   gameId: number | null;
@@ -15,6 +18,7 @@ interface Props {
 const GameDetailsModal: FC<Props> = ({ gameId, onClose }) => {
   const { data: game, isLoading, error } = useGameDetails(gameId);
   const { data: screenshots, isLoading: screenshotsLoading } = useScreenshots(gameId);
+  const { share, status: shareStatus } = useShare();
 
   useEffect(() => {
     if (gameId) {
@@ -77,6 +81,48 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose }) => {
                   <div className="flex items-center gap-3 mb-2">
                     <PlatformIconList platforms={game.parent_platforms?.map(p => p.platform) || []} />
                     <CriticScore score={game.metacritic} />
+                    <div className="ml-auto flex items-center gap-2">
+                      {/* Favorite button */}
+                      <FavoriteButton
+                        game={{
+                          id: game.id,
+                          name: game.name,
+                          slug: (game as any).slug ?? '',
+                          background_image: game.background_image,
+                          metacritic: game.metacritic ?? null,
+                          parent_platforms: game.parent_platforms,
+                        }}
+                        className="shadow-lg"
+                      />
+                      {/* Share button */}
+                      <button
+                        onClick={() => share({
+                          title: game.name,
+                          text: `Check out ${game.name} on Nexus Codex!`,
+                          url: `${window.location.origin}/?gameId=${gameId}`,
+                        })}
+                        className={`flex items-center gap-1.5 px-3 h-8 rounded-full text-xs font-semibold transition-all duration-300 shadow-lg ${
+                          shareStatus === 'copied'
+                            ? 'bg-green-500/20 text-green-400 ring-1 ring-green-500/40'
+                            : shareStatus === 'shared'
+                            ? 'bg-accent/20 text-accent ring-1 ring-accent/40'
+                            : shareStatus === 'error'
+                            ? 'bg-red-500/20 text-red-400 ring-1 ring-red-500/40'
+                            : 'bg-zinc-800/80 text-zinc-300 hover:text-white hover:bg-zinc-700'
+                        }`}
+                        title="Share this game"
+                      >
+                        {shareStatus === 'copied' ? (
+                          <><Check className="w-3.5 h-3.5" /> Copied!</>
+                        ) : shareStatus === 'shared' ? (
+                          <><Check className="w-3.5 h-3.5" /> Shared!</>
+                        ) : shareStatus === 'error' ? (
+                          <><X className="w-3.5 h-3.5" /> Failed</>  
+                        ) : (
+                          <><Share2 className="w-3.5 h-3.5" /> Share</>
+                        )}
+                      </button>
+                    </div>
                   </div>
                   <h1 className="text-3xl md:text-5xl font-bold text-white leading-tight tracking-tight">
                     {game.name}
