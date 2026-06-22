@@ -1,20 +1,22 @@
+import { useState } from 'react';
 import type { FC } from 'react';
 import { Heart, Search } from 'lucide-react';
 import Navbar from '../components/layout/Navbar';
 import useAppSelector from '../hooks/useAppSelector';
 import useAppDispatch from '../hooks/useAppDispatch';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import useSearchContext from '../hooks/useSearchContext';
 import GameCard from '../components/game/GameCard';
+import GameDetailsModal from '../components/game/GameDetailsModal';
 import ViewToggle from '../components/shared/ViewToggle';
 import { setViewMode } from '../store/uiSlice';
 
 const FavoritesPage: FC = () => {
   const favorites = useAppSelector((s) => s.favorites.items);
   const dispatch = useAppDispatch();
-  const navigate = useNavigate();
   const [searchQuery] = useSearchContext();
   const viewMode = useAppSelector((s) => s.ui.viewMode);
+  const [selectedGameId, setSelectedGameId] = useState<number | null>(null);
 
   const filteredFavorites = favorites.filter((game) =>
     game.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -22,6 +24,7 @@ const FavoritesPage: FC = () => {
 
   return (
     <div className="min-h-screen bg-background text-white flex flex-col font-sans selection:bg-accent selection:text-white">
+      <GameDetailsModal gameId={selectedGameId} onClose={() => setSelectedGameId(null)} />
       <Navbar />
 
       <main className="p-4 md:px-8 md:py-6 max-w-[1920px] mx-auto w-full grow">
@@ -50,10 +53,10 @@ const FavoritesPage: FC = () => {
             </div>
             <div className={viewMode === 'list' ? 'flex flex-col gap-2' : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6'}>
               {filteredFavorites.map((game) => (
-                <GameCard 
+                <GameCard
                   key={game.id}
-                  game={game as any} 
-                  onClick={(id) => navigate(`/?gameId=${id}`)} 
+                  game={game as any}
+                  onClick={(id) => setSelectedGameId(id)}
                   viewMode={viewMode}
                   isFavoritePage
                 />
