@@ -1,4 +1,5 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useOverlayScrollbars } from 'overlayscrollbars-react';
 import type { GameQuery, Genre } from './types';
 import Header from './components/layout/Header';
 import Sidebar from './components/layout/Sidebar';
@@ -10,6 +11,23 @@ function App() {
   const [gameQuery, setGameQuery] = useState<GameQuery>({} as GameQuery);
   const [selectedGameId, setSelectedGameId] = useState<number | null>(null);
 
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const [initialize] = useOverlayScrollbars({
+    defer: true,
+    options: {
+      scrollbars: {
+        theme: 'os-theme-dark os-theme-nexus',
+        autoHide: 'scroll',
+        autoHideDelay: 1000,
+      }
+    }
+  });
+
+  useEffect(() => {
+    initialize(document.body);
+  }, [initialize]);
+
   // Memoize handlers to prevent infinite rerendering loops in child useEffects
   const handleSearch = useCallback((searchText: string) => {
     setGameQuery((prev) => ({ ...prev, searchText }));
@@ -17,10 +35,15 @@ function App() {
 
   const handleSelectGenre = useCallback((genre: Genre | null) => {
     setGameQuery((prev) => ({ ...prev, genre }));
+    setIsMobileMenuOpen(false); // Auto-close drawer on mobile selection
   }, []);
 
   const handleCloseModal = useCallback(() => {
     setSelectedGameId(null);
+  }, []);
+
+  const handleMenuToggle = useCallback(() => {
+    setIsMobileMenuOpen((prev) => !prev);
   }, []);
 
   return (
@@ -32,16 +55,29 @@ function App() {
       />
 
       {/* Header with Search */}
-      <Header onSearch={handleSearch} />
+      <Header onSearch={handleSearch} onMenuToggle={handleMenuToggle} />
       
       {/* Main Layout */}
-      <main className="flex flex-col lg:flex-row p-4 md:px-8 md:py-6 max-w-[1920px] mx-auto w-full grow">
+      <main className="flex flex-col lg:flex-row p-4 md:px-8 md:py-6 max-w-[1920px] mx-auto w-full grow relative">
         
-        {/* Sidebar for Genres */}
-        <Sidebar 
-          selectedGenre={gameQuery.genre || null} 
-          onSelectGenre={handleSelectGenre} 
-        />
+        {/* Mobile Drawer Backdrop */}
+        {isMobileMenuOpen && (
+          <div 
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 lg:hidden"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+        )}
+
+        {/* Sidebar for Genres (Drawer on Mobile, Static on Desktop) */}
+        <div className={`
+          fixed inset-y-0 left-0 z-50 w-72 bg-zinc-950 p-6 shadow-2xl transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:z-0 lg:w-auto lg:bg-transparent lg:p-0 lg:shadow-none
+          ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+        `}>
+          <Sidebar 
+            selectedGenre={gameQuery.genre || null} 
+            onSelectGenre={handleSelectGenre} 
+          />
+        </div>
         
         {/* Content Area */}
         <div className="grow flex flex-col w-full min-w-0">

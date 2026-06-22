@@ -32,4 +32,16 @@
   .animate-shimmer {
     animation: shimmer 1.5s infinite;
   }
+
+  /* OverlayScrollbars Nexus Theme */
+  .os-theme-dark.os-theme-nexus {
+    --os-size: 6px !important;
+    --os-padding-perpendicular: 0 !important;
+    --os-padding-axis: 0 !important;
+    --os-track-border-radius: 10px !important;
+    --os-handle-border-radius: 10px !important;
+    --os-handle-bg: rgba(220, 38, 38, 0.6) !important; /* crimson red-600 */
+    --os-handle-bg-hover: rgba(220, 38, 38, 0.9) !important;
+    --os-handle-bg-active: rgba(220, 38, 38, 1) !important;
+  }
 }
