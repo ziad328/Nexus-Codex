@@ -9,8 +9,9 @@ import SmoothScrollbar from '../shared/SmoothScrollbar';
 import FavoriteButton from '../shared/FavoriteButton';
 import CollectionButton from '../shared/CollectionButton';
 import useShare from '../../hooks/useShare';
-import { Share2, Check, X } from 'lucide-react';
+import { Share2, Check, X, ExternalLink } from 'lucide-react';
 import useGameTrailers from '../../hooks/useGameTrailers';
+import useGameStores from '../../hooks/useGameStores';
 import SimilarGamesCarousel from './SimilarGamesCarousel';
 import CustomVideoPlayer from '../shared/CustomVideoPlayer';
 
@@ -24,11 +25,11 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
   const { data: game, isLoading, error } = useGameDetails(gameId);
   const { data: screenshots, isLoading: screenshotsLoading } = useScreenshots(gameId);
   const { data: trailers, isLoading: trailersLoading } = useGameTrailers(gameId);
+  const { data: storeLinks } = useGameStores(gameId);
   const { share, status: shareStatus } = useShare();
   const [accentColor, setAccentColor] = useState<string | null>(null);
   const heroImgRef = useRef<HTMLImageElement>(null);
 
-  // Reset accent color on game change
   useEffect(() => {
     setAccentColor(null);
   }, [gameId]);
@@ -212,7 +213,6 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
                     <div>
                       <h2 className="text-lg font-semibold text-zinc-100 mb-3">Gallery</h2>
                       
-                      {/* Trailers */}
                       {!trailersLoading && trailers.length > 0 && (
                         <div className="mb-4">
                           <CustomVideoPlayer 
@@ -255,6 +255,30 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
                       <p className="text-zinc-500 text-xs font-semibold uppercase tracking-widest mb-1">Publisher</p>
                       <p className="text-zinc-100 text-sm font-medium">{game.publishers?.map(p => p.name).join(', ') || '—'}</p>
                     </div>
+
+                    {storeLinks.length > 0 && (
+                      <div className="pt-2 border-t border-white/5">
+                        <p className="text-zinc-500 text-xs font-semibold uppercase tracking-widest mb-3">Where to Buy</p>
+                        <div className="flex flex-col gap-2">
+                          {storeLinks.map(link => {
+                            const storeInfo = game.stores?.find(s => s.store.id === link.store_id)?.store;
+                            if (!storeInfo) return null;
+                            return (
+                              <a
+                                key={link.id}
+                                href={link.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-800/80 hover:bg-zinc-700 border border-white/5 hover:border-accent/40 transition-all group"
+                              >
+                                <span className="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">{storeInfo.name}</span>
+                                <ExternalLink className="w-4 h-4 text-zinc-500 group-hover:text-accent transition-colors" />
+                              </a>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 

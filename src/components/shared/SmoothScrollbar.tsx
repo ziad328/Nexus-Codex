@@ -13,8 +13,8 @@ const SmoothScrollbar: FC<Props> = ({ children, className }) => {
       className={className}
       options={{
         scrollbars: {
-          theme: 'os-theme-dark os-theme-nexus', // extend built-in dark theme
-          autoHide: 'scroll', // hide when not scrolling
+          theme: 'os-theme-dark os-theme-nexus',
+          autoHide: 'scroll',
           autoHideDelay: 1000,
         },
       }}

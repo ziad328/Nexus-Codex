@@ -124,7 +124,7 @@ const CustomVideoPlayer: FC<Props> = ({ src, poster }) => {
       </div>
 
       {/* Bottom Controls */}
-      <div className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 via-black/50 to-transparent transition-opacity duration-300 ${(isHovered || !isPlaying) ? 'opacity-100' : 'opacity-0'}`}>
+      <div className={`absolute bottom-0 left-0 right-0 p-4 bg-linear-to-t from-black/90 via-black/50 to-transparent transition-opacity duration-300 ${(isHovered || !isPlaying) ? 'opacity-100' : 'opacity-0'}`}>
         
         {/* Progress Bar */}
         <div 
@@ -132,7 +132,7 @@ const CustomVideoPlayer: FC<Props> = ({ src, poster }) => {
           onClick={handleSeek}
         >
           <div 
-            className="absolute top-0 left-0 bottom-0 bg-accent rounded-full transition-all group-hover/bar:h-2 -mt-[1px] group-hover/bar:-mt-0.5"
+            className="absolute top-0 left-0 bottom-0 bg-accent rounded-full transition-all group-hover/bar:h-2 -mt-px group-hover/bar:-mt-0.5"
             style={{ width: `${progress}%` }}
           />
         </div>

@@ -16,8 +16,6 @@ function HomePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { genreSlug } = useParams<{ genreSlug?: string }>();
   const [gameQuery, setGameQuery] = useState<GameQuery>({ genreSlug });
-  
-  // Keep gameQuery synced with the URL parameter
   useEffect(() => {
     setGameQuery(prev => ({ ...prev, genreSlug }));
   }, [genreSlug]);
@@ -38,14 +36,11 @@ function HomePage() {
   const genreName = genreSlug ? genres?.find(g => g.slug === genreSlug)?.name || 'Loading...' : 'All Games';
 
   useEffect(() => {
-    // The main window scroll event will not fire when using SmoothScrollbar 
-    // on the main wrapping div. We need to find the os-viewport element.
     const handleScroll = (e: Event) => {
       const target = e.target as HTMLElement;
       setShowScrollButton(target.scrollTop > 600);
     };
 
-    // Wait a brief moment to ensure the OverlayScrollbars DOM is initialized
     const timer = setTimeout(() => {
       const viewport = document.querySelector('.main-scroll-container .os-viewport');
       if (viewport) {

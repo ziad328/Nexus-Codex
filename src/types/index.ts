@@ -47,11 +47,25 @@ export interface Developer {
   name: string;
 }
 
+export interface Store {
+  id: number;
+  name: string;
+  slug: string;
+  domain: string;
+}
+
+export interface GameStore {
+  id: number;
+  store_id: number;
+  url: string;
+}
+
 export interface GameDetails extends Game {
   description_raw: string;
   released: string;
   publishers: Publisher[];
   developers: Developer[];
+  stores: { id: number; store: Store }[];
 }
 
 export interface Screenshot {

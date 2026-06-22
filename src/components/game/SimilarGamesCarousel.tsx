@@ -28,7 +28,6 @@ const SimilarGamesCarousel: FC<Props> = ({ gameId, onSelectGame }) => {
 
   const scroll = (direction: 'left' | 'right') => {
     const el = scrollRef.current;
-    // Scroll by the width of one card (~280px) plus gap (16px)
     if (el) el.scrollBy({ left: direction === 'right' ? 296 : -296, behavior: 'smooth' });
   };
 
@@ -47,7 +46,7 @@ const SimilarGamesCarousel: FC<Props> = ({ gameId, onSelectGame }) => {
       {canScrollLeft && (
         <button
           onClick={() => scroll('left')}
-          className="absolute left-0 top-[65%] -translate-y-1/2 -translate-x-4 z-10 w-10 h-10 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 hover:text-white rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(0,0,0,0.5)] transition-all duration-200 cursor-pointer hidden md:flex"
+          className="absolute left-0 top-[65%] -translate-y-1/2 -translate-x-4 z-10 w-10 h-10 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 hover:text-white rounded-full flex max-md:hidden items-center justify-center shadow-[0_0_15px_rgba(0,0,0,0.5)] transition-all duration-200 cursor-pointer"
           aria-label="Scroll left"
         >
           <ChevronLeft className="w-5 h-5" />
@@ -63,7 +62,7 @@ const SimilarGamesCarousel: FC<Props> = ({ gameId, onSelectGame }) => {
           <button 
             key={game.id} 
             onClick={() => onSelectGame?.(game.id, game)}
-            className="text-left min-w-[280px] max-w-[280px] shrink-0 snap-start bg-zinc-800/50 rounded-2xl overflow-hidden border border-white/5 hover:border-accent/30 transition-colors group cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent"
+            className="text-left min-w-70 max-w-70 shrink-0 snap-start bg-zinc-800/50 rounded-2xl overflow-hidden border border-white/5 hover:border-accent/30 transition-colors group cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent"
           >
             <div className="aspect-video relative overflow-hidden bg-zinc-900">
               <img 
@@ -85,7 +84,7 @@ const SimilarGamesCarousel: FC<Props> = ({ gameId, onSelectGame }) => {
       {canScrollRight && (
         <button
           onClick={() => scroll('right')}
-          className="absolute right-0 top-[65%] -translate-y-1/2 translate-x-4 z-10 w-10 h-10 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 hover:text-white rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(0,0,0,0.5)] transition-all duration-200 cursor-pointer hidden md:flex"
+          className="absolute right-0 top-[65%] -translate-y-1/2 translate-x-4 z-10 w-10 h-10 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 hover:text-white rounded-full flex max-md:hidden items-center justify-center shadow-[0_0_15px_rgba(0,0,0,0.5)] transition-all duration-200 cursor-pointer"
           aria-label="Scroll right"
         >
           <ChevronRight className="w-5 h-5" />
