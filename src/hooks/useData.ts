@@ -13,6 +13,8 @@ const useData = <T>(
   const [isLoading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (!endpoint) return;
+
     const controller = new AbortController();
 
     const fetchData = async () => {
