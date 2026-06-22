@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useOverlayScrollbars } from 'overlayscrollbars-react';
+import { useSearchParams } from 'react-router-dom';
 import type { GameQuery, Genre } from '../types';
 import Navbar from '../components/layout/Navbar';
 import Sidebar from '../components/layout/Sidebar';
@@ -14,8 +15,14 @@ import useSearchContext from '../hooks/useSearchContext';
 import { addRecentlyViewed, setViewMode } from '../store/uiSlice';
 
 function HomePage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [gameQuery, setGameQuery] = useState<GameQuery>({} as GameQuery);
-  const [selectedGameId, setSelectedGameId] = useState<number | null>(null);
+  const [selectedGameId, setSelectedGameId] = useState<number | null>(
+    () => {
+      const id = searchParams.get('gameId');
+      return id ? Number(id) : null;
+    }
+  );
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
 
@@ -61,10 +68,14 @@ function HomePage() {
 
   const handleSelectGame = useCallback((id: number, game: { name: string; slug: string; background_image: string; metacritic: number | null }) => {
     setSelectedGameId(id);
+    setSearchParams({ gameId: String(id) }, { replace: true });
     dispatch(addRecentlyViewed({ id, ...game }));
-  }, [dispatch]);
+  }, [dispatch, setSearchParams]);
 
-  const handleCloseModal = useCallback(() => setSelectedGameId(null), []);
+  const handleCloseModal = useCallback(() => {
+    setSelectedGameId(null);
+    setSearchParams({}, { replace: true });
+  }, [setSearchParams]);
   const handleMenuToggle = useCallback(() => setIsMobileMenuOpen((prev) => !prev), []);
 
   return (
