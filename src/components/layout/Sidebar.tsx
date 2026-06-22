@@ -5,7 +5,7 @@ import GenreSkeleton from '../shared/GenreSkeleton';
 
 interface Props {
   selectedGenre: Genre | null;
-  onSelectGenre: (genre: Genre) => void;
+  onSelectGenre: (genre: Genre | null) => void;
 }
 
 const Sidebar: FC<Props> = ({ selectedGenre, onSelectGenre }) => {
@@ -21,6 +21,26 @@ const Sidebar: FC<Props> = ({ selectedGenre, onSelectGenre }) => {
       <div className="flex flex-col gap-1">
         {isLoading && Array.from({ length: 15 }).map((_, i) => <GenreSkeleton key={i} />)}
         
+        {/* All Games Button */}
+        {!isLoading && (
+          <button
+            onClick={() => onSelectGenre(null)}
+            className={`flex items-center gap-3 w-full p-2 transition-all duration-200 hover:bg-background-card clip-diagonal-btn ${
+              selectedGenre === null 
+                ? 'bg-background-card border-l-4 border-accent text-white' 
+                : 'text-gray-400 border-l-4 border-transparent'
+            }`}
+          >
+            <div className="w-8 h-8 shrink-0 bg-gray-800 overflow-hidden clip-diagonal-btn flex items-center justify-center">
+              <span className="text-xl font-bold">∞</span>
+            </div>
+            <span className={`text-left text-lg ${selectedGenre === null ? 'font-bold' : 'font-normal'}`}>
+              All Games
+            </span>
+          </button>
+        )}
+
+        {/* Dynamic Genres */}
         {data.map(genre => (
           <button
             key={genre.id}

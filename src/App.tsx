@@ -13,7 +13,7 @@ function App() {
     setGameQuery((prev) => ({ ...prev, searchText }));
   }, []);
 
-  const handleSelectGenre = useCallback((genre: Genre) => {
+  const handleSelectGenre = useCallback((genre: Genre | null) => {
     setGameQuery((prev) => ({ ...prev, genre }));
   }, []);
 
