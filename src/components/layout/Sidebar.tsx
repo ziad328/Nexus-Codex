@@ -1,9 +1,11 @@
 import { memo } from 'react';
 import type { FC } from 'react';
-import { Gamepad2 } from 'lucide-react';
+import { Gamepad2, Heart } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import useGenres from '../../hooks/useGenres';
 import type { Genre } from '../../types';
 import GenreSkeleton from '../shared/GenreSkeleton';
+import useAppSelector from '../../hooks/useAppSelector';
 
 interface Props {
   selectedGenre: Genre | null;
@@ -12,11 +14,35 @@ interface Props {
 
 const Sidebar: FC<Props> = ({ selectedGenre, onSelectGenre }) => {
   const { data, isLoading, error } = useGenres();
+  const location = useLocation();
+  const favCount = useAppSelector((s) => s.favorites.items.length);
 
   if (error) return null;
 
   return (
     <aside className="w-full lg:w-64 shrink-0 lg:pr-8">
+
+      <Link
+        to="/favorites"
+        className={`flex items-center gap-3 w-full p-2 mb-4 rounded-xl transition-all duration-300 hover:bg-background-card group ${
+          location.pathname === '/favorites'
+            ? 'bg-background-card ring-1 ring-accent text-white shadow-[0_0_15px_rgba(239,68,68,0.1)]'
+            : 'text-gray-400'
+        }`}
+      >
+        <div className="w-8 h-8 shrink-0 bg-zinc-800 rounded-lg flex items-center justify-center transition-colors">
+          <Heart className={`w-4 h-4 ${location.pathname === '/favorites' ? 'fill-accent text-accent' : 'group-hover:text-accent'}`} />
+        </div>
+        <span className={`text-left text-lg ${location.pathname === '/favorites' ? 'font-bold' : 'font-normal'}`}>
+          Favorites
+        </span>
+        {favCount > 0 && (
+          <span className="ml-auto text-xs font-bold bg-accent/20 text-accent px-2 py-0.5 rounded-full">
+            {favCount}
+          </span>
+        )}
+      </Link>
+
       <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-4 px-2">
         Genres
       </h2>
