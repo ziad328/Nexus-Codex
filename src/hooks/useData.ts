@@ -38,7 +38,7 @@ const useData = <T>(
 
     return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [endpoint, requestConfig, ...deps]);
+  }, [endpoint, ...deps]);
 
   return { data, error, isLoading };
 };

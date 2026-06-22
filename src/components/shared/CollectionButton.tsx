@@ -3,6 +3,7 @@ import type { FC, ElementType } from 'react';
 import { Bookmark, Check, Clock, Trophy, Star, ListPlus } from 'lucide-react';
 import useAppSelector from '../../hooks/useAppSelector';
 import useAppDispatch from '../../hooks/useAppDispatch';
+import { shallowEqual } from 'react-redux';
 import { addToCollection, removeFromCollection } from '../../store/collectionsSlice';
 import type { CollectionName, FavoriteGame } from '../../types';
 
@@ -28,7 +29,8 @@ const CollectionButton: FC<Props> = ({ game, className = '', dropDirection = 'do
   const memberOf = useAppSelector((s) =>
     s.collections.lists
       .filter((c) => c.games.some((g) => g.id === game.id))
-      .map((c) => c.name)
+      .map((c) => c.name),
+    shallowEqual
   );
 
   const isInAny = memberOf.length > 0;

@@ -33,6 +33,8 @@ const useGames = (gameQuery: GameQuery) => {
             search: gameQuery.searchText || undefined,
             developers: gameQuery.developers,
             publishers: gameQuery.publishers,
+            stores: gameQuery.storeId,
+            tags: gameQuery.tagSlug,
             page: page,
           },
           signal: controller.signal,
@@ -66,6 +68,8 @@ const useGames = (gameQuery: GameQuery) => {
     gameQuery.searchText, 
     gameQuery.developers,
     gameQuery.publishers,
+    gameQuery.storeId,
+    gameQuery.tagSlug,
     page
   ]);
 
@@ -74,13 +78,16 @@ const useGames = (gameQuery: GameQuery) => {
     setPage(1);
     setHasNextPage(true);
     setData([]);
+    setFetchingNextPage(false);
   }, [
     gameQuery.genreSlug, 
     gameQuery.platform?.id, 
     gameQuery.sortOrder, 
     gameQuery.searchText,
     gameQuery.developers,
-    gameQuery.publishers
+    gameQuery.publishers,
+    gameQuery.storeId,
+    gameQuery.tagSlug
   ]);
 
   return { 

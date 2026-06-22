@@ -82,12 +82,18 @@ const RecentlyViewed: FC<Props> = ({ onSelectGame }) => {
               title={game.name}
             >
               <div className="w-24 h-14 rounded-xl overflow-hidden ring-1 ring-zinc-800 group-hover:ring-accent/50 transition-all duration-200">
-                <img
-                  src={getCroppedImageUrl(game.background_image)}
-                  alt={game.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  loading="lazy"
-                />
+                {game.background_image ? (
+                  <img
+                    src={getCroppedImageUrl(game.background_image)}
+                    alt={game.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-zinc-800 flex items-center justify-center">
+                    <span className="text-[8px] text-zinc-500">No Img</span>
+                  </div>
+                )}
               </div>
               <p className="text-[10px] text-zinc-500 group-hover:text-zinc-300 mt-1 truncate text-left transition-colors">
                 {game.name}
