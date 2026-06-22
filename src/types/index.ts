@@ -60,3 +60,20 @@ export interface Screenshot {
   width: number;
   height: number;
 }
+
+export interface FavoriteGame {
+  id: number;
+  name: string;
+  slug: string;
+  background_image: string;
+  metacritic: number | null;
+}
+
+export type ViewMode = 'grid' | 'list';
+
+export type CollectionName = 'playing' | 'beaten' | 'backlog' | 'wishlist';
+
+export interface Collection {
+  name: CollectionName;
+  games: FavoriteGame[];
+}
