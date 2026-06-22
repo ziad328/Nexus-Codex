@@ -61,13 +61,11 @@ const GameGrid: FC<Props> = ({ gameQuery, onSelectGame }) => {
           </div>
         )}
 
-        {/* Loading more skeletons */}
         {isFetchingNextPage && (
           skeletons.slice(0, 5).map((_, index) => <GameCardSkeleton key={`next-page-skeleton-${index}`} />)
         )}
       </div>
 
-      {/* Invisible observer trigger */}
       {hasNextPage && !isLoading && (
         <div ref={loadMoreRef} className="h-10 w-full mt-4" />
       )}

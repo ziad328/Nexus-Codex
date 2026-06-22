@@ -10,7 +10,6 @@ const SearchInput: FC<Props> = ({ onSearch }) => {
   const [value, setValue] = useState('');
   const isMounted = useRef(false);
 
-  // Debounce effect
   useEffect(() => {
     if (!isMounted.current) {
       isMounted.current = true;
@@ -19,7 +18,7 @@ const SearchInput: FC<Props> = ({ onSearch }) => {
 
     const timeoutId = setTimeout(() => {
       onSearch(value);
-    }, 500); // 500ms debounce
+    }, 500);
     return () => clearTimeout(timeoutId);
   }, [value, onSearch]);
 
