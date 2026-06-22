@@ -9,6 +9,8 @@ import useAppDispatch from '../hooks/useAppDispatch';
 import useSearchContext from '../hooks/useSearchContext';
 import { setViewMode } from '../store/uiSlice';
 import PlatformSelector from '../components/shared/PlatformSelector';
+import StoreSelector from '../components/shared/StoreSelector';
+import TagSelector from '../components/shared/TagSelector';
 
 function DeveloperPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -69,6 +71,14 @@ function DeveloperPage() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
+            <TagSelector 
+              selectedTagSlug={gameQuery.tagSlug || null} 
+              onSelectTag={(tagSlug) => setGameQuery({ ...gameQuery, tagSlug: tagSlug || undefined })} 
+            />
+            <StoreSelector 
+              selectedStoreId={gameQuery.storeId || null} 
+              onSelectStore={(storeId) => setGameQuery({ ...gameQuery, storeId: storeId || undefined })} 
+            />
             <PlatformSelector 
               selectedPlatform={gameQuery.platform} 
               onSelectPlatform={(platform) => setGameQuery({ ...gameQuery, platform })} 
