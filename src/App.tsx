@@ -19,12 +19,16 @@ function App() {
     setGameQuery((prev) => ({ ...prev, genre }));
   }, []);
 
+  const handleCloseModal = useCallback(() => {
+    setSelectedGameId(null);
+  }, []);
+
   return (
     <div className="min-h-screen bg-background text-white flex flex-col font-sans selection:bg-accent selection:text-white">
       {/* Game Details Modal Overlay */}
       <GameDetailsModal 
         gameId={selectedGameId} 
-        onClose={() => setSelectedGameId(null)} 
+        onClose={handleCloseModal} 
       />
 
       {/* Header with Search */}
@@ -42,11 +46,12 @@ function App() {
         {/* Content Area */}
         <div className="grow flex flex-col w-full min-w-0">
           
-          {/* Dynamic Heading based on genre selection */}
-          <div className="mb-6 pl-4 border-l-4 border-accent rounded-sm">
-            <h1 className="text-4xl md:text-5xl font-black uppercase tracking-widest text-white leading-none">
+          {/* Dynamic Heading */}
+          <div className="mb-6">
+            <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight">
               {gameQuery.genre?.name || 'All Games'}
             </h1>
+            <p className="text-zinc-500 text-sm mt-1">{gameQuery.searchText ? `Results for "${gameQuery.searchText}"` : 'Discover your next obsession'}</p>
           </div>
           
           {/* Game Grid Component */}

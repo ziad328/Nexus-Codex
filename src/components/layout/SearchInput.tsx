@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { FC } from 'react';
 import { Search } from 'lucide-react';
 
@@ -8,9 +8,15 @@ interface Props {
 
 const SearchInput: FC<Props> = ({ onSearch }) => {
   const [value, setValue] = useState('');
+  const isMounted = useRef(false);
 
   // Debounce effect
   useEffect(() => {
+    if (!isMounted.current) {
+      isMounted.current = true;
+      return;
+    }
+
     const timeoutId = setTimeout(() => {
       onSearch(value);
     }, 500); // 500ms debounce
@@ -18,7 +24,7 @@ const SearchInput: FC<Props> = ({ onSearch }) => {
   }, [value, onSearch]);
 
   return (
-    <div className="relative w-full max-w-2xl">
+    <div className="relative w-full">
       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
         <Search className="h-5 w-5 text-gray-400" />
       </div>

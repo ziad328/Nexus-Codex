@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { FC } from 'react';
 import useGames from '../../hooks/useGames';
 import type { GameQuery } from '../../types';
@@ -36,4 +37,4 @@ const GameGrid: FC<Props> = ({ gameQuery, onSelectGame }) => {
   );
 };
 
-export default GameGrid;
+export default memo(GameGrid);

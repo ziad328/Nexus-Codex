@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { FC } from 'react';
 import useGenres from '../../hooks/useGenres';
 import type { Genre } from '../../types';
@@ -15,10 +16,10 @@ const Sidebar: FC<Props> = ({ selectedGenre, onSelectGenre }) => {
 
   return (
     <aside className="w-full lg:w-64 shrink-0 lg:pr-8 mb-8 lg:mb-0">
-      <h2 className="text-2xl font-black mb-6 tracking-widest uppercase border-b-2 border-background-card pb-2">
+      <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-4 px-2">
         Genres
       </h2>
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-0.5">
         {isLoading && Array.from({ length: 15 }).map((_, i) => <GenreSkeleton key={i} />)}
         
         {/* All Games Button */}
@@ -68,4 +69,4 @@ const Sidebar: FC<Props> = ({ selectedGenre, onSelectGenre }) => {
   );
 };
 
-export default Sidebar;
+export default memo(Sidebar);

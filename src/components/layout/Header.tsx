@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { FC } from 'react';
 import SearchInput from './SearchInput';
 
@@ -26,4 +27,4 @@ const Header: FC<Props> = ({ onSearch }) => {
   );
 };
 
-export default Header;
+export default memo(Header);
