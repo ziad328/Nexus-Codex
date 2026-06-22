@@ -29,13 +29,35 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose }) => {
   }, [gameId]);
 
   useEffect(() => {
-    if (gameId) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
+    if (!gameId) return;
+
+    const handleScrollPrevent = (e: WheelEvent | TouchEvent) => {
+      const modal = document.getElementById('game-modal-content');
+      // If the scroll target is inside the modal, allow it to scroll
+      if (modal && modal.contains(e.target as Node)) {
+        return;
+      }
+      e.preventDefault();
+    };
+
+    const handleKeyPrevent = (e: KeyboardEvent) => {
+      if (['ArrowUp', 'ArrowDown', 'Space', 'PageUp', 'PageDown', 'Home', 'End'].includes(e.code)) {
+        const modal = document.getElementById('game-modal-content');
+        if (modal && modal.contains(e.target as Node)) {
+          return;
+        }
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener('wheel', handleScrollPrevent, { passive: false });
+    window.addEventListener('touchmove', handleScrollPrevent, { passive: false });
+    window.addEventListener('keydown', handleKeyPrevent, { passive: false });
+
     return () => {
-      document.body.style.overflow = '';
+      window.removeEventListener('wheel', handleScrollPrevent);
+      window.removeEventListener('touchmove', handleScrollPrevent);
+      window.removeEventListener('keydown', handleKeyPrevent);
     };
   }, [gameId]);
 
@@ -61,6 +83,7 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose }) => {
       />
 
       <div
+        id="game-modal-content"
         className="relative w-full max-w-5xl max-h-[92vh] bg-zinc-900 rounded-3xl overflow-hidden ring-1 ring-white/5 flex flex-col z-10 transition-shadow duration-700"
         style={{
           boxShadow: accentColor

@@ -32,9 +32,9 @@ export interface FetchResponse<T> {
 
 export interface GameQuery {
   genreSlug?: string;
-  platform: Platform | null;
-  sortOrder: string;
-  searchText: string;
+  platform?: Platform | null;
+  sortOrder?: string;
+  searchText?: string;
 }
 
 export interface Publisher {

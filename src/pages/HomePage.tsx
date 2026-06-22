@@ -10,6 +10,7 @@ import useAppDispatch from '../hooks/useAppDispatch';
 import useSearchContext from '../hooks/useSearchContext';
 import { addRecentlyViewed, setViewMode } from '../store/uiSlice';
 import useGenres from '../hooks/useGenres';
+import PlatformSelector from '../components/shared/PlatformSelector';
 
 function HomePage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -42,17 +43,7 @@ function HomePage() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Lock body scroll when modal is open
-  useEffect(() => {
-    if (selectedGameId !== null) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [selectedGameId]);
+
 
   const handleSelectGame = useCallback((id: number, game: { name: string; slug: string; background_image: string; metacritic: number | null }) => {
     setSelectedGameId(id);
@@ -72,7 +63,7 @@ function HomePage() {
       <div className="grow flex flex-col w-full min-w-0">
         <RecentlyViewed onSelectGame={setSelectedGameId} />
 
-        <div className="mb-6 flex items-end justify-between gap-4">
+        <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-medieval font-bold text-white leading-tight">
               {genreName}
@@ -81,7 +72,13 @@ function HomePage() {
               {searchText ? `Results for "${searchText}"` : 'Discover your next obsession'}
             </p>
           </div>
-          <ViewToggle viewMode={viewMode} onToggle={(mode) => dispatch(setViewMode(mode))} />
+          <div className="flex flex-wrap items-center gap-3">
+            <PlatformSelector 
+              selectedPlatform={gameQuery.platform} 
+              onSelectPlatform={(platform) => setGameQuery({ ...gameQuery, platform })} 
+            />
+            <ViewToggle viewMode={viewMode} onToggle={(mode) => dispatch(setViewMode(mode))} />
+          </div>
         </div>
 
         <GameGrid gameQuery={{ ...gameQuery, searchText }} onSelectGame={handleSelectGame} viewMode={viewMode} />
