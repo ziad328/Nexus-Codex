@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useOverlayScrollbars } from 'overlayscrollbars-react';
 import type { GameQuery, Genre } from '../types';
-import Header from '../components/layout/Header';
+import Navbar from '../components/layout/Navbar';
 import Sidebar from '../components/layout/Sidebar';
 import GameGrid from '../components/game/GameGrid';
 import GameDetailsModal from '../components/game/GameDetailsModal';
@@ -10,6 +10,7 @@ import ViewToggle from '../components/shared/ViewToggle';
 import RecentlyViewed from '../components/shared/RecentlyViewed';
 import useAppSelector from '../hooks/useAppSelector';
 import useAppDispatch from '../hooks/useAppDispatch';
+import useSearchContext from '../hooks/useSearchContext';
 import { addRecentlyViewed, setViewMode } from '../store/uiSlice';
 
 function HomePage() {
@@ -20,6 +21,7 @@ function HomePage() {
 
   const dispatch = useAppDispatch();
   const viewMode = useAppSelector((s) => s.ui.viewMode);
+  const [searchText] = useSearchContext();
 
   useEffect(() => {
     const handleScroll = () => setShowScrollButton(window.scrollY > 600);
@@ -50,9 +52,7 @@ function HomePage() {
 
   useEffect(() => { initialize(document.body); }, [initialize]);
 
-  const handleSearch = useCallback((searchText: string) => {
-    setGameQuery((prev) => ({ ...prev, searchText }));
-  }, []);
+
 
   const handleSelectGenre = useCallback((genre: Genre | null) => {
     setGameQuery((prev) => ({ ...prev, genre }));
@@ -71,7 +71,7 @@ function HomePage() {
     <div className="min-h-screen bg-background text-white flex flex-col font-sans selection:bg-accent selection:text-white">
       <GameDetailsModal gameId={selectedGameId} onClose={handleCloseModal} />
 
-      <Header onSearch={handleSearch} onMenuToggle={handleMenuToggle} />
+      <Navbar onMenuToggle={handleMenuToggle} />
 
       <main className="flex flex-col lg:flex-row p-4 md:px-8 md:py-6 max-w-[1920px] mx-auto w-full grow relative">
 
@@ -107,13 +107,13 @@ function HomePage() {
                 {gameQuery.genre?.name || 'All Games'}
               </h1>
               <p className="text-zinc-500 text-sm mt-1">
-                {gameQuery.searchText ? `Results for "${gameQuery.searchText}"` : 'Discover your next obsession'}
+                {searchText ? `Results for "${searchText}"` : 'Discover your next obsession'}
               </p>
             </div>
             <ViewToggle viewMode={viewMode} onToggle={(mode) => dispatch(setViewMode(mode))} />
           </div>
 
-          <GameGrid gameQuery={gameQuery} onSelectGame={handleSelectGame} viewMode={viewMode} />
+          <GameGrid gameQuery={{ ...gameQuery, searchText }} onSelectGame={handleSelectGame} viewMode={viewMode} />
         </div>
       </main>
 
