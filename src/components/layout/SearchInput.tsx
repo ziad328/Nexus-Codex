@@ -1,14 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
 import type { FC } from 'react';
 import { Search, X } from 'lucide-react';
+import useSearchContext from '../../hooks/useSearchContext';
 
-interface Props {
-  onSearch: (searchText: string) => void;
-}
-
-const SearchInput: FC<Props> = ({ onSearch }) => {
-  const [value, setValue] = useState('');
+const SearchInput: FC = () => {
+  const [query, setQuery] = useSearchContext();
+  const [value, setValue] = useState(query);
   const isMounted = useRef(false);
+
+  // Sync local input with global query when route changes
+  useEffect(() => {
+    setValue(query);
+  }, [query]);
 
   useEffect(() => {
     if (!isMounted.current) {
@@ -17,13 +20,14 @@ const SearchInput: FC<Props> = ({ onSearch }) => {
     }
 
     const timeoutId = setTimeout(() => {
-      onSearch(value);
+      setQuery(value);
     }, 500);
+    
     return () => clearTimeout(timeoutId);
-  }, [value, onSearch]);
+  }, [value, setQuery]);
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full max-w-2xl">
       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
         <Search className="h-5 w-5 text-gray-400" />
       </div>
@@ -36,8 +40,11 @@ const SearchInput: FC<Props> = ({ onSearch }) => {
       />
       {value && (
         <button
-          onClick={() => setValue('')}
-          className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white transition-colors"
+          onClick={() => {
+            setValue('');
+            setQuery('');
+          }}
+          className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white transition-colors cursor-pointer"
           aria-label="Clear search"
         >
           <X className="h-5 w-5" />

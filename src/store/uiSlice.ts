@@ -7,11 +7,13 @@ const MAX_RECENT = 10;
 interface UiState {
   viewMode: ViewMode;
   recentlyViewed: FavoriteGame[];
+  searchQueries: Record<string, string>;
 }
 
 const initialState: UiState = {
   viewMode: 'grid',
   recentlyViewed: [],
+  searchQueries: {},
 };
 
 const uiSlice = createSlice({
@@ -20,6 +22,12 @@ const uiSlice = createSlice({
   reducers: {
     setViewMode(state, action: PayloadAction<ViewMode>) {
       state.viewMode = action.payload;
+    },
+    setSearchQuery(state, action: PayloadAction<{ path: string; text: string }>) {
+      if (!state.searchQueries) {
+        state.searchQueries = {};
+      }
+      state.searchQueries[action.payload.path] = action.payload.text;
     },
     addRecentlyViewed(state, action: PayloadAction<FavoriteGame>) {
       state.recentlyViewed = [
@@ -33,5 +41,5 @@ const uiSlice = createSlice({
   },
 });
 
-export const { setViewMode, addRecentlyViewed, clearRecentlyViewed } = uiSlice.actions;
+export const { setViewMode, setSearchQuery, addRecentlyViewed, clearRecentlyViewed } = uiSlice.actions;
 export default uiSlice.reducer;
