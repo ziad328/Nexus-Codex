@@ -67,7 +67,7 @@ const GameGrid: FC<Props> = ({ gameQuery, onSelectGame, viewMode = 'grid' }) => 
         )}
       </div>
 
-      {hasNextPage && !isLoading && (
+      {hasNextPage && !isLoading && data.length > 0 && (
         <div ref={loadMoreRef} className="h-10 w-full mt-4" />
       )}
     </div>
