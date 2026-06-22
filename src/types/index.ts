@@ -61,6 +61,16 @@ export interface Screenshot {
   height: number;
 }
 
+export interface Trailer {
+  id: number;
+  name: string;
+  preview: string;
+  data: {
+    480: string;
+    max: string;
+  };
+}
+
 export interface FavoriteGame {
   id: number;
   name: string;

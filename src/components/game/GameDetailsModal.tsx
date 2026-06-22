@@ -10,15 +10,20 @@ import FavoriteButton from '../shared/FavoriteButton';
 import CollectionButton from '../shared/CollectionButton';
 import useShare from '../../hooks/useShare';
 import { Share2, Check, X } from 'lucide-react';
+import useGameTrailers from '../../hooks/useGameTrailers';
+import SimilarGamesCarousel from './SimilarGamesCarousel';
+import CustomVideoPlayer from '../shared/CustomVideoPlayer';
 
 interface Props {
   gameId: number | null;
   onClose: () => void;
+  onSelectGame?: (id: number, game: any) => void;
 }
 
-const GameDetailsModal: FC<Props> = ({ gameId, onClose }) => {
+const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
   const { data: game, isLoading, error } = useGameDetails(gameId);
   const { data: screenshots, isLoading: screenshotsLoading } = useScreenshots(gameId);
+  const { data: trailers, isLoading: trailersLoading } = useGameTrailers(gameId);
   const { share, status: shareStatus } = useShare();
   const [accentColor, setAccentColor] = useState<string | null>(null);
   const heroImgRef = useRef<HTMLImageElement>(null);
@@ -206,6 +211,17 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose }) => {
                   {!screenshotsLoading && screenshots.length > 0 && (
                     <div>
                       <h2 className="text-lg font-semibold text-zinc-100 mb-3">Gallery</h2>
+                      
+                      {/* Trailers */}
+                      {!trailersLoading && trailers.length > 0 && (
+                        <div className="mb-4">
+                          <CustomVideoPlayer 
+                            src={trailers[0].data[480]} 
+                            poster={trailers[0].preview} 
+                          />
+                        </div>
+                      )}
+
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {screenshots.map(ss => (
                           <div key={ss.id} className="aspect-video rounded-xl overflow-hidden bg-zinc-800 hover:ring-2 hover:ring-accent/60 transition-all duration-300">
@@ -242,6 +258,10 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose }) => {
                   </div>
                 </div>
 
+              </div>
+              
+              <div className="px-6 pb-10 md:px-10">
+                <SimilarGamesCarousel gameId={game.id} onSelectGame={onSelectGame} />
               </div>
             </div>
           )}
