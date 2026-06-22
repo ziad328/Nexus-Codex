@@ -31,6 +31,8 @@ const useGames = (gameQuery: GameQuery) => {
             parent_platforms: gameQuery.platform?.id,
             ordering: gameQuery.sortOrder,
             search: gameQuery.searchText || undefined,
+            developers: gameQuery.developers,
+            publishers: gameQuery.publishers,
             page: page,
           },
           signal: controller.signal,
@@ -62,6 +64,8 @@ const useGames = (gameQuery: GameQuery) => {
     gameQuery.platform?.id, 
     gameQuery.sortOrder, 
     gameQuery.searchText, 
+    gameQuery.developers,
+    gameQuery.publishers,
     page
   ]);
 
@@ -74,7 +78,9 @@ const useGames = (gameQuery: GameQuery) => {
     gameQuery.genreSlug, 
     gameQuery.platform?.id, 
     gameQuery.sortOrder, 
-    gameQuery.searchText
+    gameQuery.searchText,
+    gameQuery.developers,
+    gameQuery.publishers
   ]);
 
   return { 

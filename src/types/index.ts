@@ -35,16 +35,20 @@ export interface GameQuery {
   platform?: Platform | null;
   sortOrder?: string;
   searchText?: string;
+  developers?: string;
+  publishers?: string;
 }
 
 export interface Publisher {
   id: number;
   name: string;
+  slug: string;
 }
 
 export interface Developer {
   id: number;
   name: string;
+  slug: string;
 }
 
 export interface Store {
