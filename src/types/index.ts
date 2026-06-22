@@ -67,6 +67,7 @@ export interface FavoriteGame {
   slug: string;
   background_image: string;
   metacritic: number | null;
+  parent_platforms?: PlatformInfo[];
 }
 
 export type ViewMode = 'grid' | 'list';

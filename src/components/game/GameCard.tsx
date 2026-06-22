@@ -5,20 +5,26 @@ import PlatformIconList from '../shared/PlatformIconList';
 import CriticScore from '../shared/CriticScore';
 import getCroppedImageUrl from '../../services/image-url';
 import FavoriteButton from '../shared/FavoriteButton';
+import { Trash2 } from 'lucide-react';
+import useAppDispatch from '../../hooks/useAppDispatch';
+import { removeFavorite } from '../../store/favoritesSlice';
 
 interface Props {
   game: Game;
   onClick: (id: number, game: { name: string; slug: string; background_image: string; metacritic: number | null }) => void;
   viewMode?: 'grid' | 'list';
+  isFavoritePage?: boolean;
 }
 
-const GameCard: FC<Props> = ({ game, onClick, viewMode = 'grid' }) => {
+const GameCard: FC<Props> = ({ game, onClick, viewMode = 'grid', isFavoritePage = false }) => {
+  const dispatch = useAppDispatch();
   const favoriteData = {
     id: game.id,
     name: game.name,
     slug: (game as any).slug ?? '',
     background_image: game.background_image,
     metacritic: game.metacritic ?? null,
+    parent_platforms: game.parent_platforms,
   };
 
   if (viewMode === 'list') {
@@ -43,7 +49,20 @@ const GameCard: FC<Props> = ({ game, onClick, viewMode = 'grid' }) => {
         </div>
         <div className="flex items-center gap-3 shrink-0">
           <CriticScore score={game.metacritic} />
-          <FavoriteButton game={favoriteData} />
+          {isFavoritePage ? (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                dispatch(removeFavorite(game.id));
+              }}
+              className="flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white"
+              title="Remove from favorites"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          ) : (
+            <FavoriteButton game={favoriteData} />
+          )}
         </div>
       </div>
     );
@@ -63,7 +82,20 @@ const GameCard: FC<Props> = ({ game, onClick, viewMode = 'grid' }) => {
         />
         <div className="absolute inset-0 bg-linear-to-t from-background-card/80 via-transparent to-transparent" />
         <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          <FavoriteButton game={favoriteData} />
+          {isFavoritePage ? (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                dispatch(removeFavorite(game.id));
+              }}
+              className="flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200 bg-black/50 backdrop-blur-md text-zinc-300 hover:bg-red-500 hover:text-white hover:scale-110 shadow-lg"
+              title="Remove from favorites"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          ) : (
+            <FavoriteButton game={favoriteData} />
+          )}
         </div>
       </div>
 

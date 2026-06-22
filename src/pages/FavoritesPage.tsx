@@ -55,6 +55,7 @@ const FavoritesPage: FC = () => {
                   game={game as any} 
                   onClick={(id) => navigate(`/?gameId=${id}`)} 
                   viewMode={viewMode}
+                  isFavoritePage
                 />
               ))}
             </div>
