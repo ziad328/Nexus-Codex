@@ -3,15 +3,31 @@ import type { FC } from 'react';
 import { Search, X } from 'lucide-react';
 import useSearchContext from '../../hooks/useSearchContext';
 
-const SearchInput: FC = () => {
+interface Props {
+  autoFocus?: boolean;
+  onClose?: () => void;
+}
+
+const SearchInput: FC<Props> = ({ autoFocus, onClose }) => {
   const [query, setQuery] = useSearchContext();
   const [value, setValue] = useState(query);
   const isMounted = useRef(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Sync local input with global query when route changes
   useEffect(() => {
     setValue(query);
   }, [query]);
+
+  useEffect(() => {
+    if (autoFocus && inputRef.current) {
+      // Small timeout to ensure transition completes before focusing
+      const timer = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [autoFocus]);
 
   useEffect(() => {
     if (!isMounted.current) {
@@ -28,26 +44,28 @@ const SearchInput: FC = () => {
 
   return (
     <div className="relative w-full max-w-2xl">
-      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-        <Search className="h-5 w-5 text-gray-400" />
+      <div className="absolute inset-y-0 left-0 pl-3 md:pl-4 flex items-center pointer-events-none">
+        <Search className="h-4 w-4 md:h-5 md:w-5 text-gray-400" />
       </div>
       <input
+        ref={inputRef}
         type="text"
-        className="w-full bg-background-card border border-transparent text-white placeholder-gray-400 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/50 rounded-full py-2 pl-10 pr-10 transition-all duration-300 shadow-sm focus:shadow-[0_0_15px_rgba(239,68,68,0.2)]"
+        className="w-full bg-background-card border border-transparent text-white placeholder-gray-400 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/50 rounded-full py-2 md:py-2.5 pl-9 md:pl-11 pr-9 md:pr-11 text-sm md:text-base transition-all duration-300 shadow-sm focus:shadow-[0_0_15px_rgba(239,68,68,0.2)]"
         placeholder="Search games..."
         value={value}
         onChange={(e) => setValue(e.target.value)}
       />
-      {value && (
+      {(value || onClose) && (
         <button
           onClick={() => {
             setValue('');
             setQuery('');
+            if (onClose) onClose();
           }}
-          className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white transition-colors cursor-pointer"
-          aria-label="Clear search"
+          className="absolute inset-y-0 right-0 pr-3 md:pr-4 flex items-center text-gray-400 hover:text-white transition-colors cursor-pointer"
+          aria-label={value ? "Clear search" : "Close search"}
         >
-          <X className="h-5 w-5" />
+          <X className="h-4 w-4 md:h-5 md:w-5" />
         </button>
       )}
     </div>
