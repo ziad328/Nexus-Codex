@@ -22,7 +22,7 @@ const Navbar: FC<Props> = ({ onMenuToggle }) => {
           opacity: isMobileSearchOpen ? 0 : 1,
         }}
         transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-        className="flex items-center gap-3 md:gap-5 justify-start shrink-0 md:w-1/4! md:opacity-100! overflow-hidden md:overflow-visible whitespace-nowrap"
+        className="flex items-center gap-3 md:gap-5 justify-start shrink-0 md:w-auto! md:opacity-100! overflow-hidden md:overflow-visible whitespace-nowrap"
       >
         {onMenuToggle && (
           <button
@@ -86,7 +86,7 @@ const Navbar: FC<Props> = ({ onMenuToggle }) => {
           opacity: isMobileSearchOpen ? 1 : 0,
         }}
         transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-        className="flex justify-center items-center gap-2 md:w-2/4! md:grow! md:opacity-100! overflow-hidden md:overflow-visible origin-right"
+        className="flex justify-center items-center gap-2 md:flex-1! md:grow! md:opacity-100! overflow-hidden md:overflow-visible origin-right"
       >
         <div className="w-full min-w-50 md:min-w-0">
           <SearchInput 
@@ -118,7 +118,7 @@ const Navbar: FC<Props> = ({ onMenuToggle }) => {
       </AnimatePresence>
 
       {/* Right Column: Empty on mobile, but keeps layout balanced on md */}
-      <div className="hidden md:flex md:w-1/4 shrink-0 justify-end items-center">
+      <div className="hidden md:flex md:w-auto shrink-0 justify-end items-center">
       </div>
     </header>
   );
