@@ -186,10 +186,10 @@ const Navbar: FC<Props> = ({ onMenuToggle }) => {
         ) : (
           <button
             onClick={() => dispatch(setAuthModalOpen(true))}
-            className="flex items-center gap-2 px-4 py-2 bg-accent hover:bg-red-600 text-white rounded-xl font-bold transition-colors shadow-[0_0_15px_rgba(239,68,68,0.3)] hover:shadow-[0_0_25px_rgba(239,68,68,0.5)]"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/6 border border-white/8 text-zinc-300 hover:text-white hover:bg-white/10 hover:border-white/15 transition-all duration-200 cursor-pointer"
           >
             <LogIn className="w-4 h-4" />
-            Sign In
+            <span className="text-sm font-medium">Sign In</span>
           </button>
         )}
       </div>

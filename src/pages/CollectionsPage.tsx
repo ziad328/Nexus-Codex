@@ -81,22 +81,31 @@ const CollectionsPage: FC = () => {
       <div className="grow flex flex-col w-full min-w-0">
 
           {!user && hasLocalGames && (
-            <div className="mb-6 p-3 md:p-4 rounded-xl bg-accent/10 border border-accent/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center shrink-0">
-                  <Cloud className="w-6 h-6 text-accent" />
+            <div className="relative overflow-hidden mb-8 rounded-2xl p-px">
+              {/* Animated gradient border effect */}
+              <div className="absolute inset-0 bg-linear-to-r from-accent/0 via-accent/40 to-accent/0 opacity-50"></div>
+              
+              <div className="relative bg-zinc-900/90 backdrop-blur-xl rounded-2xl p-4 sm:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 sm:gap-6 shadow-xl">
+                <div className="flex items-start sm:items-center gap-4 sm:gap-5 w-full">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(239,68,68,0.2)]">
+                    <Cloud className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-white font-bold text-sm sm:text-base md:text-lg truncate">Cloud Sync Disabled</h3>
+                    <p className="text-zinc-400 text-xs sm:text-sm mt-1 leading-relaxed max-w-xl">
+                      Your collections are currently saved locally. Sign in to seamlessly sync your library across all your devices—mobile, tablet, and desktop.
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-white font-bold text-base md:text-lg">Sync your library across devices</h3>
-                  <p className="text-zinc-400 text-sm mt-0.5">Please sign in to save your games to the cloud. It's completely free and requires no passwords!</p>
-                </div>
+                
+                <button 
+                  onClick={() => dispatch(setAuthModalOpen(true))}
+                  className="relative w-full md:w-auto px-6 py-2.5 bg-linear-to-r from-accent to-red-700 text-white text-sm font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 group overflow-hidden hover:shadow-[0_0_25px_rgba(239,68,68,0.3)] cursor-pointer shrink-0"
+                >
+                  <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out"></div>
+                  <span className="relative z-10">Sign In</span>
+                </button>
               </div>
-              <button 
-                onClick={() => dispatch(setAuthModalOpen(true))}
-                className="px-5 py-2.5 bg-accent hover:bg-red-600 text-white font-bold rounded-xl transition-colors whitespace-nowrap shadow-[0_0_15px_rgba(239,68,68,0.3)] hover:shadow-[0_0_25px_rgba(239,68,68,0.5)] w-full sm:w-auto"
-              >
-                Sign In
-              </button>
             </div>
           )}
 

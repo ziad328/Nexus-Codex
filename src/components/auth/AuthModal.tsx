@@ -132,14 +132,15 @@ const AuthModal: FC<Props> = ({ isOpen, onClose }) => {
                     <button
                       type="submit"
                       disabled={isLoading || !email}
-                      className="w-full py-3 bg-accent hover:bg-red-600 text-white font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group"
+                      className="relative w-full py-3 bg-linear-to-r from-accent to-red-700 text-white font-bold rounded-xl transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 group overflow-hidden hover:shadow-[0_0_30px_rgba(239,68,68,0.3)] cursor-pointer"
                     >
+                      <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out"></div>
                       {isLoading ? (
                         <Loader2 className="w-5 h-5 animate-spin" />
                       ) : (
                         <>
                           Send Magic Link
-                          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
                         </>
                       )}
                     </button>
