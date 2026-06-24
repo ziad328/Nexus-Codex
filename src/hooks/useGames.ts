@@ -88,7 +88,7 @@ const useGames = (gameQuery: GameQuery) => {
     page
   ]);
 
-  // Reset page to 1 when query properties change
+
   useEffect(() => {
     setPage(1);
     setHasNextPage(true);

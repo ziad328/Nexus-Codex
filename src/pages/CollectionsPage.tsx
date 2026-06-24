@@ -12,7 +12,7 @@ import { setViewMode, setAuthModalOpen } from '../store/uiSlice';
 import type { FavoriteGame, CollectionName } from '../types';
 import { Cloud } from 'lucide-react';
 
-// ── Filter definitions ────────────────────────────────────────────────────────
+
 type FilterId = 'all' | 'favorites' | CollectionName;
 
 const FILTERS: { id: FilterId; label: string; Icon: React.ElementType }[] = [
@@ -24,7 +24,7 @@ const FILTERS: { id: FilterId; label: string; Icon: React.ElementType }[] = [
   { id: 'wishlist', label: 'Wishlist',    Icon: Star       },
 ];
 
-// ── Page ─────────────────────────────────────────────────────────────────────
+
 const CollectionsPage: FC = () => {
   const dispatch    = useAppDispatch();
   const [searchQuery] = useSearchContext();
@@ -37,20 +37,20 @@ const CollectionsPage: FC = () => {
 
   const hasLocalGames = favorites.length > 0 || collections.some(c => c.games.length > 0);
 
-  // ── OverlayScrollbars (matches HomePage) ──────────────────────────────────
+
   const [initialize] = useOverlayScrollbars({
     defer: true,
     options: { scrollbars: { theme: 'os-theme-dark os-theme-nexus', autoHide: 'scroll', autoHideDelay: 1000 } },
   });
   useEffect(() => { initialize(document.body); }, [initialize]);
 
-  // Lock body scroll when modal open
+
   useEffect(() => {
     document.body.style.overflow = selectedGameId ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
   }, [selectedGameId]);
 
-  // ── Build game list for active filter ────────────────────────────────────
+
   const getGames = (): FavoriteGame[] => {
     if (activeFilter === 'favorites') return favorites;
     if (activeFilter === 'all') {

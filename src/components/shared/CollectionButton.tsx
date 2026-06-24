@@ -35,7 +35,7 @@ const CollectionButton: FC<Props> = ({ game, className = '', dropDirection = 'do
 
   const isInAny = memberOf.length > 0;
 
-  // Close on outside click
+
   useEffect(() => {
     if (!open) return;
     const handleClick = (e: MouseEvent) => {

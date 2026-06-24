@@ -35,14 +35,14 @@ function App() {
   const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check for Supabase auth errors in URL hash
+
     const hash = window.location.hash;
     if (hash && hash.includes('error=access_denied') && hash.includes('error_code=otp_expired')) {
       setAuthError('This magic link has expired. Please try signing in again.');
-      // Clear the hash so it doesn't stay in the URL
+
       window.history.replaceState(null, '', window.location.pathname + window.location.search);
       
-      // Auto-hide the toast
+
       setTimeout(() => {
         setAuthError(null);
       }, 6000);
@@ -50,23 +50,23 @@ function App() {
   }, []);
 
   useEffect(() => {
-    // Get initial session
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       dispatch(setSession({ session, user: session?.user ?? null }));
     });
 
-    // Listen for auth changes (login/logout/magic link click)
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       dispatch(setSession({ session, user: session?.user ?? null }));
       if (session) {
         dispatch(setAuthModalOpen(false));
-        // User logged in: fetch their cloud data
+
         dispatch(fetchFavorites());
         dispatch(fetchCollections());
       } else {
-        // User logged out: fresh slate
+
         dispatch(clearFavorites());
         dispatch(clearCollections());
       }

@@ -11,7 +11,7 @@ const Layout: FC = () => {
 
   const handleMenuToggle = useCallback(() => setIsMobileMenuOpen(p => !p), []);
 
-  // Close mobile menu when navigating to a new route
+
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);

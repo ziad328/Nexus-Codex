@@ -14,14 +14,14 @@ const SearchInput: FC<Props> = ({ autoFocus, onClose }) => {
   const isMounted = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Sync local input with global query when route changes
+
   useEffect(() => {
     setValue(query);
   }, [query]);
 
   useEffect(() => {
     if (autoFocus && inputRef.current) {
-      // Small timeout to ensure transition completes before focusing
+
       const timer = setTimeout(() => {
         inputRef.current?.focus();
       }, 300);
@@ -37,7 +37,7 @@ const SearchInput: FC<Props> = ({ autoFocus, onClose }) => {
 
     const timeoutId = setTimeout(() => {
       setQuery(value);
-      // Best Practice: Only trigger layout/scroll changes when the search is actually committed and results update
+
       if (value.trim() !== '') {
         window.dispatchEvent(new CustomEvent('nexusScrollToTop'));
       }

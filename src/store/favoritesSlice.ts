@@ -37,7 +37,7 @@ export const toggleFavoriteInDb = createAsyncThunk(
     const state = getState() as RootState;
     const user = state.auth.user;
     
-    // Fallback for offline/logged-out
+
     if (!user) {
       return { game, localOnly: true };
     }

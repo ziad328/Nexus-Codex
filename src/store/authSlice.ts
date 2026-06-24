@@ -11,7 +11,7 @@ interface AuthState {
 const initialState: AuthState = {
   user: null,
   session: null,
-  isLoading: true, // Starts true until we check session
+  isLoading: true,
 };
 
 const authSlice = createSlice({

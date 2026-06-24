@@ -29,7 +29,7 @@ const GameCard: FC<Props> = ({ game, onClick, viewMode = 'grid', isFavoritePage 
     parent_platforms: game.parent_platforms,
   };
 
-  // ── LIST VIEW ────────────────────────────────────────────────────────────────
+
   if (viewMode === 'list') {
     return (
       <div
@@ -85,7 +85,7 @@ const GameCard: FC<Props> = ({ game, onClick, viewMode = 'grid', isFavoritePage 
   }
 
 
-  // ── GRID VIEW ────────────────────────────────────────────────────────────────
+
   return (
     <div
       onClick={() => onClick(game.id, favoriteData)}

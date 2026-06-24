@@ -12,7 +12,7 @@ const useShare = () => {
   const [status, setStatus] = useState<ShareStatus>('idle');
 
   const share = useCallback(async (data: ShareData) => {
-    // Try native Web Share API first (mobile / Chrome on desktop)
+
     if (navigator.share && navigator.canShare?.(data)) {
       try {
         await navigator.share(data);
@@ -20,12 +20,12 @@ const useShare = () => {
         setTimeout(() => setStatus('idle'), 2000);
         return;
       } catch (err) {
-        // User dismissed the share sheet — don't fall through to clipboard
+
         if ((err as DOMException).name === 'AbortError') return;
       }
     }
 
-    // Fallback: copy the URL to clipboard
+
     try {
       await navigator.clipboard.writeText(data.url);
       setStatus('copied');
