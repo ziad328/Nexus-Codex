@@ -8,8 +8,9 @@ import ViewToggle from '../components/shared/ViewToggle';
 import useAppSelector from '../hooks/useAppSelector';
 import useAppDispatch from '../hooks/useAppDispatch';
 import useSearchContext from '../hooks/useSearchContext';
-import { setViewMode } from '../store/uiSlice';
+import { setViewMode, setAuthModalOpen } from '../store/uiSlice';
 import type { FavoriteGame, CollectionName } from '../types';
+import { Cloud } from 'lucide-react';
 
 // ── Filter definitions ────────────────────────────────────────────────────────
 type FilterId = 'all' | 'favorites' | CollectionName;
@@ -30,8 +31,11 @@ const CollectionsPage: FC = () => {
   const viewMode    = useAppSelector((s) => s.ui.viewMode);
   const favorites   = useAppSelector((s) => s.favorites.items);
   const collections = useAppSelector((s) => s.collections.lists);
+  const user        = useAppSelector((s) => s.auth.user);
   const [activeFilter, setActiveFilter] = useState<FilterId>('all');
   const [selectedGameId, setSelectedGameId] = useState<number | null>(null);
+
+  const hasLocalGames = favorites.length > 0 || collections.some(c => c.games.length > 0);
 
   // ── OverlayScrollbars (matches HomePage) ──────────────────────────────────
   const [initialize] = useOverlayScrollbars({
@@ -76,6 +80,26 @@ const CollectionsPage: FC = () => {
 
       <div className="grow flex flex-col w-full min-w-0">
 
+          {!user && hasLocalGames && (
+            <div className="mb-6 p-3 md:p-4 rounded-xl bg-accent/10 border border-accent/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center shrink-0">
+                  <Cloud className="w-6 h-6 text-accent" />
+                </div>
+                <div>
+                  <h3 className="text-white font-bold text-base md:text-lg">Sync your library across devices</h3>
+                  <p className="text-zinc-400 text-sm mt-0.5">Please sign in to save your games to the cloud. It's completely free and requires no passwords!</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => dispatch(setAuthModalOpen(true))}
+                className="px-5 py-2.5 bg-accent hover:bg-red-600 text-white font-bold rounded-xl transition-colors whitespace-nowrap shadow-[0_0_15px_rgba(239,68,68,0.3)] hover:shadow-[0_0_25px_rgba(239,68,68,0.5)] w-full sm:w-auto"
+              >
+                Sign In
+              </button>
+            </div>
+          )}
+
           {/* Header + filter pills */}
           <div className="mb-5">
             <div className="flex items-end justify-between gap-4 mb-4">
@@ -114,16 +138,18 @@ const CollectionsPage: FC = () => {
 
           {/* Game grid / list */}
           {filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-64 gap-3 text-zinc-600">
-              <ActiveIcon className="w-14 h-14" />
-              <p className="text-lg font-semibold">
-                {searchQuery ? `No results for "${searchQuery}"` : `Nothing in ${activeLabel} yet`}
-              </p>
-              {!searchQuery && (
-                <div className="flex items-center gap-1.5 mt-1">
-                  Add games using the <Heart className="w-4 h-4" /> or <ListPlus className="w-4 h-4" /> buttons on any game card.
-                </div>
-              )}
+            <div className="flex flex-col items-center justify-center min-h-64 gap-4 text-zinc-600 px-4 py-8">
+              <ActiveIcon className="w-16 h-16 text-zinc-700" />
+              <div className="text-center">
+                <p className="text-lg md:text-xl font-semibold text-zinc-500 mb-2">
+                  {searchQuery ? `No results for "${searchQuery}"` : `Nothing in ${activeLabel} yet`}
+                </p>
+                {!searchQuery && (
+                  <p className="text-sm md:text-base leading-relaxed text-zinc-500 max-w-sm mx-auto">
+                    Add games using the <Heart className="inline-block w-4 h-4 align-text-bottom mx-0.5 text-accent" /> or <ListPlus className="inline-block w-4 h-4 align-text-bottom mx-0.5 text-zinc-400" /> buttons on any game card.
+                  </p>
+                )}
+              </div>
             </div>
           ) : (
             <div className={

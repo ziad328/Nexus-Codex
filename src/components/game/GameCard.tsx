@@ -6,9 +6,10 @@ import CriticScore from '../shared/CriticScore';
 import getCroppedImageUrl from '../../services/image-url';
 import FavoriteButton from '../shared/FavoriteButton';
 import CollectionButton from '../shared/CollectionButton';
+import ProgressiveImage from '../shared/ProgressiveImage';
 import { Trash2 } from 'lucide-react';
 import useAppDispatch from '../../hooks/useAppDispatch';
-import { removeFavorite } from '../../store/favoritesSlice';
+import { toggleFavoriteInDb } from '../../store/favoritesSlice';
 
 interface Props {
   game: Game;
@@ -37,11 +38,10 @@ const GameCard: FC<Props> = ({ game, onClick, viewMode = 'grid', isFavoritePage 
       >
         {/* Thumbnail — smaller on mobile */}
         <div className="relative overflow-hidden h-14 w-20 sm:h-16 sm:w-28 rounded-lg shrink-0">
-          <img
+          <ProgressiveImage
             src={getCroppedImageUrl(game.background_image)}
             alt={game.name}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            loading="lazy"
+            className="w-full h-full transition-transform duration-500 group-hover:scale-105"
           />
         </div>
 
@@ -70,8 +70,8 @@ const GameCard: FC<Props> = ({ game, onClick, viewMode = 'grid', isFavoritePage 
           </div>
           {isFavoritePage ? (
             <button
-              onClick={(e) => { e.stopPropagation(); dispatch(removeFavorite(game.id)); }}
-              className="flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white"
+              onClick={(e) => { e.stopPropagation(); dispatch(toggleFavoriteInDb(favoriteData)); }}
+              className="flex items-center justify-center w-10 h-10 md:w-8 md:h-8 rounded-full transition-all duration-200 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white"
               title="Remove from favorites"
             >
               <Trash2 className="w-4 h-4" />
@@ -93,19 +93,18 @@ const GameCard: FC<Props> = ({ game, onClick, viewMode = 'grid', isFavoritePage 
     >
       {/* Image area */}
       <div className="relative overflow-hidden h-48 w-full rounded-t-2xl shrink-0">
-        <img
+        <ProgressiveImage
           src={getCroppedImageUrl(game.background_image)}
           alt={game.name}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          loading="lazy"
+          className="w-full h-full transition-transform duration-500 group-hover:scale-105"
         />
-        <div className="absolute inset-0 bg-linear-to-t from-background-card/80 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-background-card/80 via-transparent to-transparent pointer-events-none" />
         {/* Heart / Trash button only — dropdown-free, safe inside overflow-hidden */}
         <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           {isFavoritePage ? (
             <button
-              onClick={(e) => { e.stopPropagation(); dispatch(removeFavorite(game.id)); }}
-              className="flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200 bg-black/50 backdrop-blur-md text-zinc-300 hover:bg-red-500 hover:text-white hover:scale-110 shadow-lg"
+              onClick={(e) => { e.stopPropagation(); dispatch(toggleFavoriteInDb(favoriteData)); }}
+              className="flex items-center justify-center w-10 h-10 md:w-8 md:h-8 rounded-full transition-all duration-200 bg-black/50 backdrop-blur-md text-zinc-300 hover:bg-red-500 hover:text-white hover:scale-110 shadow-lg"
               title="Remove from favorites"
             >
               <Trash2 className="w-4 h-4" />

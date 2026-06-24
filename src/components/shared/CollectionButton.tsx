@@ -4,7 +4,7 @@ import { Bookmark, Check, Clock, Trophy, Star, ListPlus } from 'lucide-react';
 import useAppSelector from '../../hooks/useAppSelector';
 import useAppDispatch from '../../hooks/useAppDispatch';
 import { shallowEqual } from 'react-redux';
-import { addToCollection, removeFromCollection } from '../../store/collectionsSlice';
+import { addToCollectionInDb, removeFromCollectionInDb } from '../../store/collectionsSlice';
 import type { CollectionName, FavoriteGame } from '../../types';
 
 interface Props {
@@ -49,9 +49,9 @@ const CollectionButton: FC<Props> = ({ game, className = '', dropDirection = 'do
 
   const toggle = (name: CollectionName) => {
     if (memberOf.includes(name)) {
-      dispatch(removeFromCollection({ collectionName: name, gameId: game.id }));
+      dispatch(removeFromCollectionInDb({ collectionName: name, gameId: game.id }));
     } else {
-      dispatch(addToCollection({ collectionName: name, game }));
+      dispatch(addToCollectionInDb({ collectionName: name, game }));
     }
   };
 
@@ -60,7 +60,7 @@ const CollectionButton: FC<Props> = ({ game, className = '', dropDirection = 'do
       <button
         onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }}
         title="Add to collection"
-        className={`flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200 ${
+        className={`flex items-center justify-center w-10 h-10 md:w-8 md:h-8 rounded-full transition-all duration-200 ${
           isInAny
             ? 'bg-zinc-700 text-white ring-1 ring-zinc-500'
             : 'bg-zinc-800/80 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'

@@ -2,7 +2,7 @@ import type { FC } from 'react';
 import { Heart } from 'lucide-react';
 import useAppSelector from '../../hooks/useAppSelector';
 import useAppDispatch from '../../hooks/useAppDispatch';
-import { toggleFavorite } from '../../store/favoritesSlice';
+import { toggleFavoriteInDb } from '../../store/favoritesSlice';
 import type { FavoriteGame } from '../../types';
 
 interface Props {
@@ -20,11 +20,11 @@ const FavoriteButton: FC<Props> = ({ game, className = '' }) => {
     <button
       onClick={(e) => {
         e.stopPropagation();
-        dispatch(toggleFavorite(game));
+        dispatch(toggleFavoriteInDb(game));
       }}
       aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
       title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
-      className={`flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200 ${
+      className={`flex items-center justify-center w-10 h-10 md:w-8 md:h-8 rounded-full transition-all duration-200 ${
         isFavorited
           ? 'bg-accent/20 text-accent hover:bg-accent/30'
           : 'bg-zinc-800/80 text-zinc-400 hover:text-accent hover:bg-zinc-700'
