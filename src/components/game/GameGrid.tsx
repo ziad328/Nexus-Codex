@@ -118,9 +118,9 @@ const GameGrid: FC<Props> = ({ gameQuery, onSelectGame, viewMode = 'grid' }) => 
             </div>
           ) : isFetchingNextPage ? (
             <div className="flex items-center gap-2 text-accent">
-              <div className="w-2 h-2 bg-accent rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-              <div className="w-2 h-2 bg-accent rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-              <div className="w-2 h-2 bg-accent rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+              <div className="w-2 h-2 bg-accent rounded-full animate-pulse" style={{ animationDelay: '0ms' }} />
+              <div className="w-2 h-2 bg-accent rounded-full animate-pulse" style={{ animationDelay: '150ms' }} />
+              <div className="w-2 h-2 bg-accent rounded-full animate-pulse" style={{ animationDelay: '300ms' }} />
             </div>
           ) : hasNextPage ? (
             <div className="w-8 h-8 rounded-full border-2 border-white/10 border-t-accent animate-spin" />

@@ -1,32 +1,29 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import apiClient, { CanceledError } from "../services/api-client";
 import type { FetchResponse, Platform } from "../types";
 
 const usePlatforms = () => {
   const [data, setData] = useState<Platform[]>([]);
   const [error, setError] = useState("");
-  const [isLoading, setLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     const controller = new AbortController();
 
-    setLoading(true);
-    apiClient
-      .get<FetchResponse<Platform>>("/platforms/lists/parents", { signal: controller.signal })
-      .then((res) => {
+    startTransition(async () => {
+      try {
+        const res = await apiClient.get<FetchResponse<Platform>>("/platforms/lists/parents", { signal: controller.signal });
         setData(res.data.results);
-        setLoading(false);
-      })
-      .catch((err) => {
+      } catch (err: any) {
         if (err instanceof CanceledError) return;
         setError(err.message);
-        setLoading(false);
-      });
+      }
+    });
 
     return () => controller.abort();
   }, []);
 
-  return { data, error, isLoading };
+  return { data, error, isLoading: isPending };
 };
 
 export default usePlatforms;

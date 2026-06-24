@@ -88,6 +88,10 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
       <div
         className="absolute inset-0 bg-black/75 backdrop-blur-sm"
         onClick={onClose}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === 'Escape') onClose(); }}
+        role="button"
+        tabIndex={0}
+        aria-label="Close modal"
       />
 
       <div

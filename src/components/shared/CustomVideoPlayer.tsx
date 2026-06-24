@@ -106,6 +106,10 @@ const CustomVideoPlayer: FC<Props> = ({ src, poster }) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={togglePlay}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); togglePlay(); } }}
+      role="button"
+      tabIndex={0}
+      aria-label="Video Player"
     >
       <video
         ref={videoRef}
@@ -114,7 +118,9 @@ const CustomVideoPlayer: FC<Props> = ({ src, poster }) => {
         muted={isMuted}
         playsInline
         className="w-full h-full object-cover"
-      />
+      >
+        <track kind="captions" />
+      </video>
 
       {/* Center Play Button Overlay */}
       <div className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${isPlaying ? 'opacity-0 scale-110 pointer-events-none' : 'opacity-100 scale-100 bg-black/40'}`}>
@@ -130,6 +136,11 @@ const CustomVideoPlayer: FC<Props> = ({ src, poster }) => {
         <div 
           className="w-full h-1.5 bg-white/20 rounded-full mb-4 cursor-pointer relative group/bar"
           onClick={handleSeek}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSeek(e as any); } }}
+          role="slider"
+          aria-label="Video progress"
+          aria-valuenow={progress}
+          tabIndex={0}
         >
           <div 
             className="absolute top-0 left-0 bottom-0 bg-accent rounded-full transition-all group-hover/bar:h-2 -mt-px group-hover/bar:-mt-0.5"

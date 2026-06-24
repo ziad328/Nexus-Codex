@@ -16,18 +16,19 @@ interface Props {
   platforms: Platform[];
 }
 
+const iconMap: { [key: string]: IconType } = {
+  pc: FaWindows,
+  playstation: FaPlaystation,
+  xbox: FaXbox,
+  nintendo: BsNintendoSwitch,
+  mac: FaApple,
+  linux: FaLinux,
+  android: FaAndroid,
+  ios: MdPhoneIphone,
+  web: BsGlobe,
+};
+
 const PlatformIconList: FC<Props> = ({ platforms }) => {
-  const iconMap: { [key: string]: IconType } = {
-    pc: FaWindows,
-    playstation: FaPlaystation,
-    xbox: FaXbox,
-    nintendo: BsNintendoSwitch,
-    mac: FaApple,
-    linux: FaLinux,
-    android: FaAndroid,
-    ios: MdPhoneIphone,
-    web: BsGlobe,
-  };
 
   return (
     <div className="flex flex-wrap items-center gap-2 text-gray-400">
