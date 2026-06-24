@@ -18,7 +18,6 @@ const useGenres = () => {
   const [isLoading, setLoading] = useState(!data.length);
 
   useEffect(() => {
-    if (data.length > 0) return;
 
     const controller = new AbortController();
 
@@ -27,8 +26,16 @@ const useGenres = () => {
         const res = await apiClient.get<FetchResponse<Genre>>("/genres", {
           signal: controller.signal,
         });
-        setData(res.data.results);
-        localStorage.setItem('nexus-genres', JSON.stringify(res.data.results));
+        
+        const stringifiedNew = JSON.stringify(res.data.results);
+        const stringifiedOld = localStorage.getItem('nexus-genres');
+        
+        // Only trigger a re-render and local storage write if the data actually changed
+        if (stringifiedNew !== stringifiedOld) {
+          setData(res.data.results);
+          localStorage.setItem('nexus-genres', stringifiedNew);
+        }
+        
         setLoading(false);
       } catch (err: any) {
         if (err instanceof CanceledError) return;
