@@ -14,20 +14,26 @@ const storage = {
     Promise.resolve(localStorage.removeItem(key)),
 };
 
-const persistConfig = {
+const rootPersistConfig = {
   key: 'nexus-root',
   storage,
-  whitelist: ['favorites', 'collections', 'ui'],
+  whitelist: ['favorites', 'collections'],
+};
+
+const uiPersistConfig = {
+  key: 'nexus-ui',
+  storage,
+  whitelist: ['viewMode', 'recentlyViewed'],
 };
 
 const rootReducer = combineReducers({
   favorites: favoritesReducer,
   collections: collectionsReducer,
-  ui: uiReducer,
+  ui: persistReducer(uiPersistConfig, uiReducer),
   auth: authReducer,
 });
 
-const persistedReducer = persistReducer(persistConfig, rootReducer);
+const persistedReducer = persistReducer(rootPersistConfig, rootReducer);
 
 export const store = configureStore({
   reducer: persistedReducer,
