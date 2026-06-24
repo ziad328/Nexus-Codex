@@ -1,5 +1,7 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { AlertCircle, X } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import useAppDispatch from './hooks/useAppDispatch';
 import type { RootState } from './store';
@@ -30,6 +32,22 @@ function ScrollToTop() {
 function App() {
   const dispatch = useAppDispatch();
   const { isAuthModalOpen } = useSelector((state: RootState) => state.ui);
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Check for Supabase auth errors in URL hash
+    const hash = window.location.hash;
+    if (hash && hash.includes('error=access_denied') && hash.includes('error_code=otp_expired')) {
+      setAuthError('This magic link has expired. Please try signing in again.');
+      // Clear the hash so it doesn't stay in the URL
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      
+      // Auto-hide the toast
+      setTimeout(() => {
+        setAuthError(null);
+      }, 6000);
+    }
+  }, []);
 
   useEffect(() => {
     // Get initial session
@@ -73,6 +91,33 @@ function App() {
           </Route>
         </Routes>
       </SmoothScrollbar>
+
+      {/* Auth Error Toast */}
+      <AnimatePresence>
+        {authError && (
+          <motion.div
+            initial={{ opacity: 0, x: 50, scale: 0.95 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: 50, scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            className="fixed top-24 right-4 md:right-8 z-50 px-5 py-4 bg-zinc-900 border border-orange-500/30 rounded-2xl shadow-[0_10px_40px_rgba(249,115,22,0.2)] flex items-start gap-4 w-[calc(100%-2rem)] md:w-auto md:max-w-sm"
+          >
+            <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center shrink-0">
+              <AlertCircle className="w-5 h-5 text-orange-400" />
+            </div>
+            <div className="pt-0.5">
+              <h4 className="text-orange-400 font-bold text-sm">Authentication Failed</h4>
+              <p className="text-orange-400/80 text-sm mt-1 leading-relaxed">{authError}</p>
+            </div>
+            <button 
+              onClick={() => setAuthError(null)}
+              className="absolute top-2 right-2 p-1.5 text-zinc-500 hover:text-white rounded-full transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
