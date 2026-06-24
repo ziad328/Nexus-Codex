@@ -3,6 +3,7 @@ import { persistStore, persistReducer } from 'redux-persist';
 import favoritesReducer from './favoritesSlice';
 import collectionsReducer from './collectionsSlice';
 import uiReducer from './uiSlice';
+import authReducer from './authSlice';
 
 const storage = {
   getItem: (key: string): Promise<string | null> =>
@@ -23,6 +24,7 @@ const rootReducer = combineReducers({
   favorites: favoritesReducer,
   collections: collectionsReducer,
   ui: uiReducer,
+  auth: authReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
