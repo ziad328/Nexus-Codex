@@ -20,12 +20,16 @@ const rootPersistConfig = {
   whitelist: ['favorites', 'collections'],
 };
 
-
+const uiPersistConfig = {
+  key: 'nexus-ui',
+  storage,
+  whitelist: ['viewMode', 'recentlyViewed'],
+};
 
 const rootReducer = combineReducers({
   favorites: favoritesReducer,
   collections: collectionsReducer,
-  ui: uiReducer,
+  ui: persistReducer(uiPersistConfig, uiReducer),
   auth: authReducer,
 });
 
