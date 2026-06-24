@@ -30,7 +30,6 @@ const useGenres = () => {
         const stringifiedNew = JSON.stringify(res.data.results);
         const stringifiedOld = localStorage.getItem('nexus-genres');
         
-        // Only trigger a re-render and local storage write if the data actually changed
         if (stringifiedNew !== stringifiedOld) {
           setData(res.data.results);
           localStorage.setItem('nexus-genres', stringifiedNew);
