@@ -11,6 +11,10 @@
   <img src="https://img.shields.io/badge/PWA-5A0FC8?style=for-the-badge&logo=pwa&logoColor=white" alt="PWA" />
 </div>
 
+<div align="center">
+  <h3><strong><a href="https://nexus-codex-lib.vercel.app">🎮 Live Demo: nexus-codex-lib.vercel.app</a></strong></h3>
+</div>
+
 Nexus Codex is a modern, high-fidelity web application built with React and TypeScript, functioning as a premier hub for game discovery and collection management. It leverages the RAWG Video Games Database API to provide an extensive, interactive library of games, complete with detailed metadata, rich media, and personal library curation features.
 
 ## 🚀 Key Features
