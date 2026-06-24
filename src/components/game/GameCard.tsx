@@ -34,7 +34,11 @@ const GameCard: FC<Props> = ({ game, onClick, viewMode = 'grid', isFavoritePage 
     return (
       <div
         onClick={() => onClick(game.id, favoriteData)}
-        className="flex items-center gap-3 w-full bg-background-card rounded-xl transition-all duration-200 hover:ring-1 hover:ring-accent/40 hover:bg-zinc-800/60 cursor-pointer p-2.5 sm:p-3 group"
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(game.id, favoriteData); } }}
+        role="button"
+        tabIndex={0}
+        aria-label={`View details for ${game.name}`}
+        className="flex items-center gap-3 w-full bg-background-card rounded-xl transition-all duration-200 hover:ring-1 hover:ring-accent/40 hover:bg-zinc-800/60 cursor-pointer p-2.5 sm:p-3 group focus:outline-hidden focus:ring-2 focus:ring-accent"
       >
         {/* Thumbnail — smaller on mobile */}
         <div className="relative overflow-hidden h-14 w-20 sm:h-16 sm:w-28 rounded-lg shrink-0">
@@ -89,7 +93,11 @@ const GameCard: FC<Props> = ({ game, onClick, viewMode = 'grid', isFavoritePage 
   return (
     <div
       onClick={() => onClick(game.id, favoriteData)}
-      className="flex flex-col w-full bg-background-card rounded-2xl transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_8px_30px_rgba(239,68,68,0.18)] hover:ring-1 hover:ring-accent/40 group cursor-pointer relative"
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(game.id, favoriteData); } }}
+      role="button"
+      tabIndex={0}
+      aria-label={`View details for ${game.name}`}
+      className="flex flex-col w-full bg-background-card rounded-2xl transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_8px_30px_rgba(239,68,68,0.18)] hover:ring-1 hover:ring-accent/40 group cursor-pointer relative focus:outline-hidden focus:ring-2 focus:ring-accent"
     >
       {/* Image area */}
       <div className="relative overflow-hidden h-48 w-full rounded-t-2xl shrink-0">
@@ -104,7 +112,7 @@ const GameCard: FC<Props> = ({ game, onClick, viewMode = 'grid', isFavoritePage 
           {isFavoritePage ? (
             <button
               onClick={(e) => { e.stopPropagation(); dispatch(toggleFavoriteInDb(favoriteData)); }}
-              className="flex items-center justify-center w-10 h-10 md:w-8 md:h-8 rounded-full transition-all duration-200 bg-black/50 backdrop-blur-md text-zinc-300 hover:bg-red-500 hover:text-white hover:scale-110 shadow-lg"
+              className="flex items-center justify-center w-10 h-10 md:w-8 md:h-8 rounded-full transition-all duration-200 bg-black/50 backdrop-blur-md text-white hover:bg-red-500 hover:scale-110 shadow-lg"
               title="Remove from favorites"
             >
               <Trash2 className="w-4 h-4" />

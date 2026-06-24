@@ -13,6 +13,7 @@ import useGenres from '../hooks/useGenres';
 import PlatformSelector from '../components/shared/PlatformSelector';
 import StoreSelector from '../components/shared/StoreSelector';
 import TagSelector from '../components/shared/TagSelector';
+import SEO from '../components/shared/SEO';
 
 function HomePage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -62,6 +63,10 @@ function HomePage() {
 
   return (
     <>
+      <SEO 
+        title={genreSlug ? `${genreName} Games | Nexus Codex` : 'Nexus Codex | The Ultimate Game Library'}
+        description={`Explore the best ${genreName} games on Nexus Codex. Track your collections and discover your next obsession.`}
+      />
       <GameDetailsModal gameId={selectedGameId} onClose={handleCloseModal} onSelectGame={handleSelectGame} />
 
       <div className="grow flex flex-col w-full min-w-0">

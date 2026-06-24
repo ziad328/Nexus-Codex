@@ -15,12 +15,34 @@ export const fetchFavorites = createAsyncThunk(
   'favorites/fetchFavorites',
   async (_, { getState }) => {
     const state = getState() as RootState;
-    if (!state.auth.user) return [];
+    const user = state.auth.user;
+    if (!user) return [];
     
-    const { data, error } = await supabase.from('favorites').select('*');
+    const localItems = state.favorites.items;
+    
+    const { data: cloudData, error } = await supabase.from('favorites').select('*');
     if (error) throw error;
     
-    return data.map(item => ({
+    const cloudGameIds = new Set(cloudData.map(item => item.game_id));
+    
+    const itemsToUpload = localItems.filter(game => !cloudGameIds.has(game.id));
+    
+    if (itemsToUpload.length > 0) {
+      const { error: insertError } = await supabase.from('favorites').insert(
+        itemsToUpload.map(game => ({
+          user_id: user.id,
+          game_id: game.id,
+          name: game.name,
+          slug: game.slug,
+          background_image: game.background_image,
+          metacritic: game.metacritic,
+          parent_platforms: game.parent_platforms,
+        }))
+      );
+      if (insertError) console.error("Failed to sync local favorites:", insertError);
+    }
+    
+    const formattedCloudData = cloudData.map(item => ({
       id: item.game_id,
       name: item.name,
       slug: item.slug,
@@ -28,6 +50,8 @@ export const fetchFavorites = createAsyncThunk(
       metacritic: item.metacritic,
       parent_platforms: item.parent_platforms,
     })) as FavoriteGame[];
+
+    return [...formattedCloudData, ...itemsToUpload];
   }
 );
 

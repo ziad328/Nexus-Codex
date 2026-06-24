@@ -11,6 +11,7 @@ import { setViewMode } from '../store/uiSlice';
 import PlatformSelector from '../components/shared/PlatformSelector';
 import StoreSelector from '../components/shared/StoreSelector';
 import TagSelector from '../components/shared/TagSelector';
+import SEO from '../components/shared/SEO';
 
 function DeveloperPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -58,6 +59,10 @@ function DeveloperPage() {
 
   return (
     <>
+      <SEO 
+        title={`${displayName} Games | Nexus Codex`}
+        description={`Explore the full catalogue of games developed by ${displayName}.`}
+      />
       <GameDetailsModal gameId={selectedGameId} onClose={handleCloseModal} onSelectGame={handleSelectGame} />
 
       <div className="grow flex flex-col w-full min-w-0">

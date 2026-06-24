@@ -17,14 +17,56 @@ export const fetchCollections = createAsyncThunk(
   'collections/fetchCollections',
   async (_, { getState }) => {
     const state = getState() as RootState;
-    if (!state.auth.user) return null;
+    const user = state.auth.user;
+    if (!user) return null;
     
-    const { data, error } = await supabase.from('collections').select('*');
+    const localLists = state.collections.lists;
+    
+    const { data: cloudData, error } = await supabase.from('collections').select('*');
     if (error) throw error;
+    
+    const cloudRecords = new Set(cloudData.map(item => `${item.collection_name}_${item.game_id}`));
+    
+    const itemsToUpload: any[] = [];
+    localLists.forEach(list => {
+      list.games.forEach(game => {
+        if (!cloudRecords.has(`${list.name}_${game.id}`)) {
+          itemsToUpload.push({
+            user_id: user.id,
+            game_id: game.id,
+            collection_name: list.name,
+            name: game.name,
+            slug: game.slug,
+            background_image: game.background_image,
+            metacritic: game.metacritic,
+            parent_platforms: game.parent_platforms,
+          });
+        }
+      });
+    });
+    
+    if (itemsToUpload.length > 0) {
+      const { error: insertError } = await supabase.from('collections').insert(itemsToUpload);
+      if (insertError) console.error("Failed to sync local collections:", insertError);
+    }
     
     const lists = DEFAULT_COLLECTIONS.map((name) => ({ name, games: [] as FavoriteGame[] }));
     
-    data.forEach(item => {
+    cloudData.forEach(item => {
+      const list = lists.find(l => l.name === item.collection_name);
+      if (list) {
+        list.games.push({
+          id: item.game_id,
+          name: item.name,
+          slug: item.slug,
+          background_image: item.background_image,
+          metacritic: item.metacritic,
+          parent_platforms: item.parent_platforms,
+        });
+      }
+    });
+    
+    itemsToUpload.forEach(item => {
       const list = lists.find(l => l.name === item.collection_name);
       if (list) {
         list.games.push({

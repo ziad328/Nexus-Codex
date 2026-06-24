@@ -27,9 +27,12 @@ const CollectionButton: FC<Props> = ({ game, className = '', dropDirection = 'do
   const ref = useRef<HTMLDivElement>(null);
 
   const memberOf = useAppSelector((s) =>
-    s.collections.lists
-      .filter((c) => c.games.some((g) => g.id === game.id))
-      .map((c) => c.name),
+    s.collections.lists.reduce<CollectionName[]>((acc, list) => {
+      if (list.games.some((g) => g.id === game.id)) {
+        acc.push(list.name as CollectionName);
+      }
+      return acc;
+    }, []),
     shallowEqual
   );
 

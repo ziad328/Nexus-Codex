@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://nexus-codex-lib.vercel.app/sitemap.xml

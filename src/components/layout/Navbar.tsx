@@ -13,6 +13,10 @@ interface Props {
   onMenuToggle?: () => void;
 }
 
+const handleSignOut = async () => {
+  await supabase.auth.signOut();
+};
+
 const Navbar: FC<Props> = ({ onMenuToggle }) => {
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -31,10 +35,6 @@ const Navbar: FC<Props> = ({ onMenuToggle }) => {
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [isProfileOpen]);
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-  };
 
   return (
     <header className="flex items-center justify-between px-4 py-2 md:px-8 md:py-2 gap-0 border-b border-zinc-800/50 bg-background/80 backdrop-blur-md sticky top-0 z-40 h-15 md:h-18.75">

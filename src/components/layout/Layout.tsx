@@ -7,14 +7,14 @@ import SmoothScrollbar from '../shared/SmoothScrollbar';
 
 const Layout: FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const location = useLocation();
+  const { pathname } = useLocation();
 
   const handleMenuToggle = useCallback(() => setIsMobileMenuOpen(p => !p), []);
 
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
-  }, [location.pathname]);
+  }, [pathname]);
 
   return (
     <div className="min-h-screen bg-background text-white flex flex-col font-sans selection:bg-accent selection:text-white">
@@ -26,6 +26,10 @@ const Layout: FC = () => {
           <div
             className="fixed inset-0 bg-black/60 backdrop-blur-md z-40 lg:hidden"
             onClick={() => setIsMobileMenuOpen(false)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsMobileMenuOpen(false); }}
+            role="button"
+            tabIndex={0}
+            aria-label="Close mobile menu"
           />
         )}
 
