@@ -8,10 +8,11 @@ import ViewToggle from '../components/shared/ViewToggle';
 import useAppSelector from '../hooks/useAppSelector';
 import useAppDispatch from '../hooks/useAppDispatch';
 import useSearchContext from '../hooks/useSearchContext';
-import { setViewMode } from '../store/uiSlice';
+import { setViewMode, setAuthModalOpen } from '../store/uiSlice';
 import type { FavoriteGame, CollectionName } from '../types';
+import { Cloud } from 'lucide-react';
 
-// ── Filter definitions ────────────────────────────────────────────────────────
+
 type FilterId = 'all' | 'favorites' | CollectionName;
 
 const FILTERS: { id: FilterId; label: string; Icon: React.ElementType }[] = [
@@ -23,30 +24,33 @@ const FILTERS: { id: FilterId; label: string; Icon: React.ElementType }[] = [
   { id: 'wishlist', label: 'Wishlist',    Icon: Star       },
 ];
 
-// ── Page ─────────────────────────────────────────────────────────────────────
+
 const CollectionsPage: FC = () => {
   const dispatch    = useAppDispatch();
   const [searchQuery] = useSearchContext();
   const viewMode    = useAppSelector((s) => s.ui.viewMode);
   const favorites   = useAppSelector((s) => s.favorites.items);
   const collections = useAppSelector((s) => s.collections.lists);
+  const user        = useAppSelector((s) => s.auth.user);
   const [activeFilter, setActiveFilter] = useState<FilterId>('all');
   const [selectedGameId, setSelectedGameId] = useState<number | null>(null);
 
-  // ── OverlayScrollbars (matches HomePage) ──────────────────────────────────
+  const hasLocalGames = favorites.length > 0 || collections.some(c => c.games.length > 0);
+
+
   const [initialize] = useOverlayScrollbars({
     defer: true,
     options: { scrollbars: { theme: 'os-theme-dark os-theme-nexus', autoHide: 'scroll', autoHideDelay: 1000 } },
   });
   useEffect(() => { initialize(document.body); }, [initialize]);
 
-  // Lock body scroll when modal open
+
   useEffect(() => {
     document.body.style.overflow = selectedGameId ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
   }, [selectedGameId]);
 
-  // ── Build game list for active filter ────────────────────────────────────
+
   const getGames = (): FavoriteGame[] => {
     if (activeFilter === 'favorites') return favorites;
     if (activeFilter === 'all') {
@@ -75,6 +79,35 @@ const CollectionsPage: FC = () => {
       <GameDetailsModal gameId={selectedGameId} onClose={handleCloseModal} />
 
       <div className="grow flex flex-col w-full min-w-0">
+
+          {!user && hasLocalGames && (
+            <div className="relative overflow-hidden mb-8 rounded-2xl p-px">
+              {/* Animated gradient border effect */}
+              <div className="absolute inset-0 bg-linear-to-r from-accent/0 via-accent/40 to-accent/0 opacity-50"></div>
+              
+              <div className="relative bg-zinc-900/90 backdrop-blur-xl rounded-2xl p-4 sm:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 sm:gap-6 shadow-xl">
+                <div className="flex items-start sm:items-center gap-4 sm:gap-5 w-full">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(239,68,68,0.2)]">
+                    <Cloud className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-white font-bold text-sm sm:text-base md:text-lg truncate">Cloud Sync Disabled</h3>
+                    <p className="text-zinc-400 text-xs sm:text-sm mt-1 leading-relaxed max-w-xl">
+                      Your collections are currently saved locally. Sign in to seamlessly sync your library across all your devices—mobile, tablet, and desktop.
+                    </p>
+                  </div>
+                </div>
+                
+                <button 
+                  onClick={() => dispatch(setAuthModalOpen(true))}
+                  className="relative w-full md:w-auto px-6 py-2.5 bg-linear-to-r from-accent to-red-700 text-white text-sm font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 group overflow-hidden hover:shadow-[0_0_25px_rgba(239,68,68,0.3)] cursor-pointer shrink-0"
+                >
+                  <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out"></div>
+                  <span className="relative z-10">Sign In</span>
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Header + filter pills */}
           <div className="mb-5">
@@ -114,16 +147,18 @@ const CollectionsPage: FC = () => {
 
           {/* Game grid / list */}
           {filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-64 gap-3 text-zinc-600">
-              <ActiveIcon className="w-14 h-14" />
-              <p className="text-lg font-semibold">
-                {searchQuery ? `No results for "${searchQuery}"` : `Nothing in ${activeLabel} yet`}
-              </p>
-              {!searchQuery && (
-                <div className="flex items-center gap-1.5 mt-1">
-                  Add games using the <Heart className="w-4 h-4" /> or <ListPlus className="w-4 h-4" /> buttons on any game card.
-                </div>
-              )}
+            <div className="flex flex-col items-center justify-center min-h-64 gap-4 text-zinc-600 px-4 py-8">
+              <ActiveIcon className="w-16 h-16 text-zinc-700" />
+              <div className="text-center">
+                <p className="text-lg md:text-xl font-semibold text-zinc-500 mb-2">
+                  {searchQuery ? `No results for "${searchQuery}"` : `Nothing in ${activeLabel} yet`}
+                </p>
+                {!searchQuery && (
+                  <p className="text-sm md:text-base leading-relaxed text-zinc-500 max-w-sm mx-auto">
+                    Add games using the <Heart className="inline-block w-4 h-4 align-text-bottom mx-0.5 text-accent" /> or <ListPlus className="inline-block w-4 h-4 align-text-bottom mx-0.5 text-zinc-400" /> buttons on any game card.
+                  </p>
+                )}
+              </div>
             </div>
           ) : (
             <div className={

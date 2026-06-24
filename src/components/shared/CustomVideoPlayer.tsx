@@ -34,7 +34,7 @@ const CustomVideoPlayer: FC<Props> = ({ src, poster }) => {
     video.addEventListener('timeupdate', handleTimeUpdate);
     video.addEventListener('ended', handleEnded);
     
-    // Set initial volume
+
     video.volume = volume;
     video.muted = isMuted;
 

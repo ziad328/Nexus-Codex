@@ -6,6 +6,8 @@ import useGames from '../../hooks/useGames';
 import type { GameQuery } from '../../types';
 import GameCard from './GameCard';
 import GameCardSkeleton from '../shared/GameCardSkeleton';
+import { Link } from 'react-router-dom';
+import { AlertCircle, FolderHeart } from 'lucide-react';
 
 interface Props {
   gameQuery: GameQuery;
@@ -44,7 +46,7 @@ const GameGrid: FC<Props> = ({ gameQuery, onSelectGame, viewMode = 'grid' }) => 
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage && !isLoading) {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage && !isLoading && !error) {
           fetchNextPage();
         }
       },
@@ -56,11 +58,25 @@ const GameGrid: FC<Props> = ({ gameQuery, onSelectGame, viewMode = 'grid' }) => 
     }
 
     return () => observer.disconnect();
-  }, [hasNextPage, isFetchingNextPage, isLoading, fetchNextPage]);
+  }, [hasNextPage, isFetchingNextPage, isLoading, fetchNextPage, error]);
 
-  if (error) return (
-    <div className="text-red-500 font-bold p-4 bg-red-500/10 border border-red-500/50 rounded-xl">
-      {error}
+  if (error && data.length === 0) return (
+    <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
+      <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(239,68,68,0.15)]">
+        <AlertCircle className="w-8 h-8 text-red-500" />
+      </div>
+      <h3 className="text-2xl font-bold text-white mb-3 tracking-tight">Failed to connect to Nexus</h3>
+      <p className="text-zinc-400 max-w-md mx-auto mb-8 text-sm md:text-base leading-relaxed">
+        {error}. Please check your network connection and try again. 
+        In the meantime, your previously saved collections are safely cached offline.
+      </p>
+      <Link 
+        to="/collection" 
+        className="flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-colors text-white font-medium"
+      >
+        <FolderHeart className="w-5 h-5" />
+        View Collections Cache
+      </Link>
     </div>
   );
 
@@ -90,14 +106,26 @@ const GameGrid: FC<Props> = ({ gameQuery, onSelectGame, viewMode = 'grid' }) => 
             No games found in the abyss.
           </div>
         )}
-
-        {isFetchingNextPage && (
-          skeletons.slice(0, 5).map((_, index) => <GameCardSkeleton key={`next-page-skeleton-${index}`} />)
-        )}
       </div>
-
-      {hasNextPage && !isLoading && data.length > 0 && (
-        <div ref={loadMoreRef} className="h-10 w-full mt-4" />
+      
+      {/* Infinite Scroll Trigger / Offline Banner */}
+      {!isLoading && data.length > 0 && (
+        <div ref={loadMoreRef} className="h-20 flex items-center justify-center mt-8">
+          {error ? (
+            <div className="flex items-center gap-2 text-red-400 bg-red-500/10 px-4 py-2 rounded-full text-sm font-medium border border-red-500/20">
+              <AlertCircle className="w-4 h-4" />
+              Offline: Cannot load more games
+            </div>
+          ) : isFetchingNextPage ? (
+            <div className="flex items-center gap-2 text-accent">
+              <div className="w-2 h-2 bg-accent rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+              <div className="w-2 h-2 bg-accent rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+              <div className="w-2 h-2 bg-accent rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+            </div>
+          ) : hasNextPage ? (
+            <div className="w-8 h-8 rounded-full border-2 border-white/10 border-t-accent animate-spin" />
+          ) : null}
+        </div>
       )}
     </div>
   );

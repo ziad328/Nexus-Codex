@@ -8,12 +8,14 @@ interface UiState {
   viewMode: ViewMode;
   recentlyViewed: FavoriteGame[];
   searchQueries: Record<string, string>;
+  isAuthModalOpen: boolean;
 }
 
 const initialState: UiState = {
   viewMode: 'grid',
   recentlyViewed: [],
   searchQueries: {},
+  isAuthModalOpen: false,
 };
 
 const uiSlice = createSlice({
@@ -22,6 +24,9 @@ const uiSlice = createSlice({
   reducers: {
     setViewMode(state, action: PayloadAction<ViewMode>) {
       state.viewMode = action.payload;
+    },
+    setAuthModalOpen(state, action: PayloadAction<boolean>) {
+      state.isAuthModalOpen = action.payload;
     },
     setSearchQuery(state, action: PayloadAction<{ path: string; text: string }>) {
       if (!state.searchQueries) {
@@ -41,5 +46,5 @@ const uiSlice = createSlice({
   },
 });
 
-export const { setViewMode, setSearchQuery, addRecentlyViewed, clearRecentlyViewed } = uiSlice.actions;
+export const { setViewMode, setSearchQuery, addRecentlyViewed, clearRecentlyViewed, setAuthModalOpen } = uiSlice.actions;
 export default uiSlice.reducer;
