@@ -22,17 +22,16 @@ const Layout: FC = () => {
 
       <main className="flex flex-col lg:flex-row p-4 md:px-8 md:py-6 max-w-[1920px] mx-auto w-full grow relative">
 
-        {/* Mobile sidebar backdrop */}
         {isMobileMenuOpen && (
           <div
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 lg:hidden"
+            className="fixed inset-0 bg-black/60 backdrop-blur-md z-40 lg:hidden"
             onClick={() => setIsMobileMenuOpen(false)}
           />
         )}
 
         {/* Sidebar */}
         <div className={`
-          fixed inset-y-0 left-0 z-50 w-70 bg-background-card/95 backdrop-blur-xl border-r border-zinc-800/50 shadow-2xl transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:z-0 lg:w-auto lg:bg-transparent lg:border-none lg:backdrop-blur-none lg:shadow-none
+          fixed inset-y-0 left-0 z-50 w-70 bg-background/80 backdrop-blur-2xl border-r border-zinc-800/50 shadow-2xl transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:z-0 lg:w-auto lg:bg-transparent lg:border-none lg:backdrop-blur-none lg:shadow-none
           ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
         `}>
           <div className="h-full w-full lg:hidden">

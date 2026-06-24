@@ -50,7 +50,7 @@ const SearchInput: FC<Props> = ({ autoFocus, onClose }) => {
       <input
         ref={inputRef}
         type="text"
-        className="w-full bg-background-card border border-transparent text-white placeholder-gray-400 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/50 rounded-full py-2 md:py-2.5 pl-9 md:pl-11 pr-9 md:pr-11 text-sm md:text-base transition-all duration-300 shadow-sm focus:shadow-[0_0_15px_rgba(239,68,68,0.2)]"
+        className="w-full bg-background-card border border-transparent text-white placeholder-gray-400 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/50 rounded-full py-2 md:py-2.5 pl-9 md:pl-11 pr-11 md:pr-14 text-sm md:text-base transition-all duration-300 shadow-sm focus:shadow-[0_0_15px_rgba(239,68,68,0.2)]"
         placeholder="Search games..."
         value={value}
         onChange={(e) => setValue(e.target.value)}
@@ -62,10 +62,10 @@ const SearchInput: FC<Props> = ({ autoFocus, onClose }) => {
             setQuery('');
             if (onClose) onClose();
           }}
-          className="absolute inset-y-0 right-0 pr-3 md:pr-4 flex items-center text-gray-400 hover:text-white transition-colors cursor-pointer"
+          className="absolute inset-y-0 right-0 px-3 md:px-4 flex items-center text-gray-400 hover:text-white transition-colors cursor-pointer"
           aria-label={value ? "Clear search" : "Close search"}
         >
-          <X className="h-4 w-4 md:h-5 md:w-5" />
+          <X className="h-5 w-5 md:h-6 md:w-6" />
         </button>
       )}
     </div>
