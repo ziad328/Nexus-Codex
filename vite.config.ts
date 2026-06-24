@@ -11,6 +11,9 @@ export default defineConfig({
     VitePWA({
       registerType: 'prompt',
       includeAssets: ['nexus_logo.png'],
+      devOptions: {
+        enabled: false,
+      },
       manifest: {
         name: 'Nexus Codex',
         short_name: 'Nexus',
@@ -32,6 +35,8 @@ export default defineConfig({
         ]
       },
       workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        navigateFallback: 'index.html',
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/media\.rawg\.io\/.*/i,
