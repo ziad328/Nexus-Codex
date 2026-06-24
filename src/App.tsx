@@ -58,15 +58,15 @@ function App() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       dispatch(setSession({ session, user: session?.user ?? null }));
       if (session) {
         dispatch(setAuthModalOpen(false));
-
         dispatch(fetchFavorites());
         dispatch(fetchCollections());
-      } else {
-
+      } else if (event === 'SIGNED_OUT') {
+        // Only clear data when the user explicitly logs out.
+        // If we clear on 'INITIAL_SESSION' for guests, it wipes their local storage!
         dispatch(clearFavorites());
         dispatch(clearCollections());
       }
