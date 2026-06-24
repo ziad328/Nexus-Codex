@@ -16,6 +16,7 @@ import useGameStores from '../../hooks/useGameStores';
 import SimilarGamesCarousel from './SimilarGamesCarousel';
 import CustomVideoPlayer from '../shared/CustomVideoPlayer';
 import AchievementsList from './AchievementsList';
+import SEO from '../shared/SEO';
 
 interface Props {
   gameId: number | null;
@@ -85,6 +86,13 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-10">
+      {game && (
+        <SEO 
+          title={`${game.name} | Nexus Codex`}
+          description={game.description_raw?.substring(0, 160) || `Check out ${game.name} on Nexus Codex.`}
+          image={game.background_image || undefined}
+        />
+      )}
       <div
         className="absolute inset-0 bg-black/75 backdrop-blur-sm"
         onClick={onClose}

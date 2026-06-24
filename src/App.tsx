@@ -1,6 +1,7 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
+import { HelmetProvider } from 'react-helmet-async';
 import { AlertCircle, X } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import useAppDispatch from './hooks/useAppDispatch';
@@ -76,8 +77,9 @@ function App() {
   }, [dispatch]);
 
   return (
-    <MotionConfig reducedMotion="user">
-      <div className="h-screen w-screen overflow-hidden bg-background">
+<HelmetProvider>
+  <MotionConfig reducedMotion="user">
+    <div className="h-screen w-screen overflow-hidden bg-background">
         <PWAReloadPrompt />
         <AuthModal isOpen={isAuthModalOpen} onClose={() => dispatch(setAuthModalOpen(false))} />
         <SmoothScrollbar className="h-full w-full main-scroll-container">
@@ -121,6 +123,7 @@ function App() {
         </AnimatePresence>
       </div>
     </MotionConfig>
+</HelmetProvider>
   );
 }
 

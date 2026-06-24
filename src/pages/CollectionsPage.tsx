@@ -11,6 +11,7 @@ import useSearchContext from '../hooks/useSearchContext';
 import { setViewMode, setAuthModalOpen } from '../store/uiSlice';
 import type { FavoriteGame, CollectionName } from '../types';
 import { Cloud } from 'lucide-react';
+import SEO from '../components/shared/SEO';
 
 
 type FilterId = 'all' | 'favorites' | CollectionName;
@@ -76,6 +77,10 @@ const CollectionsPage: FC = () => {
 
   return (
     <>
+      <SEO 
+        title={`${activeLabel} | Nexus Codex`}
+        description={`Manage your ${activeLabel.toLowerCase()} game collection on Nexus Codex.`}
+      />
       <GameDetailsModal gameId={selectedGameId} onClose={handleCloseModal} />
 
       <div className="grow flex flex-col w-full min-w-0">
