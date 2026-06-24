@@ -25,7 +25,8 @@ export const fetchFavorites = createAsyncThunk(
       name: item.name,
       slug: item.slug,
       background_image: item.background_image,
-      metacritic: null,
+      metacritic: item.metacritic,
+      parent_platforms: item.parent_platforms,
     })) as FavoriteGame[];
   }
 );
@@ -60,6 +61,8 @@ export const toggleFavoriteInDb = createAsyncThunk(
           name: game.name,
           slug: game.slug,
           background_image: game.background_image,
+          metacritic: game.metacritic,
+          parent_platforms: game.parent_platforms,
         });
       if (error) throw error;
       return { game, action: 'added' as const };
