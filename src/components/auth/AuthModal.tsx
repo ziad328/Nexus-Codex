@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
 import type { FC } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Mail, ArrowRight, Loader2, CheckCircle2, AlertTriangle } from 'lucide-react';
@@ -10,40 +12,62 @@ interface Props {
 }
 
 const AuthModal: FC<Props> = ({ isOpen, onClose }) => {
-  const [email, setEmail] = useState('');
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email) return;
+  const formik = useFormik({
+    initialValues: {
+      email: '',
+    },
+    validationSchema: Yup.object({
+      email: Yup.string()
+        .matches(
+          /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+          'Please enter a valid, complete email address (e.g., name@domain.com).'
+        )
+        .required('Email is required.')
+        .test('no-common-typos', 'Did you mean @gmail.com? Please check your email for typos.', (value) => {
+          if (!value) return true;
+          const commonTypos: Record<string, string> = {
+            'gmai.com': 'gmail.com',
+            'gmal.com': 'gmail.com',
+            'gmail.co': 'gmail.com',
+            'yahoo.co': 'yahoo.com',
+            'hotmai.com': 'hotmail.com',
+            'hotmail.co': 'hotmail.com'
+          };
+          const domain = value.split('@')[1]?.toLowerCase();
+          return !(domain && commonTypos[domain]);
+        }),
+    }),
+    onSubmit: async (values) => {
+      setIsLoading(true);
+      setSubmitError(null);
 
-    setIsLoading(true);
-    setError(null);
+      try {
+        const { error: signInError } = await supabase.auth.signInWithOtp({
+          email: values.email,
+          options: {
+            emailRedirectTo: window.location.origin,
+          },
+        });
 
-    try {
-      const { error: signInError } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: window.location.origin,
-        },
-      });
-
-      if (signInError) throw signInError;
-      
-      setIsSuccess(true);
-    } catch (err: any) {
-      setError(err.message || 'Failed to send magic link. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+        if (signInError) throw signInError;
+        
+        setIsSuccess(true);
+      } catch (err: any) {
+        setSubmitError(err.message || 'Failed to send magic link. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+  });
 
   const handleClose = () => {
-    setEmail('');
+    formik.resetForm();
     setIsSuccess(false);
-    setError(null);
+    setSubmitError(null);
     setIsLoading(false);
     onClose();
   };
@@ -87,7 +111,7 @@ const AuthModal: FC<Props> = ({ isOpen, onClose }) => {
                   </div>
                   <h3 className="text-xl font-bold text-white mb-1">Check your email</h3>
                   <p className="text-zinc-400 mb-4 text-sm">
-                    We sent a magic link to <span className="text-white font-semibold">{email}</span>. Click it to sign in.
+                    We sent a magic link to <span className="text-white font-semibold">{formik.values.email}</span>. Click it to sign in.
                   </p>
                   
                   <div className="p-3 bg-orange-500/10 border border-orange-500/20 rounded-xl flex items-start gap-2.5 text-left">
@@ -112,26 +136,36 @@ const AuthModal: FC<Props> = ({ isOpen, onClose }) => {
                     Please sign in to add games to your library and sync them across all your devices. It's completely free and requires no passwords!
                   </p>
                   
-                  <form onSubmit={handleSubmit} className="space-y-4">
+                  <form onSubmit={formik.handleSubmit} className="space-y-4">
                     <div className="relative">
                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
                       <input
+                        id="email"
+                        name="email"
                         type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        value={formik.values.email}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
                         placeholder="Enter your email address"
-                        required
-                        className="w-full pl-12 pr-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
+                        className={`w-full pl-12 pr-4 py-3 bg-black/40 border rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-1 transition-all ${
+                          formik.touched.email && formik.errors.email
+                            ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/50'
+                            : 'border-white/10 focus:border-accent focus:ring-accent'
+                        }`}
                       />
                     </div>
 
-                    {error && (
-                      <p className="text-red-400 text-sm mt-2">{error}</p>
+                    {formik.touched.email && formik.errors.email && (
+                      <p className="text-red-400 text-sm mt-2">{formik.errors.email}</p>
+                    )}
+
+                    {submitError && (
+                      <p className="text-red-400 text-sm mt-2">{submitError}</p>
                     )}
 
                     <button
                       type="submit"
-                      disabled={isLoading || !email}
+                      disabled={isLoading || !formik.values.email || !!formik.errors.email}
                       className="relative w-full py-3 bg-linear-to-r from-accent to-red-700 text-white font-bold rounded-xl transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 group overflow-hidden hover:shadow-[0_0_30px_rgba(239,68,68,0.3)] cursor-pointer"
                     >
                       <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out"></div>
