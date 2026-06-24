@@ -65,8 +65,6 @@ function App() {
         dispatch(fetchFavorites());
         dispatch(fetchCollections());
       } else if (event === 'SIGNED_OUT') {
-        // Only clear data when the user explicitly logs out.
-        // If we clear on 'INITIAL_SESSION' for guests, it wipes their local storage!
         dispatch(clearFavorites());
         dispatch(clearCollections());
       }
