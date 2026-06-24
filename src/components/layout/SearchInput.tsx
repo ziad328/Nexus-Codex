@@ -37,6 +37,10 @@ const SearchInput: FC<Props> = ({ autoFocus, onClose }) => {
 
     const timeoutId = setTimeout(() => {
       setQuery(value);
+      // Best Practice: Only trigger layout/scroll changes when the search is actually committed and results update
+      if (value.trim() !== '') {
+        window.dispatchEvent(new CustomEvent('nexusScrollToTop'));
+      }
     }, 500);
     
     return () => clearTimeout(timeoutId);
