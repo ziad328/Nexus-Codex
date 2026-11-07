@@ -175,15 +175,50 @@ test.describe('at 375 px', () => {
     expect(await sidewaysOverflow(page)).toBe(0);
   });
 
-  test('BUG-25: a phone user can reach Sign In', async ({ page }) => {
-    test.fail();
+  test('a phone user signs in from the menu (BUG-25, fixed)', async ({ page, outside }) => {
     await page.goto('/');
     await expect(card(page, 'Portal')).toBeVisible();
 
     await page.getByRole('button', { name: 'Toggle Menu' }).click();
+    await expect(page.getByText('Sync your library')).toBeInViewport();
+    await page.getByRole('button', { name: 'Sign In' }).click();
 
-    await expect(page.getByRole('button', { name: 'Sign In' }).locator('visible=true')).toBeVisible({ timeout: 3000 });
+    await expect(page.getByRole('button', { name: 'Close mobile menu' })).toBeHidden();
+    await page.getByPlaceholder('Enter your email address').fill('player@gmail.com');
+    await page.getByRole('button', { name: /Send Magic Link/ }).click();
+    await expect(page.getByRole('heading', { name: 'Check your email' })).toBeVisible();
+    expect(outside.magicLinks).toHaveLength(1);
   });
+
+  test('a signed-in phone user sees their email and signs out from the menu (BUG-25, fixed)', async ({ page, context, outside }) => {
+    await signIn(context);
+    await page.goto('/');
+
+    await page.getByRole('button', { name: 'Toggle Menu' }).click();
+    await expect(page.getByText('player@test.invalid')).toBeInViewport();
+    await page.getByRole('button', { name: 'Sign Out' }).click();
+
+    await expect(page.getByRole('button', { name: 'Close mobile menu' })).toBeHidden();
+    await page.getByRole('button', { name: 'Toggle Menu' }).click();
+    await expect(page.getByRole('button', { name: 'Sign In' })).toBeInViewport();
+    expect(outside.signOuts).toBe(1);
+  });
+
+  for (const width of [320, 360]) {
+    test(`the header stays uncluttered on a ${width} px phone`, async ({ page, context }) => {
+      await signIn(context);
+      await page.setViewportSize({ width, height: 812 });
+      await page.goto('/');
+
+      const logo = (await page.getByRole('link', { name: /Nexus/ }).locator('visible=true').boundingBox())!;
+      const search = (await page.getByRole('button', { name: 'Open Search' }).boundingBox())!;
+      const menu = (await page.getByRole('button', { name: 'Toggle Menu' }).boundingBox())!;
+      // The search icon's box has 8 px of padding around the glyph.
+      expect(search.x + 8).toBeGreaterThan(logo.x + logo.width);
+      expect(logo.x).toBeGreaterThan(menu.x + menu.width);
+      await expect(page.getByRole('button', { name: 'User Menu' })).toBeHidden();
+    });
+  }
 });
 
 test.describe('offline, with the real service worker', () => {

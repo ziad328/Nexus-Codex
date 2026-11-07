@@ -78,11 +78,6 @@ describe('Navbar', () => {
       expect(screen.queryByRole('button', { name: 'User Menu' })).not.toBeInTheDocument();
     });
 
-    it.fails('BUG-25: offers sign-in on phones', () => {
-      renderWithProviders(<Navbar />);
-
-      expect(screen.getByRole('button', { name: 'Sign In' }).closest('.hidden')).toBeNull();
-    });
   });
 
   describe('when signed in', () => {
@@ -135,10 +130,5 @@ describe('Navbar', () => {
       await waitFor(() => expect(screen.queryByText('player@example.com')).not.toBeInTheDocument());
     });
 
-    it.fails('BUG-25: offers sign-out on phones', () => {
-      renderWithProviders(<Navbar />, { preloadedState: signedIn });
-
-      expect(screen.getByRole('button', { name: 'User Menu' }).closest('.hidden')).toBeNull();
-    });
   });
 });

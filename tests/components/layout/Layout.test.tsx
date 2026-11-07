@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { Link, Route, Routes } from 'react-router-dom';
 import Layout from '../../../src/components/layout/Layout';
 import { apiRequests, mockApi } from '../../fakes/network';
@@ -79,6 +79,16 @@ describe('Layout', () => {
       fireEvent.keyDown(overlay()!, { key: 'a' });
 
       expect(overlay()).toBeInTheDocument();
+    });
+
+    it('holds the account, and closes when Sign In is chosen', () => {
+      const { store, container } = setup();
+      openMenu();
+
+      fireEvent.click(within(drawer(container) as HTMLElement).getByRole('button', { name: 'Sign In' }));
+
+      expect(store.getState().ui.isAuthModalOpen).toBe(true);
+      expect(overlay()).not.toBeInTheDocument();
     });
 
     it('closes when moving to another page', async () => {
