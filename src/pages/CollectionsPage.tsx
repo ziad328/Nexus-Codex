@@ -12,6 +12,7 @@ import { setViewMode, setAuthModalOpen } from '../store/uiSlice';
 import type { FavoriteGame, CollectionName } from '../types';
 import { Cloud } from 'lucide-react';
 import SEO from '../components/shared/SEO';
+import { GRID_LAYOUT, LIST_LAYOUT } from '../components/game/gridLayout';
 
 
 type FilterId = 'all' | 'favorites' | CollectionName;
@@ -168,8 +169,8 @@ const CollectionsPage: FC = () => {
           ) : (
             <div className={
               viewMode === 'list'
-                ? 'flex flex-col gap-2'
-                : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6'
+                ? LIST_LAYOUT
+                : GRID_LAYOUT
             }>
               {filtered.map(game => (
                 <GameCard

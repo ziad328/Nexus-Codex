@@ -110,16 +110,30 @@ describe.each(views)('GameCard in %s view', (viewMode) => {
 });
 
 describe('GameCard', () => {
-  it('uses the grid layout by default', () => {
+  it('shows portrait box art in the grid by default, filling its row', () => {
     const { container } = renderWithProviders(<GameCard game={game} onClick={vi.fn()} />);
 
-    expect(container.querySelector('.h-48')).toBeInTheDocument();
+    expect(container.querySelector('.aspect-3\\/4')).toHaveClass('w-full');
+    expect(screen.getByRole('button', { name: `View details for ${game.name}` })).toHaveClass('h-full');
   });
 
-  it('uses a compact thumbnail in list view', () => {
+  it('puts the score on the cover in the grid', () => {
+    const { container } = renderWithProviders(<GameCard game={game} onClick={vi.fn()} />);
+
+    expect(container.querySelector('.aspect-3\\/4')).toHaveTextContent(String(game.metacritic));
+  });
+
+  it('keeps the heart visible on touch screens, hiding it until hover only from md up', () => {
+    renderWithProviders(<GameCard game={game} onClick={vi.fn()} />);
+
+    const corner = screen.getByRole('button', { name: 'Add to favorites' }).parentElement!;
+    expect(corner).toHaveClass('md:opacity-0');
+    expect(corner).not.toHaveClass('opacity-0');
+  });
+
+  it('uses a small portrait thumbnail in list view', () => {
     const { container } = renderWithProviders(<GameCard game={game} onClick={vi.fn()} viewMode="list" />);
 
-    expect(container.querySelector('.h-48')).not.toBeInTheDocument();
-    expect(container.querySelector('.h-14')).toBeInTheDocument();
+    expect(container.querySelector('.aspect-3\\/4')).toHaveClass('w-11');
   });
 });

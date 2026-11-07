@@ -127,7 +127,7 @@ describe('GET /api/games', () => {
       id: 1,
       name: 'Game 1',
       slug: 'game-1',
-      background_image: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co1.jpg',
+      background_image: 'https://images.igdb.com/igdb/image/upload/t_cover_big_2x/co1.jpg',
       metacritic: 88,
       parent_platforms: [{ platform: { id: 1, name: 'PC', slug: 'pc' } }, { platform: { id: 2, name: 'PlayStation', slug: 'playstation' } }],
     }]);

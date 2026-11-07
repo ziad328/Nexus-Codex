@@ -78,10 +78,10 @@ const RecentlyViewed: FC<Props> = ({ onSelectGame }) => {
             <button
               key={game.id}
               onClick={() => onSelectGame(game.id)}
-              className="shrink-0 w-24 group cursor-pointer"
+              className="shrink-0 w-16 group cursor-pointer"
               title={game.name}
             >
-              <div className="w-24 h-14 rounded-xl overflow-hidden ring-1 ring-zinc-800 group-hover:ring-accent/50 transition-all duration-200">
+              <div className="w-16 aspect-3/4 rounded-xl overflow-hidden ring-1 ring-zinc-800 group-hover:ring-accent/50 transition-all duration-200">
                 {game.background_image ? (
                   <img
                     src={getCroppedImageUrl(game.background_image)}

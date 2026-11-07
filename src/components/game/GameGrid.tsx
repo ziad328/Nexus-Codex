@@ -7,6 +7,7 @@ import type { GameQuery } from '../../types';
 import GameCard from './GameCard';
 import GameCardSkeleton from '../shared/GameCardSkeleton';
 import { Link } from 'react-router-dom';
+import { GRID_LAYOUT, LIST_LAYOUT } from './gridLayout';
 import { AlertCircle, FolderHeart } from 'lucide-react';
 
 interface Props {
@@ -82,7 +83,7 @@ const GameGrid: FC<Props> = ({ gameQuery, onSelectGame, viewMode = 'grid' }) => 
 
   return (
     <div className="w-full pb-10">
-      <div className={viewMode === 'list' ? 'flex flex-col gap-2' : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6'}>
+      <div className={viewMode === 'list' ? LIST_LAYOUT : GRID_LAYOUT}>
         {isLoading && skeletons.map((_, index) => <GameCardSkeleton key={`skeleton-${index}`} />)}
         
         <AnimatePresence mode="popLayout">
@@ -95,6 +96,7 @@ const GameGrid: FC<Props> = ({ gameQuery, onSelectGame, viewMode = 'grid' }) => 
               animate="visible"
               exit="exit"
               layout
+              className="h-full"
             >
               <GameCard game={game} onClick={onSelectGame} viewMode={viewMode} />
             </motion.div>

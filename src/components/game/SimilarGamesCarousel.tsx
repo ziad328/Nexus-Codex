@@ -28,7 +28,7 @@ const SimilarGamesCarousel: FC<Props> = ({ games, onSelectGame }) => {
 
   const scroll = (direction: 'left' | 'right') => {
     const el = scrollRef.current;
-    if (el) el.scrollBy({ left: direction === 'right' ? 296 : -296, behavior: 'smooth' });
+    if (el) el.scrollBy({ left: direction === 'right' ? 320 : -320, behavior: 'smooth' });
   };
 
   if (games.length === 0) return null;
@@ -56,20 +56,18 @@ const SimilarGamesCarousel: FC<Props> = ({ games, onSelectGame }) => {
           <button 
             key={game.id} 
             onClick={() => onSelectGame?.(game.id, game)}
-            className="text-left min-w-70 max-w-70 shrink-0 snap-start bg-zinc-800/50 rounded-2xl overflow-hidden border border-white/5 hover:border-accent/30 transition-colors group cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent"
+            className="text-left w-36 sm:w-40 shrink-0 snap-start bg-zinc-800/50 rounded-2xl overflow-hidden border border-white/5 hover:border-accent/30 transition-colors group cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent"
           >
-            <div className="aspect-video relative overflow-hidden bg-zinc-900">
+            <div className="aspect-3/4 relative overflow-hidden bg-zinc-900">
               <img 
                 src={getCroppedImageUrl(game.background_image)} 
                 alt={game.name}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
             </div>
-            <div className="p-4">
-              <div className="flex justify-between items-start gap-2 mb-2">
-                <h3 className="text-zinc-100 font-bold text-lg leading-tight line-clamp-2">{game.name}</h3>
-                {game.metacritic && <CriticScore score={game.metacritic} />}
-              </div>
+            <div className="p-3 flex flex-col gap-1.5">
+              <h3 className="text-zinc-100 font-semibold text-sm leading-snug line-clamp-2">{game.name}</h3>
+              {game.metacritic && <CriticScore score={game.metacritic} />}
             </div>
           </button>
         ))}

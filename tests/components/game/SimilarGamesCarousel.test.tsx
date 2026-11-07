@@ -87,10 +87,10 @@ describe('SimilarGamesCarousel', () => {
     layout(strip, { scrollWidth: 1800, clientWidth: 600, scrollLeft: 300 });
 
     fireEvent.click(screen.getByRole('button', { name: 'Scroll right' }));
-    expect(scrollBy).toHaveBeenLastCalledWith({ left: 296, behavior: 'smooth' });
+    expect(scrollBy).toHaveBeenLastCalledWith({ left: 320, behavior: 'smooth' });
 
     fireEvent.click(screen.getByRole('button', { name: 'Scroll left' }));
-    expect(scrollBy).toHaveBeenLastCalledWith({ left: -296, behavior: 'smooth' });
+    expect(scrollBy).toHaveBeenLastCalledWith({ left: -320, behavior: 'smooth' });
   });
 
   it.fails('BUG-22: does not show a stray 0 for a game scored 0', async () => {

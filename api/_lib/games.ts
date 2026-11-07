@@ -18,7 +18,7 @@ export interface GameSummary {
   id: number;
   name: string;
   slug: string;
-  /** Portrait cover, or '' when IGDB has none. */
+  /** Portrait cover at double size for sharp phone and laptop screens, or '' when IGDB has none. */
   background_image: string;
   /** IGDB's critic score (`aggregated_rating`), rounded; not Metacritic. */
   metacritic: number | null;
@@ -65,7 +65,7 @@ interface IgdbGame {
   themes?: number[];
 }
 
-export const imageUrl = (imageId: string, size: 'cover_big' | 'screenshot_big' | '1080p') =>
+export const imageUrl = (imageId: string, size: 'cover_big_2x' | 'screenshot_big' | '1080p') =>
   `https://images.igdb.com/igdb/image/upload/t_${size}/${imageId}.jpg`;
 
 const parentPlatforms = (ids: number[] = []): PlatformRef[] =>
@@ -76,7 +76,7 @@ const toSummary = (game: IgdbGame): GameSummary => ({
   id: game.id,
   name: game.name,
   slug: game.slug,
-  background_image: game.cover ? imageUrl(game.cover.image_id, 'cover_big') : '',
+  background_image: game.cover ? imageUrl(game.cover.image_id, 'cover_big_2x') : '',
   metacritic: game.aggregated_rating == null ? null : Math.round(game.aggregated_rating),
   parent_platforms: parentPlatforms(game.platforms),
 });

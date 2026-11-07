@@ -150,6 +150,15 @@ test.describe('at 375 px', () => {
     const box = await card(page, 'Portal').boundingBox();
     expect(box!.x).toBeGreaterThanOrEqual(0);
     expect(box!.x + box!.width).toBeLessThanOrEqual(375);
+    // Portrait box art sits two to a row on a phone. Cards slide in one after another, so wait for them to settle.
+    const tops = async () => {
+      const [first, second] = await Promise.all([card(page, 'Portal').boundingBox(), card(page, 'Doom').boundingBox()]);
+      return Math.round(second!.y - first!.y);
+    };
+    await expect.poll(tops).toBe(0);
+    const next = await card(page, 'Doom').boundingBox();
+    expect(next!.x).toBeGreaterThan(box!.x + box!.width);
+    expect(box!.height).toBeGreaterThan(box!.width);
 
     await page.getByRole('button', { name: 'Toggle Menu' }).click();
     await expect(page.getByRole('link', { name: /action/i }).locator('visible=true')).toBeInViewport();
