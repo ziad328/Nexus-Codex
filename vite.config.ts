@@ -82,36 +82,41 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
         navigateFallback: 'index.html',
+        // /api answers must never be swapped for the app's page.
+        navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/media\.rawg\.io\/.*/i,
+            // Covers and screenshots. IGDB never changes an image at a given address, and sends CORS headers,
+            // so the app asks with crossorigin and only full (non-opaque) answers are kept.
+            urlPattern: /^https:\/\/images\.igdb\.com\/.*/i,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'rawg-images-cache',
+              cacheName: 'igdb-images',
               expiration: {
-                maxEntries: 100,
+                maxEntries: 300,
                 maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+                purgeOnQuotaError: true,
               },
-              cacheableResponse: {
-                statuses: [0, 200]
-              }
-            }
+              cacheableResponse: { statuses: [200] },
+            },
           },
           {
-            urlPattern: /^https:\/\/api\.rawg\.io\/.*/i,
+            // Our proxy: fresh when online, the last good answer when offline or slow.
+            urlPattern: /\/api\/(games|genres)/,
             handler: 'NetworkFirst',
             options: {
-              cacheName: 'rawg-api-cache',
+              cacheName: 'nexus-api',
+              networkTimeoutSeconds: 5,
               expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24, // 1 day
+                maxEntries: 200,
+                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
               },
-              cacheableResponse: {
-                statuses: [0, 200]
-              }
-            }
-          }
-        ]
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+        ],
+        // shortcut: the old RAWG caches (rawg-api-cache, rawg-images-cache) stay in browsers that had them until
+        // the browser clears storage; deleting them needs custom service-worker code. Add it if storage complaints appear.
       }
     })
   ],

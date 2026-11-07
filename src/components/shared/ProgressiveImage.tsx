@@ -25,9 +25,11 @@ const ProgressiveImage: FC<Props> = ({ src, alt, className = '' }) => {
       />
       
       {/* Actual Image */}
+      {/* crossorigin: IGDB sends CORS headers, so the offline cache keeps a full copy (see vite.config.ts). */}
       <img
         ref={imgRef}
         src={src}
+        crossOrigin="anonymous"
         alt={alt}
         loading="lazy"
         onLoad={() => setIsLoaded(true)}

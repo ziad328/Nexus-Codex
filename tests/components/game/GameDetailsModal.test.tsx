@@ -383,7 +383,7 @@ describe('glow from the cover', () => {
     await waitFor(() => expect(glow()).toContain('232'));
   });
 
-  it.fails('BUG-1: requests the cover in a way that lets its colours be read', async () => {
+  it('requests the cover in a way that lets its colours be read (one of the three BUG-1 causes, fixed)', async () => {
     await renderLoaded();
 
     expect(screen.getByRole('img', { name: 'Portal' })).toHaveAttribute('crossorigin', 'anonymous');

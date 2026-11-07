@@ -2,6 +2,9 @@ import { defineConfig, devices } from '@playwright/test';
 
 const port = 4173;
 
+// Lets the stubs answer the service worker's own requests too, so the offline tests use stubbed /api answers.
+process.env.PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS = '1';
+
 export default defineConfig({
   testDir: './e2e',
   outputDir: './test-results',

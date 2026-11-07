@@ -245,4 +245,19 @@ test.describe('offline, with the real service worker', () => {
     await expect(page.getByRole('heading', { name: 'My Collection', level: 1 })).toBeVisible();
     await expect(card(page, 'Portal')).toBeVisible();
   });
+
+  test('games seen online still show offline', async ({ page, context, outside }) => {
+    await page.goto('/');
+    await page.evaluate(async () => { await navigator.serviceWorker.ready; });
+    await page.reload(); // now the service worker handles the page, and keeps the answers it passes on
+    await expect(card(page, 'Portal')).toBeVisible();
+    const asked = outside.gameRequests.length;
+
+    await context.setOffline(true);
+    outside.offline = true;
+    await page.reload();
+
+    await expect(card(page, 'Doom')).toBeVisible();
+    expect(outside.gameRequests.length).toBe(asked);
+  });
 });

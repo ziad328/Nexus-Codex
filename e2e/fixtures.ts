@@ -66,6 +66,7 @@ const answerApi = (path: string) => {
 /** Controls the stubbed outside world from a test, and records what the app asked it. */
 export class Outside {
   apiDown = false;
+  offline = false;
   gameRequests: URLSearchParams[] = [];
   cloudRows: Record<string, unknown[]> = { favorites: [], collections: [] };
   inserts: { table: string; rows: unknown }[] = [];
@@ -73,6 +74,8 @@ export class Outside {
   signOuts = 0;
 
   private async api(route: Route, url: URL) {
+    // Routes run even with the network off, so going offline has to be mirrored here.
+    if (this.offline) return route.abort('internetdisconnected');
     const path = url.pathname.replace(/^\/api/, '');
     if (path === '/games') this.gameRequests.push(url.searchParams);
     const body = this.apiDown ? null : answerApi(path);

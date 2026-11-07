@@ -136,6 +136,7 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
                 <img
                   ref={heroImgRef}
                   src={screenshots[0]?.image || game.background_image}
+                  crossOrigin="anonymous"
                   alt={game.name}
                   onLoad={handleHeroLoad}
                   className="w-full h-full object-cover"
@@ -228,6 +229,7 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
                           <div key={ss.id} className="aspect-video rounded-xl overflow-hidden bg-zinc-800 hover:ring-2 hover:ring-accent/60 transition-all duration-300">
                             <img
                               src={getCroppedImageUrl(ss.image)}
+                              crossOrigin="anonymous"
                               alt="Screenshot"
                               className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                             />

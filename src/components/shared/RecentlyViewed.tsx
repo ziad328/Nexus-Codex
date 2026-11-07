@@ -85,6 +85,7 @@ const RecentlyViewed: FC<Props> = ({ onSelectGame }) => {
                 {game.background_image ? (
                   <img
                     src={getCroppedImageUrl(game.background_image)}
+                    crossOrigin="anonymous"
                     alt={game.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     loading="lazy"

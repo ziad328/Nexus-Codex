@@ -60,7 +60,8 @@ const SimilarGamesCarousel: FC<Props> = ({ games, onSelectGame }) => {
           >
             <div className="aspect-3/4 relative overflow-hidden bg-zinc-900">
               <img 
-                src={getCroppedImageUrl(game.background_image)} 
+                src={getCroppedImageUrl(game.background_image)}
+                crossOrigin="anonymous"
                 alt={game.name}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
