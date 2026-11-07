@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { FC } from 'react';
 import { Play } from 'lucide-react';
+import Lightbox from '../shared/Lightbox';
 
 interface Trailer {
   id: number;
@@ -34,33 +35,37 @@ const YouTubeTrailer: FC<Props> = ({ trailers }) => {
   return (
     <div>
       <h2 className="text-lg font-semibold text-zinc-100 mb-3">Trailers</h2>
-      <div className="relative aspect-video rounded-xl overflow-hidden bg-black">
-        {playing ? (
-          <iframe
-            src={`https://www.youtube-nocookie.com/embed/${trailer.youtube_id}?autoplay=1&rel=0`}
-            title={trailer.name}
-            allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-            allowFullScreen
-            className="absolute inset-0 w-full h-full"
-          />
-        ) : (
-          <button
-            onClick={() => setPlaying(true)}
-            aria-label={`Play trailer: ${trailer.name}`}
-            className="absolute inset-0 w-full h-full group cursor-pointer"
-          >
-            <img
-              src={`https://i.ytimg.com/vi/${trailer.youtube_id}/hqdefault.jpg`}
-              alt=""
-              className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+      {/* The player opens in a full-screen viewer: inside the modal's rounded corners Chrome stops clicks reaching it. */}
+      {playing && (
+        <Lightbox label={trailer.name} onClose={() => setPlaying(false)}>
+          <div className="w-full max-w-6xl aspect-video bg-black">
+            <iframe
+              src={`https://www.youtube-nocookie.com/embed/${trailer.youtube_id}?autoplay=1&rel=0`}
+              title={trailer.name}
+              allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+              allowFullScreen
+              className="w-full h-full"
             />
-            <span className="absolute inset-0 flex items-center justify-center">
-              <span className="w-16 h-16 rounded-full bg-accent/90 group-hover:bg-accent flex items-center justify-center shadow-lg transition-colors">
-                <Play className="w-7 h-7 text-white ml-1" fill="currentColor" />
-              </span>
+          </div>
+        </Lightbox>
+      )}
+      <div className="relative aspect-video rounded-xl overflow-hidden bg-black">
+        <button
+          onClick={() => setPlaying(true)}
+          aria-label={`Play trailer: ${trailer.name}`}
+          className="absolute inset-0 w-full h-full group cursor-pointer"
+        >
+          <img
+            src={`https://i.ytimg.com/vi/${trailer.youtube_id}/hqdefault.jpg`}
+            alt=""
+            className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+          />
+          <span className="absolute inset-0 flex items-center justify-center">
+            <span className="w-16 h-16 rounded-full bg-accent/90 group-hover:bg-accent flex items-center justify-center shadow-lg transition-colors">
+              <Play className="w-7 h-7 text-white ml-1" fill="currentColor" />
             </span>
-          </button>
-        )}
+          </span>
+        </button>
       </div>
 
       {playable.length > 1 && (

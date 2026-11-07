@@ -31,6 +31,21 @@ describe('YouTubeTrailer', () => {
     expect(iframe()).toHaveAttribute('allowfullscreen');
   });
 
+  it('plays in a full-screen viewer, outside the rounded frame that blocks clicks in Chrome, and stops when closed', () => {
+    const { container } = render(<YouTubeTrailer trailers={[launch]} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Play trailer: Launch Trailer' }));
+
+    const viewer = screen.getByRole('dialog', { name: 'Launch Trailer' });
+    expect(viewer).toContainElement(iframe());
+    expect(container).not.toContainElement(iframe());
+    expect(iframe()!.closest('.rounded-xl')).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close viewer' }));
+
+    expect(iframe()).toBeNull();
+    expect(screen.getByRole('button', { name: 'Play trailer: Launch Trailer' })).toBeInTheDocument();
+  });
+
   it('offers a choice when there are several, and stops the playing one when switching', () => {
     render(<YouTubeTrailer trailers={[launch, gameplay]} />);
     expect(screen.getByRole('button', { name: 'Launch Trailer' })).toHaveAttribute('aria-pressed', 'true');

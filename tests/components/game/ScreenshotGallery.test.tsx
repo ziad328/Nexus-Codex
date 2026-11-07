@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import ScreenshotGallery from '../../../src/components/game/ScreenshotGallery';
 
 const shots = [1, 2, 3].map((id) => ({ id, image: `https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc${id}.jpg` }));
@@ -92,7 +92,44 @@ describe('ScreenshotGallery', () => {
   it('has no arrows or thumbnails for a single screenshot', () => {
     render(<ScreenshotGallery screenshots={[shots[0]]} />);
 
-    expect(screen.queryAllByRole('button')).toHaveLength(0);
+    expect(screen.queryByRole('button', { name: /Previous|Next|Show screenshot/ })).not.toBeInTheDocument();
     expect(screen.getByText('1 / 1')).toBeInTheDocument();
+  });
+
+  describe('enlarged', () => {
+    const viewer = () => screen.getByRole('dialog', { name: /^Screenshot \d of 3$/ });
+    const enlarge = (n = 1) => fireEvent.click(screen.getByRole('button', { name: `Enlarge screenshot ${n}` }));
+
+    it('opens the shown screenshot large, at the 1080p size', () => {
+      render(<ScreenshotGallery screenshots={shots} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Next screenshot' }));
+
+      enlarge(2);
+
+      expect(within(viewer()).getByRole('img')).toHaveAttribute('src', 'https://images.igdb.com/igdb/image/upload/t_1080p/sc2.jpg');
+      expect(within(viewer()).getByText('2 / 3')).toBeInTheDocument();
+    });
+
+    it('moves with its own arrows and the arrow keys', () => {
+      render(<ScreenshotGallery screenshots={shots} />);
+      enlarge();
+
+      fireEvent.click(within(viewer()).getByRole('button', { name: 'Next screenshot' }));
+      expect(within(viewer()).getByRole('img')).toHaveAttribute('src', expect.stringContaining('sc2.jpg'));
+
+      fireEvent.keyDown(within(viewer()).getByRole('button', { name: 'Close viewer' }), { key: 'ArrowRight' });
+      expect(within(viewer()).getByRole('img')).toHaveAttribute('src', expect.stringContaining('sc3.jpg'));
+    });
+
+    it('closes, leaving the gallery on the same screenshot', () => {
+      render(<ScreenshotGallery screenshots={shots} />);
+      enlarge();
+      fireEvent.click(within(viewer()).getByRole('button', { name: 'Next screenshot' }));
+
+      fireEvent.click(screen.getByRole('button', { name: 'Close viewer' }));
+
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(large()).toHaveAttribute('src', shots[1].image);
+    });
   });
 });

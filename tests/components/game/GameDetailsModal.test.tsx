@@ -338,6 +338,16 @@ describe('closing', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  it('closes only the trailer viewer with Escape while a trailer plays', async () => {
+    const { onClose } = await renderLoaded({ game: { trailers: [{ id: 6, name: 'Launch Trailer', youtube_id: 'abc123' }] } });
+    fireEvent.click(screen.getByRole('button', { name: 'Play trailer: Launch Trailer' }));
+
+    fireEvent.keyDown(document.body, { key: 'Escape' });
+
+    expect(screen.queryByRole('dialog', { name: 'Launch Trailer' })).not.toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
   it('closes with Escape wherever the focus is, once (BUG-23, fixed)', async () => {
     const { onClose } = await renderLoaded();
 
