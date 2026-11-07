@@ -1,0 +1,17 @@
+import getCroppedImageUrl from '../../src/services/image-url';
+
+describe('getCroppedImageUrl', () => {
+  it('asks RAWG for a 600x400 crop', () => {
+    expect(getCroppedImageUrl('https://media.rawg.io/media/games/abc/def.jpg'))
+      .toBe('https://media.rawg.io/media/crop/600/400/games/abc/def.jpg');
+  });
+
+  it('returns an empty string when there is no image', () => {
+    expect(getCroppedImageUrl('')).toBe('');
+  });
+
+  it.fails('BUG-11: leaves a URL without a media folder unchanged', () => {
+    const url = 'https://images.igdb.com/igdb/image/upload/t_cover_big/abc.jpg';
+    expect(getCroppedImageUrl(url)).toBe(url);
+  });
+});
