@@ -3,7 +3,6 @@ import type { FC } from 'react';
 import useGameDetails from '../../hooks/useGameDetails';
 import CriticScore from '../shared/CriticScore';
 import PlatformIconList from '../shared/PlatformIconList';
-import getCroppedImageUrl from '../../services/image-url';
 import SmoothScrollbar from '../shared/SmoothScrollbar';
 import FavoriteButton from '../shared/FavoriteButton';
 import CollectionButton from '../shared/CollectionButton';
@@ -228,7 +227,7 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
                         {screenshots.map(ss => (
                           <div key={ss.id} className="aspect-video rounded-xl overflow-hidden bg-zinc-800 hover:ring-2 hover:ring-accent/60 transition-all duration-300">
                             <img
-                              src={getCroppedImageUrl(ss.image)}
+                              src={ss.image}
                               crossOrigin="anonymous"
                               alt="Screenshot"
                               className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"

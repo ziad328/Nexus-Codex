@@ -2,7 +2,7 @@
 
 The one living document for this project: what it's for, what it must do, how it's built, where it stands and what comes next. Update it whenever one of those changes. Day-to-day rules are in [../CLAUDE.md](../CLAUDE.md). The API research is in [rawg-vs-igdb.md](rawg-vs-igdb.md).
 
-_Last updated: 2026-11-07 (offline rules for IGDB. Before that: YouTube trailers, click to load. Before that: portrait cover cards. Before that: app moved onto the IGDB proxy; saved games start fresh. Before that: IGDB proxy added, not yet used by the app. Before that: BUG-25 fixed: phones can sign in and out. Before that: coverage report and hand-check list added; database check results recorded. Before that: lint errors fixed without disabling rules, which also fixed BUG-13; Playwright smoke suite, BUG-19 proved; page and `App` tests, BUG-5 proved, BUG-27 to BUG-33, two timing faults in older tests fixed; layout tests, BUG-2 proved, BUG-25 and BUG-26; auth and game component tests, BUG-1, BUG-4 and BUG-6 proved, BUG-20 to BUG-24; shared component tests, BUG-8 proved, BUG-16 to BUG-19; service and hook tests, BUG-3 proved, BUG-11 to BUG-15; store tests, BUG-9 and BUG-10; Phase 2 started with test setup, `CLAUDE.md` and this document)._
+_Last updated: 2026-11-07 (RAWG code removed, README rewritten, IGDB credited. Before that: offline rules for IGDB. Before that: YouTube trailers, click to load. Before that: portrait cover cards. Before that: app moved onto the IGDB proxy; saved games start fresh. Before that: IGDB proxy added, not yet used by the app. Before that: BUG-25 fixed: phones can sign in and out. Before that: coverage report and hand-check list added; database check results recorded. Before that: lint errors fixed without disabling rules, which also fixed BUG-13; Playwright smoke suite, BUG-19 proved; page and `App` tests, BUG-5 proved, BUG-27 to BUG-33, two timing faults in older tests fixed; layout tests, BUG-2 proved, BUG-25 and BUG-26; auth and game component tests, BUG-1, BUG-4 and BUG-6 proved, BUG-20 to BUG-24; shared component tests, BUG-8 proved, BUG-16 to BUG-19; service and hook tests, BUG-3 proved, BUG-11 to BUG-15; store tests, BUG-9 and BUG-10; Phase 2 started with test setup, `CLAUDE.md` and this document)._
 
 ---
 
@@ -16,7 +16,7 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 
 **Must hold at all times**
 1. **User data is safe:** favorites and lists are never lost, duplicated or shown as the wrong game.
-2. **No secret in the browser bundle.** (Not met yet: issue 1.)
+2. **No secret in the browser bundle.** The IGDB keys live only in the proxy; a scan of the build checks it.
 3. **Works at 1440 px and 375 px**, with no sideways scroll.
 4. **Offline:** saved lists and already-seen data still show; everything else gets a clear message.
 5. **Quality bar:** tests, `npx tsc -b --noEmit`, `npm run build` and `npm run lint` all pass.
@@ -73,9 +73,9 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 - [x] Game details: click-to-load YouTube trailers, store links, similar games, no achievements
 - [x] Offline rules for the new API and images: `/api` network-first with a 5 s timeout, IGDB images cache-first, both kept only as full answers; checked offline with the real service worker
 - [ ] Saved games: RAWG ids to IGDB ids (owner backs up and runs the SQL)
-- [ ] Remove RAWG, rewrite README and docs
+- [x] Remove RAWG, rewrite README and docs
 
-**Latest verification (2026-11-07):** 604 tests pass and 42 expected failures mark known problems. `npx tsc -b --noEmit`, the build and `npm run lint` are all clean, with no lint warnings. Coverage: `src/store` 99% of lines and 92% of branches; `src/hooks`, `src/services` and `src/components/layout` 100% of both; `src/components/shared` 98% and 93%; `src/components/auth` and `game` 100% and 93%; `src/pages` 100% of lines and 95% of branches. Of 403 deliberate breakages of this code, 396 were caught. The other seven: the two glow lines rewritten in `GameDetailsModal` can't run because of BUG-1; removing `video.muted = isMuted` changes nothing, as it only repeats the default; an empty-value guard in `AuthModal`'s typo check has no visible effect; `Sidebar`'s `if (error)` is BUG-2 itself, pinned by an expected failure; and two things jsdom can't show, which need a hand check: `CollectionsPage` attaching scrollbars to the page body, and `App`'s `reducedMotion="user"`. Smoke suite (`npm run test:e2e`): 17 pass and 2 expected failures (BUG-19, BUG-33) at 1440 px and 375 px, plus offline with the real service worker. All 18 deliberate breakages of the built app were caught, including a trial fix for each of the three bugs. One first attempt, widening the modal, broke nothing because its flex parent shrinks it, so it was replaced by one that really overflows. Live site: game data doesn't load (issue 2).
+**Latest verification (2026-11-07):** 602 tests pass and 42 expected failures mark known problems. `npx tsc -b --noEmit`, the build and `npm run lint` are all clean, with no lint warnings. Coverage: `src/store` 99% of lines and 92% of branches; `src/hooks`, `src/services` and `src/components/layout` 100% of both; `src/components/shared` 98% and 93%; `src/components/auth` and `game` 100% and 93%; `src/pages` 100% of lines and 95% of branches. Of 403 deliberate breakages of this code, 396 were caught. The other seven: the two glow lines rewritten in `GameDetailsModal` can't run because of BUG-1; removing `video.muted = isMuted` changes nothing, as it only repeats the default; an empty-value guard in `AuthModal`'s typo check has no visible effect; `Sidebar`'s `if (error)` is BUG-2 itself, pinned by an expected failure; and two things jsdom can't show, which need a hand check: `CollectionsPage` attaching scrollbars to the page body, and `App`'s `reducedMotion="user"`. Smoke suite (`npm run test:e2e`): 17 pass and 2 expected failures (BUG-19, BUG-33) at 1440 px and 375 px, plus offline with the real service worker. All 18 deliberate breakages of the built app were caught, including a trial fix for each of the three bugs. One first attempt, widening the modal, broke nothing because its flex parent shrinks it, so it was replaced by one that really overflows. Live site: still the old RAWG version, with no game data, until `main` is updated.
 
 **Test skips**
 | Skipped | Why |
@@ -95,13 +95,8 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 
 | # | Issue | Impact | Plan |
 |:--|:--|:--|:--|
-| 1 | The RAWG key ships in the browser bundle | Anyone can copy it | Removed in Phase 3 |
-| 2 | RAWG's API and site return 522 (checked 2026-11-07) | The live app shows no games | Phase 3 |
-| 3 | One older rule exception remains: `useData` disables `exhaustive-deps` on one line. Lint itself passes. | None today | Review when `useData` changes in Phase 3 |
 | 4 | `collections` and `favorites` are read with no user filter, so Row Level Security alone keeps lists private. The owner's SQL (2026-11-07) shows it on, with `auth.uid() = user_id` policies for select, insert and delete. | Lists look private; not yet tested with two real users | Owner runs the two-user test |
 | 5 | A game deleted on one device comes back from another at sign-in. Confirmed by `it.fails('ISSUE-5…')` in both slice tests. | Deletions don't stick across devices | Owner to decide; needs deletion records or merging guest items only |
-| 6 | RAWG's terms require a link on pages using its data; the app has none | Terms breach while RAWG is in use | Goes away with RAWG |
-| 7 | The README names `VITE_SUPABASE_ANON_KEY`; the code reads `VITE_SUPABASE_PUBLISHABLE_KEY`. Other claims are wrong too. | Misleads setup | Rewrite in Phase 3 |
 
 **Known bugs** (each gets an `it.fails` test as Phase 2 reaches it, and none is fixed without the owner's OK. "Pending" means found by reading the code and not yet proved by a test.)
 

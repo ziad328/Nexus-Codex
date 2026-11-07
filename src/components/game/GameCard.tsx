@@ -3,7 +3,6 @@ import type { FC } from 'react';
 import type { FavoriteGame } from '../../types';
 import PlatformIconList from '../shared/PlatformIconList';
 import CriticScore from '../shared/CriticScore';
-import getCroppedImageUrl from '../../services/image-url';
 import FavoriteButton from '../shared/FavoriteButton';
 import CollectionButton from '../shared/CollectionButton';
 import ProgressiveImage from '../shared/ProgressiveImage';
@@ -43,7 +42,7 @@ const GameCard: FC<Props> = ({ game, onClick, viewMode = 'grid', isFavoritePage 
         {/* Thumbnail — smaller on mobile */}
         <div className="relative overflow-hidden w-11 sm:w-12 aspect-3/4 rounded-lg shrink-0">
           <ProgressiveImage
-            src={getCroppedImageUrl(game.background_image)}
+            src={game.background_image}
             alt={game.name}
             className="w-full h-full transition-transform duration-500 group-hover:scale-105"
           />
@@ -102,7 +101,7 @@ const GameCard: FC<Props> = ({ game, onClick, viewMode = 'grid', isFavoritePage 
     >
       <div className="relative overflow-hidden aspect-3/4 w-full rounded-t-2xl shrink-0">
         <ProgressiveImage
-          src={getCroppedImageUrl(game.background_image)}
+          src={game.background_image}
           alt={game.name}
           className="w-full h-full transition-transform duration-500 group-hover:scale-105"
         />

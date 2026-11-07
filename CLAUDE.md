@@ -3,8 +3,6 @@
 A game discovery and library app: React 19, TypeScript, Vite, Tailwind v4, Redux Toolkit + Redux Persist, Axios, Supabase, Workbox PWA, on Vercel. Tested with Vitest.
 Vision, status, open issues, roadmap and decisions: [docs/PROJECT.md](docs/PROJECT.md). API research: [docs/rawg-vs-igdb.md](docs/rawg-vs-igdb.md).
 
-Don't trust `README.md` or `NEXUS_CODEX_OVERVIEW.md` until Phase 3 rewrites them: they claim React Query and React 18, which aren't used.
-
 ## Commands
 - `npm install`, then `npm run dev`
 - `npm test`, `npx tsc -b --noEmit`, `npm run build`, `npm run lint`: all four must pass before a commit
@@ -17,7 +15,7 @@ Don't trust `README.md` or `NEXUS_CODEX_OVERVIEW.md` until Phase 3 rewrites them
 - `src/pages/`: routes (`/`, `/genre/:genreSlug`, `/developer/:developerSlug`, `/publisher/:publisherSlug`, `/collection`), set up in `App.tsx`
 - `src/components/`: `auth/`, `game/`, `layout/`, `shared/`
 - `src/hooks/`: data hooks built on Axios and `AbortController`, all calling our `/api`. There is no React Query. Filter lists (platforms, stores, tags) are fixed, in `api/_lib/catalog.ts`, shared by the app and the proxy.
-- `src/services/api-client.ts`: the only Axios instance. `src/services/image-url.ts`: crops old RAWG images, passes IGDB ones through.
+- `src/services/api-client.ts`: the only Axios instance, pointed at our `/api`.
 - `src/store/`: `favoritesSlice` and `collectionsSlice` (user data, guest and Supabase), `authSlice`, `uiSlice`, `index.ts` (what is persisted)
 - `src/utils/supabase.ts`: the only Supabase client. It throws at import when its env values are missing.
 - `src/types/index.ts`: shared types

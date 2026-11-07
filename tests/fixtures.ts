@@ -8,7 +8,7 @@ export const makeGame = (id: number, overrides: Partial<FavoriteGame> = {}): Fav
   id,
   name: `Game ${id}`,
   slug: `game-${id}`,
-  background_image: `https://media.rawg.io/media/games/${id}.jpg`,
+  background_image: `https://images.igdb.com/igdb/image/upload/t_cover_big_2x/co${id}.jpg`,
   metacritic: 80,
   parent_platforms: [{ platform: { id: 1, name: 'PC', slug: 'pc' } }],
   ...overrides,

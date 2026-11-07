@@ -1,7 +1,6 @@
 import { useRef, useState, useCallback } from 'react';
 import type { FC } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import getCroppedImageUrl from '../../services/image-url';
 import CriticScore from '../shared/CriticScore';
 import type { Game } from '../../types';
 
@@ -60,7 +59,7 @@ const SimilarGamesCarousel: FC<Props> = ({ games, onSelectGame }) => {
           >
             <div className="aspect-3/4 relative overflow-hidden bg-zinc-900">
               <img 
-                src={getCroppedImageUrl(game.background_image)}
+                src={game.background_image}
                 crossOrigin="anonymous"
                 alt={game.name}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"

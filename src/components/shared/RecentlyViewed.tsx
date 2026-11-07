@@ -4,7 +4,6 @@ import { History, ChevronLeft, ChevronRight } from 'lucide-react';
 import useAppSelector from '../../hooks/useAppSelector';
 import useAppDispatch from '../../hooks/useAppDispatch';
 import { clearRecentlyViewed } from '../../store/uiSlice';
-import getCroppedImageUrl from '../../services/image-url';
 
 interface Props {
   onSelectGame: (id: number) => void;
@@ -84,7 +83,7 @@ const RecentlyViewed: FC<Props> = ({ onSelectGame }) => {
               <div className="w-16 aspect-3/4 rounded-xl overflow-hidden ring-1 ring-zinc-800 group-hover:ring-accent/50 transition-all duration-200">
                 {game.background_image ? (
                   <img
-                    src={getCroppedImageUrl(game.background_image)}
+                    src={game.background_image}
                     crossOrigin="anonymous"
                     alt={game.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"

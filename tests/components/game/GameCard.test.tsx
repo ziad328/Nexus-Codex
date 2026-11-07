@@ -20,13 +20,13 @@ const setup = (viewMode: (typeof views)[number], options: { isFavoritePage?: boo
 };
 
 describe.each(views)('GameCard in %s view', (viewMode) => {
-  it('shows the name, a cropped image, platforms and score', () => {
+  it('shows the name, its cover, platforms and score', () => {
     setup(viewMode);
 
     expect(screen.getByRole('heading', { name: 'Portal' })).toBeInTheDocument();
     expect(screen.getByRole('img', { name: 'Portal' })).toHaveAttribute(
       'src',
-      'https://media.rawg.io/media/crop/600/400/games/1.jpg',
+      'https://images.igdb.com/igdb/image/upload/t_cover_big_2x/co1.jpg',
     );
     expect(screen.getByTitle('PC')).toBeInTheDocument();
     expect(screen.getAllByText('90').length).toBeGreaterThan(0);

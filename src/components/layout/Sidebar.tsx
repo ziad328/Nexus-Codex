@@ -99,6 +99,13 @@ const Sidebar: FC = () => {
           );
         })}
       </div>
+
+      <p className="mt-6 px-2 text-xs text-zinc-600">
+        Game data from{' '}
+        <a href="https://www.igdb.com" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-400 underline underline-offset-2">
+          IGDB.com
+        </a>
+      </p>
     </aside>
   );
 };

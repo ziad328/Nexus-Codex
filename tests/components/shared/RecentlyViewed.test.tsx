@@ -35,7 +35,7 @@ describe('RecentlyViewed', () => {
     expect(screen.getByText('Recently Viewed')).toBeInTheDocument();
     expect(screen.getByRole('img', { name: 'Game 1' })).toHaveAttribute(
       'src',
-      'https://media.rawg.io/media/crop/600/400/games/1.jpg',
+      'https://images.igdb.com/igdb/image/upload/t_cover_big_2x/co1.jpg',
     );
     expect(screen.getByRole('img', { name: 'Game 2' })).toBeInTheDocument();
   });

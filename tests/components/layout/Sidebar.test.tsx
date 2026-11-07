@@ -126,3 +126,13 @@ it.fails('BUG-2: keeps the My Collection link when genres fail to load', async (
 
   expect(collectionLink()).toBeInTheDocument();
 });
+
+it('credits IGDB for the game data, opening safely in a new tab', () => {
+  mockApi('/genres', { results: [] });
+  setup();
+
+  const credit = screen.getByRole('link', { name: 'IGDB.com' });
+  expect(credit).toHaveAttribute('href', 'https://www.igdb.com');
+  expect(credit).toHaveAttribute('target', '_blank');
+  expect(credit).toHaveAttribute('rel', 'noopener noreferrer');
+});
