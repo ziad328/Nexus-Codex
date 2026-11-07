@@ -102,7 +102,7 @@ describe('Layout', () => {
     });
   });
 
-  it.fails('BUG-26: asks for genres once, not once per sidebar', async () => {
+  it('asks for genres once, not once per sidebar (BUG-26, fixed)', async () => {
     localStorage.setItem('nexus-genres-v2', JSON.stringify([{ id: 1, name: 'Action', slug: 'action', image_background: 'a.jpg' }]));
     mockApi('/genres', { results: [{ id: 1, name: 'Action', slug: 'action', image_background: 'a.jpg' }] });
 

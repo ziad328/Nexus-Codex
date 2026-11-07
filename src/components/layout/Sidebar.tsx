@@ -17,8 +17,6 @@ const Sidebar: FC = () => {
     return new Set([...collectionIds, ...favIds]).size;
   });
 
-  if (error) return null;
-
   return (
     <aside className="w-full lg:w-64 shrink-0 lg:pr-8">
 
@@ -51,6 +49,10 @@ const Sidebar: FC = () => {
         Genres
       </h2>
       <div className="flex flex-col gap-0.5">
+        {error && data.length === 0 && (
+          <p role="alert" className="px-2 pb-2 text-sm text-zinc-500">Genres couldn't load.</p>
+        )}
+
         {isLoading && Array.from({ length: 15 }).map((_, i) => <GenreSkeleton key={i} />)}
 
         {!isLoading && (

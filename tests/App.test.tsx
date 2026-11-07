@@ -409,14 +409,14 @@ describe('App', () => {
       await act(async () => { await new Promise((resolve) => setTimeout(resolve, 20)); });
     };
 
-    it.fails('BUG-33: the genre page gets its name', async () => {
+    it('the genre page gets its name (BUG-33, fixed)', async () => {
       setup('/genre/action');
       await genresArrived();
 
       expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Action');
     });
 
-    it.fails('BUG-33: the desktop sidebar lists the genres', async () => {
+    it('the desktop sidebar lists the genres (BUG-33, fixed)', async () => {
       const { container } = setup('/');
       await genresArrived();
 
@@ -431,7 +431,7 @@ describe('App', () => {
     });
   });
 
-  it.fails('BUG-26: asks for genres once on a page load, not once per sidebar plus once for the home page', async () => {
+  it('asks for genres once on a page load, not once per sidebar plus once for the home page (BUG-26, fixed)', async () => {
     localStorage.setItem('nexus-genres-v2', cachedGenres);
     const { store } = setup('/');
     await settled(store);

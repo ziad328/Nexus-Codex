@@ -15,6 +15,8 @@ import StoreSelector from '../components/shared/StoreSelector';
 import TagSelector from '../components/shared/TagSelector';
 import SEO from '../components/shared/SEO';
 
+const prettySlug = (slug: string) => slug.split('-').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+
 function HomePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { genreSlug } = useParams<{ genreSlug?: string }>();
@@ -33,9 +35,12 @@ function HomePage() {
   const dispatch = useAppDispatch();
   const viewMode = useAppSelector((s) => s.ui.viewMode);
   const [searchText] = useSearchContext();
-  const { data: genres } = useGenres();
+  const { data: genres, isLoading: genresLoading, error: genresError } = useGenres();
 
-  const genreName = genreSlug ? genres?.find(g => g.slug === genreSlug)?.name || 'Loading...' : 'All Games';
+  // Without the names (failed load), the slug stands in; a slug that isn't a genre says so.
+  const genreName = !genreSlug ? 'All Games'
+    : genres.find(g => g.slug === genreSlug)?.name
+      ?? (genresLoading ? 'Loading...' : genresError ? prettySlug(genreSlug) : 'Unknown Genre');
 
   useEffect(() => {
     const handleScroll = (e: Event) => {

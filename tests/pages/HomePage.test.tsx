@@ -144,21 +144,22 @@ describe('HomePage', () => {
       await waitFor(() => expect(lastGamesParams()).toMatchObject({ genres: 'puzzle', tags: 'singleplayer' }));
     });
 
-    it.fails('BUG-27: says so when the genre names fail to load, instead of Loading forever', async () => {
+    it('uses the address for the title when the genre names fail to load (BUG-27, fixed)', async () => {
       mockApiError('/genres');
-      setup('/genre/action');
+      setup('/genre/role-playing');
       await waitFor(() => expect(apiRequests.some((request) => request.url === '/genres')).toBe(true));
       await new Promise((resolve) => setTimeout(resolve, 20));
 
-      expect(heading()).not.toHaveTextContent('Loading...');
+      expect(heading()).toHaveTextContent('Role Playing');
+      await waitFor(() => expect(document.title).toBe('Role Playing Games | Nexus Codex'));
     });
 
-    it.fails('BUG-27: says so for a genre that does not exist, instead of Loading forever', async () => {
+    it('says so for a genre that does not exist (BUG-27, fixed)', async () => {
       setup('/genre/not-a-genre');
       await waitFor(() => expect(localStorage.getItem('nexus-genres-v2')).not.toBeNull());
       await new Promise((resolve) => setTimeout(resolve, 20));
 
-      expect(heading()).not.toHaveTextContent('Loading...');
+      expect(heading()).toHaveTextContent('Unknown Genre');
     });
   });
 

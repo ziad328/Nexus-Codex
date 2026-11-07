@@ -113,15 +113,14 @@ test.describe('at 1440 px', () => {
     await expect(card(page, 'Portal')).toBeVisible();
   });
 
-  // Expected failures: known bugs a real browser can show. Each starts failing the moment it's fixed.
-  test('BUG-33: on a first visit, the visible sidebar lists the genres', async ({ page }) => {
-    test.fail();
+  test('on a first visit, the visible sidebar lists the genres (BUG-33, fixed)', async ({ page }) => {
     await page.goto('/');
     await expect(card(page, 'Portal')).toBeVisible();
 
     await expect(page.locator('main').getByRole('link', { name: /action/i }).locator('visible=true')).toBeVisible({ timeout: 3000 });
   });
 
+  // Expected failure: a known bug a real browser can show. It starts failing the moment it's fixed.
   test('BUG-19: wheel-scrolling Recently Viewed logs no error', async ({ page }) => {
     test.fail();
     const logged: string[] = [];

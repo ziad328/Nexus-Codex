@@ -117,7 +117,7 @@ describe('My Collection link', () => {
   });
 });
 
-it.fails('BUG-2: keeps the My Collection link when genres fail to load', async () => {
+it('keeps the My Collection link when genres fail to load, and says so (BUG-2, fixed)', async () => {
   mockApiError('/genres');
 
   setup();
@@ -125,6 +125,20 @@ it.fails('BUG-2: keeps the My Collection link when genres fail to load', async (
   await new Promise((resolve) => setTimeout(resolve));
 
   expect(collectionLink()).toBeInTheDocument();
+  expect(screen.getByRole('alert')).toHaveTextContent("Genres couldn't load.");
+  expect(screen.getByRole('link', { name: /all games/i })).toBeInTheDocument();
+});
+
+it('keeps saved genres and shows no error when an update fails', async () => {
+  localStorage.setItem('nexus-genres-v2', JSON.stringify([{ id: 1, name: 'Action', slug: 'action', image_background: null }]));
+  mockApiError('/genres');
+
+  setup();
+  await waitFor(() => expect(apiRequests).toHaveLength(1));
+  await new Promise((resolve) => setTimeout(resolve));
+
+  expect(screen.getByRole('link', { name: /action/i })).toBeInTheDocument();
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 });
 
 it('credits IGDB for the game data, opening safely in a new tab', () => {

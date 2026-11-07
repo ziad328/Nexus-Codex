@@ -28,7 +28,7 @@ describe('with no cache', () => {
     expect(localStorage.getItem(CACHE_KEY)).toBeNull();
   });
 
-  it.fails('BUG-15: asks for genres only once', async () => {
+  it('asks for genres only once (BUG-15, fixed)', async () => {
     mockApi('/genres', { results: [action] });
 
     const { result } = renderHook(() => useGenres());
@@ -100,11 +100,42 @@ describe('with a corrupted cache', () => {
   });
 });
 
-it('aborts when unmounted', () => {
-  mockApi('/genres', () => deferred().promise);
+describe('shared by every user', () => {
+  it('sends one request for several users, and gives each the genres', async () => {
+    const answer = deferred<{ results: object[] }>();
+    mockApi('/genres', () => answer.promise);
 
-  const { unmount } = renderHook(() => useGenres());
-  unmount();
+    const first = renderHook(() => useGenres());
+    const second = renderHook(() => useGenres());
+    answer.resolve({ results: [action] });
 
-  expect(apiRequests[0].signal?.aborted).toBe(true);
+    await waitFor(() => expect(first.result.current.data).toEqual([action]));
+    await waitFor(() => expect(second.result.current.data).toEqual([action]));
+    expect(apiRequests).toHaveLength(1);
+  });
+
+  it('gives a later user the same answer without asking again', async () => {
+    mockApi('/genres', { results: [action] });
+    const first = renderHook(() => useGenres());
+    await waitFor(() => expect(first.result.current.data).toEqual([action]));
+
+    const later = renderHook(() => useGenres());
+
+    await waitFor(() => expect(later.result.current.isLoading).toBe(false));
+    expect(later.result.current.data).toEqual([action]);
+    expect(apiRequests).toHaveLength(1);
+  });
+
+  it('tries again for the next user after a failure', async () => {
+    mockApiError('/genres');
+    const first = renderHook(() => useGenres());
+    await waitFor(() => expect(first.result.current.error).not.toBe(''));
+
+    mockApi('/genres', { results: [action] });
+    const next = renderHook(() => useGenres());
+
+    await waitFor(() => expect(next.result.current.data).toEqual([action]));
+    expect(next.result.current.error).toBe('');
+    expect(apiRequests).toHaveLength(2);
+  });
 });
