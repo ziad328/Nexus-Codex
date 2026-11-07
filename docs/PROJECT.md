@@ -2,7 +2,7 @@
 
 The one living document for this project: what it's for, what it must do, how it's built, where it stands and what comes next. Update it whenever one of those changes. Day-to-day rules are in [../CLAUDE.md](../CLAUDE.md). The API research is in [rawg-vs-igdb.md](rawg-vs-igdb.md).
 
-_Last updated: 2026-11-07 (page and `App` tests added, BUG-5 proved, BUG-27 to BUG-33 found, two timing faults in older tests fixed. Before that: layout tests, BUG-2 proved, BUG-25 and BUG-26; auth and game component tests, BUG-1, BUG-4 and BUG-6 proved, BUG-20 to BUG-24; shared component tests, BUG-8 proved, BUG-16 to BUG-19; service and hook tests, BUG-3 proved, BUG-11 to BUG-15; store tests, BUG-9 and BUG-10; Phase 2 started with test setup, `CLAUDE.md` and this document)._
+_Last updated: 2026-11-07 (Playwright smoke suite added, BUG-19 proved. Before that: page and `App` tests, BUG-5 proved, BUG-27 to BUG-33, two timing faults in older tests fixed; layout tests, BUG-2 proved, BUG-25 and BUG-26; auth and game component tests, BUG-1, BUG-4 and BUG-6 proved, BUG-20 to BUG-24; shared component tests, BUG-8 proved, BUG-16 to BUG-19; service and hook tests, BUG-3 proved, BUG-11 to BUG-15; store tests, BUG-9 and BUG-10; Phase 2 started with test setup, `CLAUDE.md` and this document)._
 
 ---
 
@@ -39,7 +39,7 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 | Accounts and lists | Supabase: magic-link auth, `favorites` and `collections` tables. The schema isn't in the repo. |
 | PWA | `vite-plugin-pwa` (Workbox): images cache-first, API network-first |
 | Forms | Formik + Yup |
-| Tests | Vitest 5, React Testing Library, jsdom |
+| Tests | Vitest 5, React Testing Library, jsdom; Playwright smoke suite (Chromium, production build, all outside traffic stubbed or blocked) |
 | Hosting | Vercel, deployed from `main` |
 
 **Environment values:** `VITE_RAWG_API_KEY`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`.
@@ -61,17 +61,17 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 - [x] Auth and game components
 - [x] Layout
 - [x] Pages and `App`
-- [ ] Playwright smoke suite
+- [x] Playwright smoke suite
 - [ ] Fix existing lint errors
 - [ ] Coverage report and hand-check list
 
-**Latest verification (2026-11-07):** 566 tests pass and 59 expected failures mark known problems. `npx tsc -b --noEmit` clean, build passes. `npm run lint` still fails on the same 24 existing errors (issue 3); the test code adds none. Coverage: `src/store` 99% of lines and 92% of branches; `src/hooks`, `src/services` and `src/components/layout` 100% of both; `src/components/shared` 98% and 93%; `src/components/auth` and `game` 100% and 93%; `src/pages` 100% of lines and 95% of branches. Of 366 deliberate breakages of this code, 362 were caught. The other four: an empty-value guard in `AuthModal`'s typo check has no visible effect; `Sidebar`'s `if (error)` is BUG-2 itself, pinned by an expected failure; and two things jsdom can't show, which need a hand check: `CollectionsPage` attaching scrollbars to the page body, and `App`'s `reducedMotion="user"`. Live site: game data doesn't load (issue 2).
+**Latest verification (2026-11-07):** 566 tests pass and 59 expected failures mark known problems. `npx tsc -b --noEmit` clean, build passes. `npm run lint` still fails on the same 24 existing errors (issue 3); the test code adds none. Coverage: `src/store` 99% of lines and 92% of branches; `src/hooks`, `src/services` and `src/components/layout` 100% of both; `src/components/shared` 98% and 93%; `src/components/auth` and `game` 100% and 93%; `src/pages` 100% of lines and 95% of branches. Of 366 deliberate breakages of this code, 362 were caught. The other four: an empty-value guard in `AuthModal`'s typo check has no visible effect; `Sidebar`'s `if (error)` is BUG-2 itself, pinned by an expected failure; and two things jsdom can't show, which need a hand check: `CollectionsPage` attaching scrollbars to the page body, and `App`'s `reducedMotion="user"`. Smoke suite (`npm run test:e2e`): 12 pass and 3 expected failures (BUG-19, BUG-25, BUG-33) at 1440 px and 375 px, plus offline with the real service worker. All 18 deliberate breakages of the built app were caught, including a trial fix for each of the three bugs. One first attempt, widening the modal, broke nothing because its flex parent shrinks it, so it was replaced by one that really overflows. Live site: game data doesn't load (issue 2).
 
 **Test skips**
 | Skipped | Why |
 |:--|:--|
 | `useAppDispatch`, `useAppSelector` | Thin wrappers |
-| `main.tsx` | Start-up only; the smoke suite will cover it |
+| `main.tsx` | Start-up only; the smoke suite covers it |
 | `types/`, `vite-env.d.ts` | No runtime code |
 
 ## 5. Action needed from the owner
@@ -113,7 +113,7 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 | BUG-16 | The video player's mute, play and fullscreen buttons and the sign-in modal's close button have no names, so screen readers can't announce them. | `CustomVideoPlayer`, `AuthModal` | ✅ Proved |
 | BUG-17 | Pressing Enter on the progress bar sets the video time to an invalid value, because the key handler reuses the mouse handler. | `CustomVideoPlayer` | ✅ Proved in jsdom |
 | BUG-18 | A broken image keeps its loading animation forever. It will matter more with IGDB, which removes replaced images after 30 days. | `ProgressiveImage` | ✅ Proved |
-| BUG-19 | Mouse-wheel scrolling on Recently Viewed may log an error and scroll the page too: it calls `preventDefault`, and React's wheel listeners are normally passive. jsdom can't show this. | `RecentlyViewed` | Pending; check by hand |
+| BUG-19 | Mouse-wheel scrolling on Recently Viewed logs "Unable to preventDefault inside passive event listener", because React's wheel listeners are passive. Whether the page scrolls too isn't tested. | `RecentlyViewed` | ✅ Proved in Chromium by the smoke suite |
 | BUG-20 | Every email typo gets "Did you mean @gmail.com?", even `@hotmai.com` or `@yahoo.co`, because the suggestion ignores the typo table's right answer. | `AuthModal` | ✅ Proved |
 | BUG-21 | If the adult filter hides a whole page, the grid says "No games found" and stops, though more pages exist. The scroll trigger only renders when games are showing. | `GameGrid` | ✅ Proved |
 | BUG-22 | A similar game scored 0 shows a stray "0". | `SimilarGamesCarousel` | ✅ Proved |
@@ -127,7 +127,7 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 | BUG-30 | The Collections page has no deep link: `?gameId=` is ignored, and opening a game doesn't set the URL. The Share button is unaffected, because it always links to the home page. | `CollectionsPage` | ✅ Proved |
 | BUG-31 | An unknown URL shows a blank screen with no navbar and no way back. There is no catch-all route. | `App` | ✅ Proved |
 | BUG-32 | The expired-link message's dismiss button has no name, so screen readers can't announce it. | `App` | ✅ Proved |
-| BUG-33 | **On a first visit, with no genres saved in the browser, only the first `useGenres` to get a response shows them.** The others find the list already saved, treat it as unchanged and never update. In order of requests, that leaves the visible desktop sidebar empty and a genre page's title on "Loading..." until a reload. | `useGenres` | ✅ Proved with the fake; not seen live because RAWG is down, and real responses may arrive in a different order |
+| BUG-33 | **On a first visit, with no genres saved in the browser, only the first `useGenres` to get a response shows them.** The others find the list already saved, treat it as unchanged and never update. In order of requests, that leaves the visible desktop sidebar empty and a genre page's title on "Loading..." until a reload. | `useGenres` | ✅ Proved with the fake and in Chromium with stubbed responses; not seen live because RAWG is down, and real responses may arrive in a different order |
 
 ## 7. Roadmap
 

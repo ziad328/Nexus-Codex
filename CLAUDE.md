@@ -9,6 +9,7 @@ Don't trust `README.md` or `NEXUS_CODEX_OVERVIEW.md` until Phase 3 rewrites them
 - `npm install`, then `npm run dev`
 - `npm test`, `npx tsc -b --noEmit`, `npm run build`, `npm run lint`: all four must pass before a commit
 - `npm run test:watch`, `npm run test:coverage`
+- `npm run test:e2e`: Playwright smoke suite in `e2e/`, run separately. It builds to `dist-e2e` with fake keys, and first needs `npx playwright install chromium`.
 - Use `tsc -b`. Plain `npx tsc --noEmit` checks **0 files** here, because the root `tsconfig.json` only has references.
 
 ## Layout
