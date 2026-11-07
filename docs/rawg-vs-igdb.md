@@ -277,6 +277,27 @@ Your earlier findings all hold (key in bundle, React 19, no React Query, unfilte
 
 **Probe, before Phase 3 starts:** you create the Twitch app (steps in Phase 3) and put the credentials in a gitignored `.env.local`. A throwaway script then reports, for 50 well-known games and 50 random ones: card image type, score, store links, website and Reddit coverage, and whether the store filter returns results. If store coverage is poor, the recommendation for that row changes before any code does.
 
+**Probe results (2026-11-07, real IGDB data, 100 games: the 50 most-rated and 50 random main games):**
+
+| Data | Most-rated | Random | Meaning for the app |
+|:--|:--|:--|:--|
+| Cover (portrait) | 100% | 100% | Always available |
+| Artwork (landscape) | 100% | 24% | Landscape cards would need a fallback |
+| Screenshots | 100% | 76% | |
+| Videos | 100% | 34% | YouTube ids only, not video files |
+| Critic score (`aggregated_rating`) | 98% | 32% | Lesser-known games often have none |
+| Developer / publisher | 100% / 100% | 72% / 88% | |
+| Steam link | 72% | 28% | Store links come from `websites` and `external_games` |
+| Official site / Subreddit | 96% / 74% | 30% / 0% | |
+| Similar games | 100% | 100% | |
+
+- **Filters work:** genre, platform, developer, publisher, store (Steam: 155,958 games) and search, each in 0.5-1.6 s. A company filter must use the company's id. Filtering by its slug timed out (HTTP 408), so a slug in a URL needs one lookup first.
+- **Deep pages work:** offset 5,000 returned in 0.7 s. There are 316,205 main games.
+- **Genres differ:** IGDB has 23 genres and no "Action", which is a *theme* there, alongside 21 others. RAWG's `/genre/action` links won't map directly.
+- **Adult filter:** IGDB tags such games with the theme "Erotic", so the filter can run in the query instead of by keyword (BUG-14).
+- **Not available:** achievements, as expected.
+- **Token:** valid for 58 days, so the proxy must request a new one before it expires.
+
 ---
 
 ## 8. Test plan

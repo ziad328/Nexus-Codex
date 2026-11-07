@@ -50,7 +50,7 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 |:--|:--|:--|
 | 1: Compare APIs | ✅ Done | [rawg-vs-igdb.md](rawg-vs-igdb.md). Chosen: IGDB, with a Steam add-on later. |
 | 2: Test the current app | ✅ Tasks done, for the owner to review | See the list below |
-| 3: Migrate | ⬜ Waiting for Phase 2 and the owner's go-ahead | |
+| 3: Migrate | 🟡 In progress (owner's go-ahead 2026-11-07) | See the list below |
 
 **Phase 2 tasks**
 - [x] Test setup, `CLAUDE.md`, this document
@@ -64,6 +64,16 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 - [x] Playwright smoke suite
 - [x] Fix existing lint errors
 - [x] Coverage report and hand-check list: [test-report.md](test-report.md). The hand checks themselves aren't done.
+
+**Phase 3 tasks** (each ends with the owner's review and its own commit)
+- [x] Twitch app and keys in `.env.local`; probe of real IGDB data ([results](rawg-vs-igdb.md#2-feature-by-feature))
+- [ ] Proxy: `/api/games`, `/api/games/:id`, `/api/genres` on Vercel, with token refresh, validation, caching and tests; runs under `npm run dev` too
+- [ ] App on the proxy: hooks, filters (platform, tag, store lists), RAWG key removed from the bundle
+- [ ] Portrait cover cards
+- [ ] Game details: click-to-load YouTube trailers, store links, similar games, no achievements
+- [ ] Offline rules for the new API and images
+- [ ] Saved games: RAWG ids to IGDB ids (owner backs up and runs the SQL)
+- [ ] Remove RAWG, rewrite README and docs
 
 **Latest verification (2026-11-07):** 586 tests pass and 56 expected failures mark known problems. `npx tsc -b --noEmit`, the build and `npm run lint` are all clean, with no lint warnings. Coverage: `src/store` 99% of lines and 92% of branches; `src/hooks`, `src/services` and `src/components/layout` 100% of both; `src/components/shared` 98% and 93%; `src/components/auth` and `game` 100% and 93%; `src/pages` 100% of lines and 95% of branches. Of 403 deliberate breakages of this code, 396 were caught. The other seven: the two glow lines rewritten in `GameDetailsModal` can't run because of BUG-1; removing `video.muted = isMuted` changes nothing, as it only repeats the default; an empty-value guard in `AuthModal`'s typo check has no visible effect; `Sidebar`'s `if (error)` is BUG-2 itself, pinned by an expected failure; and two things jsdom can't show, which need a hand check: `CollectionsPage` attaching scrollbars to the page body, and `App`'s `reducedMotion="user"`. Smoke suite (`npm run test:e2e`): 16 pass and 2 expected failures (BUG-19, BUG-33) at 1440 px and 375 px, plus offline with the real service worker. All 18 deliberate breakages of the built app were caught, including a trial fix for each of the three bugs. One first attempt, widening the modal, broke nothing because its flex parent shrinks it, so it was replaced by one that really overflows. Live site: game data doesn't load (issue 2).
 
@@ -155,6 +165,9 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 | 2026-11-07 | **Small Playwright suite in Phase 2** | jsdom can't see CSS, layout or a real service worker. |
 | 2026-11-07 | **Fix lint last in Phase 2** | Some fixes can change behaviour, so tests come first. |
 | 2026-11-07 | **Commit directly on `dev`** | Owner's instruction. |
+| 2026-11-07 | **Portrait cover cards** | IGDB has a cover for every game, but a wide image for only 24% of lesser-known ones. |
+| 2026-11-07 | **Trailers: thumbnail, then YouTube on click** | IGDB has YouTube ids only. Nothing loads from YouTube until the visitor asks; `youtube-nocookie.com` player. |
+| 2026-11-07 | **Genres: IGDB's 23 plus Action** | Action is a theme in IGDB but the most popular category; keeps `/genre/action` working. |
 
 ## 9. Fix history
 
