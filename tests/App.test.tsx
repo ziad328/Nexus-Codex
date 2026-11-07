@@ -53,7 +53,7 @@ describe('App', () => {
     });
 
     it('/genre/:genreSlug is the home page for that genre', async () => {
-      localStorage.setItem('nexus-genres', cachedGenres);
+      localStorage.setItem('nexus-genres-v2', cachedGenres);
       const { store } = setup('/genre/action');
 
       expect(await screen.findByRole('heading', { name: 'Action', level: 1 })).toBeInTheDocument();
@@ -116,7 +116,7 @@ describe('App', () => {
 
     it('moves to the developer page and closes the modal when following its link', async () => {
       mockGameDetails(1, 'Portal');
-      const { store } = setup('/?gameId=1');
+      const { store } = setup('/?game=1');
       await screen.findByRole('heading', { name: 'Portal', level: 1 });
 
       fireEvent.click(within(document.getElementById('game-modal-content')!).getByRole('link', { name: 'Valve' }));
@@ -405,7 +405,7 @@ describe('App', () => {
 
   describe('a first visit, with no genres saved in the browser', () => {
     const genresArrived = async () => {
-      await waitFor(() => expect(localStorage.getItem('nexus-genres')).not.toBeNull());
+      await waitFor(() => expect(localStorage.getItem('nexus-genres-v2')).not.toBeNull());
       await act(async () => { await new Promise((resolve) => setTimeout(resolve, 20)); });
     };
 
@@ -432,7 +432,7 @@ describe('App', () => {
   });
 
   it.fails('BUG-26: asks for genres once on a page load, not once per sidebar plus once for the home page', async () => {
-    localStorage.setItem('nexus-genres', cachedGenres);
+    localStorage.setItem('nexus-genres-v2', cachedGenres);
     const { store } = setup('/');
     await settled(store);
     await waitFor(() => expect(apiRequests.length).toBeGreaterThan(0));

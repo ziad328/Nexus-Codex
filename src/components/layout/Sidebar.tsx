@@ -5,6 +5,7 @@ import { Link, useLocation, useParams } from 'react-router-dom';
 import useGenres from '../../hooks/useGenres';
 import GenreSkeleton from '../shared/GenreSkeleton';
 import useAppSelector from '../../hooks/useAppSelector';
+import { genreIcon } from './genreIcons';
 
 const Sidebar: FC = () => {
   const { data, isLoading, error } = useGenres();
@@ -74,7 +75,9 @@ const Sidebar: FC = () => {
           </Link>
         )}
 
-        {data.map(genre => (
+        {data.map(genre => {
+          const Icon = genreIcon(genre.slug);
+          return (
           <Link
             key={genre.id}
             to={`/genre/${genre.slug}`}
@@ -84,18 +87,17 @@ const Sidebar: FC = () => {
                 : 'text-gray-400 border border-transparent'
               }`}
           >
-            <div className="w-8 h-8 shrink-0 bg-background-card rounded-lg overflow-hidden">
-              <img
-                src={genre.image_background}
-                className="w-full h-full object-cover filter brightness-75"
-                alt={genre.name}
-              />
+            <div className={`w-8 h-8 shrink-0 rounded-lg flex items-center justify-center transition-colors ${
+              genreSlug === genre.slug ? 'bg-accent/20 text-accent' : 'bg-zinc-800 text-zinc-400'
+            }`}>
+              <Icon className="w-4.5 h-4.5" aria-hidden="true" />
             </div>
             <span className={`text-left text-[15px] ${genreSlug === genre.slug ? 'font-bold' : 'font-medium'}`}>
               {genre.name}
             </span>
           </Link>
-        ))}
+          );
+        })}
       </div>
     </aside>
   );

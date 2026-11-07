@@ -373,10 +373,14 @@ describe('GET /api/genres', () => {
 
     const res = await get('/api/genres', upstream.deps);
 
-    expect(await res.json()).toEqual([
-      { id: -1, name: 'Action', slug: 'action', image_background: null },
-      { id: 5, name: 'Shooter', slug: 'shooter', image_background: null },
-    ]);
+    expect(await res.json()).toEqual({
+      count: 2,
+      next: null,
+      results: [
+        { id: -1, name: 'Action', slug: 'action', image_background: null },
+        { id: 5, name: 'Shooter', slug: 'shooter', image_background: null },
+      ],
+    });
     expect(res.headers.get('Cache-Control')).toContain('s-maxage=604800');
   });
 });

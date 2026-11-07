@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Gamepad2, Check } from 'lucide-react';
 import type { Platform } from '../../types';
-import usePlatforms from '../../hooks/usePlatforms';
+import { PARENT_PLATFORMS } from '../../../api/_lib/catalog';
+
+const platforms: Platform[] = PARENT_PLATFORMS.map(({ id, name, slug }) => ({ id, name, slug }));
 
 interface Props {
   selectedPlatform: Platform | null | undefined;
@@ -9,7 +11,6 @@ interface Props {
 }
 
 const PlatformSelector = ({ selectedPlatform, onSelectPlatform }: Props) => {
-  const { data, error } = usePlatforms();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -25,8 +26,6 @@ const PlatformSelector = ({ selectedPlatform, onSelectPlatform }: Props) => {
     }
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
-
-  if (error) return null;
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -57,7 +56,7 @@ const PlatformSelector = ({ selectedPlatform, onSelectPlatform }: Props) => {
               {!selectedPlatform && <Check className="w-4 h-4 text-accent" />}
             </button>
             <div className="h-px bg-white/5 mx-2" />
-            {data.map(platform => (
+            {platforms.map(platform => (
               <button
                 key={platform.id}
                 onClick={() => {

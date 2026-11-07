@@ -16,8 +16,8 @@ Don't trust `README.md` or `NEXUS_CODEX_OVERVIEW.md` until Phase 3 rewrites them
 - `api/`: the IGDB proxy. `api/_lib/router.ts` handles every route for Vercel and for `npm run dev`; keys come from `TWITCH_CLIENT_ID` and `TWITCH_CLIENT_SECRET` in `.env.local` (or Vercel), never `VITE_`. Tests: `tests/api/`, with a fake IGDB.
 - `src/pages/`: routes (`/`, `/genre/:genreSlug`, `/developer/:developerSlug`, `/publisher/:publisherSlug`, `/collection`), set up in `App.tsx`
 - `src/components/`: `auth/`, `game/`, `layout/`, `shared/`
-- `src/hooks/`: data hooks built on Axios and `AbortController`. There is no React Query.
-- `src/services/api-client.ts`: the only Axios instance. `src/services/image-url.ts`: RAWG image crop.
+- `src/hooks/`: data hooks built on Axios and `AbortController`, all calling our `/api`. There is no React Query. Filter lists (platforms, stores, tags) are fixed, in `api/_lib/catalog.ts`, shared by the app and the proxy.
+- `src/services/api-client.ts`: the only Axios instance. `src/services/image-url.ts`: crops old RAWG images, passes IGDB ones through.
 - `src/store/`: `favoritesSlice` and `collectionsSlice` (user data, guest and Supabase), `authSlice`, `uiSlice`, `index.ts` (what is persisted)
 - `src/utils/supabase.ts`: the only Supabase client. It throws at import when its env values are missing.
 - `src/types/index.ts`: shared types

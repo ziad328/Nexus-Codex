@@ -69,7 +69,7 @@ describe.each([
 
   it.each([
     ['Tag', 'Singleplayer', 'Any Tag', { tags: 'singleplayer' }],
-    ['Store', 'Steam', 'Any Store', { stores: 11 }],
+    ['Store', 'Steam', 'Any Store', { stores: 1 }],
     ['Platform', 'Xbox', 'All Platforms', { parent_platforms: 3 }],
   ])('sends the %s filter to the grid, keeps the slug, and clears it', async (menu, option, clear, params) => {
     setup();
@@ -91,7 +91,7 @@ describe.each([
       fireEvent.click(await screen.findByRole('button', { name: option }));
     }
 
-    await waitFor(() => expect(lastGamesParams()).toEqual({ [param]: 'naughty-dog', tags: 'singleplayer', stores: 11, parent_platforms: 3, page: 1 }));
+    await waitFor(() => expect(lastGamesParams()).toEqual({ [param]: 'naughty-dog', tags: 'singleplayer', stores: 1, parent_platforms: 3, page: 1 }));
   });
 
   it('searches for the text saved for this page and says so', async () => {
@@ -117,15 +117,15 @@ describe.each([
   });
 
   describe('the modal', () => {
-    it('opens from a ?gameId= deep link', async () => {
-      setup(`${base}?gameId=1`);
+    it('opens from a ?game= deep link', async () => {
+      setup(`${base}?game=1`);
 
       expect(await modalTitle('Portal')).toBeInTheDocument();
       expect(lastGamesParams()).toMatchObject({ [param]: 'naughty-dog' });
     });
 
     it('opens nothing without one, and ignores one that is not a number', async () => {
-      setup(`${base}?gameId=abc`);
+      setup(`${base}?game=abc`);
       await screen.findByRole('button', { name: 'View details for Portal' });
 
       expect(modal()).not.toBeInTheDocument();
@@ -137,12 +137,12 @@ describe.each([
       await openCard('Portal');
 
       expect(await modalTitle('Portal')).toBeInTheDocument();
-      await waitFor(() => expect(url()).toBe(`${base}?gameId=1`));
+      await waitFor(() => expect(url()).toBe(`${base}?game=1`));
       expect(screen.getByTestId('url')).toHaveAttribute('data-navigation', 'REPLACE');
     });
 
     it('clears the URL and closes', async () => {
-      setup(`${base}?gameId=1`);
+      setup(`${base}?game=1`);
       await modalTitle('Portal');
 
       fireEvent.click(screen.getByRole('button', { name: 'Close' }));
@@ -154,17 +154,17 @@ describe.each([
 
     it('moves on to a similar game', async () => {
       mockGameDetails(1, 'Portal', [doom]);
-      setup(`${base}?gameId=1`);
+      setup(`${base}?game=1`);
       await modalTitle('Portal');
 
       fireEvent.click(await within(modal()!).findByRole('button', { name: /Doom/ }));
 
       expect(await modalTitle('Doom')).toBeInTheDocument();
-      await waitFor(() => expect(url()).toBe(`${base}?gameId=2`));
+      await waitFor(() => expect(url()).toBe(`${base}?game=2`));
     });
 
     it(`closes when following a ${kind} link inside it to another page of this kind`, async () => {
-      setup(`/${kind}/naughty-dog?gameId=1`);
+      setup(`/${kind}/naughty-dog?game=1`);
       await modalTitle('Portal');
 
       fireEvent.click(within(modal()!).getByRole('link', { name: linkName }));

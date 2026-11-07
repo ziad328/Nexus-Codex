@@ -1,14 +1,16 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import SimilarGamesCarousel from '../../../src/components/game/SimilarGamesCarousel';
-import { apiRequests, deferred, mockApi, mockApiError } from '../../fakes/network';
+import type { Game } from '../../../src/types';
 import { makeGame } from '../../fixtures';
 
-const URL = '/games/1/game-series';
-const settle = () => new Promise((resolve) => setTimeout(resolve));
+// Similar games now arrive with the game's details, so the carousel only shows them.
+const games = (...list: ReturnType<typeof makeGame>[]) => list as Game[];
+const cover = 'https://images.igdb.com/igdb/image/upload/t_cover_big/co2.jpg';
 
 const renderLoaded = async (onSelectGame = vi.fn()) => {
-  mockApi(URL, { results: [makeGame(2, { metacritic: 88 }), makeGame(3, { metacritic: null })] });
-  const view = render(<SimilarGamesCarousel gameId={1} onSelectGame={onSelectGame} />);
+  const view = render(
+    <SimilarGamesCarousel games={games(makeGame(2, { metacritic: 88, background_image: cover }), makeGame(3, { metacritic: null }))} onSelectGame={onSelectGame} />,
+  );
   await screen.findByText('You Might Also Like');
   return { onSelectGame, strip: view.container.querySelector('.overflow-x-auto')!, ...view };
 };
@@ -22,41 +24,17 @@ const layout = (element: Element, { scrollWidth, clientWidth, scrollLeft = 0 }: 
 };
 
 describe('SimilarGamesCarousel', () => {
-  it('shows a spinner while loading', async () => {
-    mockApi(URL, () => deferred().promise);
+  it('shows nothing when there are no similar games', () => {
+    const { container } = render(<SimilarGamesCarousel games={[]} />);
 
-    const { container } = render(<SimilarGamesCarousel gameId={1} />);
-
-    await waitFor(() => expect(container.querySelector('.animate-spin')).toBeInTheDocument());
+    expect(container).toBeEmptyDOMElement();
   });
 
-  it('shows nothing when there are no similar games', async () => {
-    mockApi(URL, { results: [] });
-
-    const { container } = render(<SimilarGamesCarousel gameId={1} />);
-
-    await waitFor(() => expect(apiRequests).toHaveLength(1));
-    await waitFor(() => expect(container).toBeEmptyDOMElement());
-  });
-
-  it('shows nothing when loading fails', async () => {
-    mockApiError(URL);
-
-    const { container } = render(<SimilarGamesCarousel gameId={1} />);
-
-    await waitFor(() => expect(apiRequests).toHaveLength(1));
-    await settle();
-    await waitFor(() => expect(container).toBeEmptyDOMElement());
-  });
-
-  it('lists games with a cropped image, and a score only when there is one', async () => {
+  it('lists games with their image, and a score only when there is one', async () => {
     await renderLoaded();
 
     expect(screen.getByRole('heading', { name: 'Game 2' })).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: 'Game 2' })).toHaveAttribute(
-      'src',
-      'https://media.rawg.io/media/crop/600/400/games/2.jpg',
-    );
+    expect(screen.getByRole('img', { name: 'Game 2' })).toHaveAttribute('src', cover);
     expect(screen.getByText('88')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Game 3' })).toBeInTheDocument();
     expect(screen.getAllByText('88')).toHaveLength(1);
@@ -67,12 +45,11 @@ describe('SimilarGamesCarousel', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /game 2/i }));
 
-    expect(onSelectGame).toHaveBeenCalledWith(2, makeGame(2, { metacritic: 88 }));
+    expect(onSelectGame).toHaveBeenCalledWith(2, makeGame(2, { metacritic: 88, background_image: cover }));
   });
 
   it('survives a click with no handler', async () => {
-    mockApi(URL, { results: [makeGame(2)] });
-    render(<SimilarGamesCarousel gameId={1} />);
+    render(<SimilarGamesCarousel games={games(makeGame(2))} />);
     const button = await screen.findByRole('button', { name: /game 2/i });
     // An error inside a click handler reaches window's error event, not this test.
     const onError = vi.fn((event: ErrorEvent) => event.preventDefault());
@@ -117,8 +94,7 @@ describe('SimilarGamesCarousel', () => {
   });
 
   it.fails('BUG-22: does not show a stray 0 for a game scored 0', async () => {
-    mockApi(URL, { results: [makeGame(2, { metacritic: 0 })] });
-    render(<SimilarGamesCarousel gameId={1} />);
+    render(<SimilarGamesCarousel games={games(makeGame(2, { metacritic: 0 }))} />);
     await screen.findByRole('heading', { name: 'Game 2' });
 
     expect(screen.queryByText('0')).not.toBeInTheDocument();

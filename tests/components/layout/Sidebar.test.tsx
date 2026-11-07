@@ -6,8 +6,8 @@ import { makeGame } from '../../fixtures';
 import { renderWithProviders } from '../../render';
 import type { TestState } from '../../render';
 
-const action = { id: 1, name: 'Action', slug: 'action', image_background: 'https://img.test/action.jpg' };
-const puzzle = { id: 2, name: 'Puzzle', slug: 'puzzle', image_background: 'https://img.test/puzzle.jpg' };
+const action = { id: -1, name: 'Action', slug: 'action', image_background: null };
+const puzzle = { id: 9, name: 'Puzzle', slug: 'puzzle', image_background: null };
 
 const setup = (route = '/', preloadedState?: Partial<TestState>) =>
   renderWithProviders(
@@ -19,8 +19,8 @@ const setup = (route = '/', preloadedState?: Partial<TestState>) =>
     { route, preloadedState },
   );
 
-// A genre link's name includes its image's description.
-const genre = (name: string) => ({ name: `${name} ${name}` });
+// A genre's icon is decorative, so its link is named by the genre alone.
+const genre = (name: string) => ({ name });
 const collectionLink = () => screen.getByRole('link', { name: /my collection/i });
 
 describe('genres', () => {
@@ -33,13 +33,16 @@ describe('genres', () => {
     expect(screen.queryByRole('link', { name: 'All Games' })).not.toBeInTheDocument();
   });
 
-  it('links each genre to its page, with its image', async () => {
-    mockApi('/genres', { results: [action, puzzle] });
+  it('links each genre to its page, with its own icon', async () => {
+    mockApi('/genres', { results: [action, puzzle, { id: 99, name: 'Brand New', slug: 'brand-new', image_background: null }] });
 
     setup();
 
     expect(await screen.findByRole('link', genre('Puzzle'))).toHaveAttribute('href', '/genre/puzzle');
-    expect(screen.getByRole('img', { name: 'Action' })).toHaveAttribute('src', action.image_background);
+    expect(screen.getByRole('link', genre('Action')).querySelector('.lucide-swords')).toBeInTheDocument();
+    expect(screen.getByRole('link', genre('Puzzle')).querySelector('.lucide-puzzle')).toBeInTheDocument();
+    expect(screen.getByRole('link', genre('Brand New')).querySelector('.lucide-gamepad-2, .lucide-gamepad2')).toBeInTheDocument();
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'All Games' })).toHaveAttribute('href', '/');
   });
 
@@ -63,7 +66,7 @@ describe('genres', () => {
   });
 
   it('shows cached genres at once', () => {
-    localStorage.setItem('nexus-genres', JSON.stringify([action]));
+    localStorage.setItem('nexus-genres-v2', JSON.stringify([action]));
     mockApi('/genres', () => deferred().promise);
 
     setup();

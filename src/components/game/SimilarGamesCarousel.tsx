@@ -1,18 +1,17 @@
 import { useRef, useState, useCallback } from 'react';
 import type { FC } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import useSimilarGames from '../../hooks/useSimilarGames';
 import getCroppedImageUrl from '../../services/image-url';
 import CriticScore from '../shared/CriticScore';
 import type { Game } from '../../types';
 
 interface Props {
-  gameId: number;
+  /** Come with the game's details, so there is nothing to load. */
+  games: Game[];
   onSelectGame?: (id: number, game: Game) => void;
 }
 
-const SimilarGamesCarousel: FC<Props> = ({ gameId, onSelectGame }) => {
-  const { data, isLoading, error } = useSimilarGames(gameId);
+const SimilarGamesCarousel: FC<Props> = ({ games, onSelectGame }) => {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -32,13 +31,7 @@ const SimilarGamesCarousel: FC<Props> = ({ gameId, onSelectGame }) => {
     if (el) el.scrollBy({ left: direction === 'right' ? 296 : -296, behavior: 'smooth' });
   };
 
-  if (error) return null;
-  if (isLoading) return (
-    <div className="flex justify-center p-8">
-      <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
-    </div>
-  );
-  if (data.length === 0) return null;
+  if (games.length === 0) return null;
 
   return (
     <div className="mt-12 pt-8 border-t border-white/10 relative">
@@ -59,7 +52,7 @@ const SimilarGamesCarousel: FC<Props> = ({ gameId, onSelectGame }) => {
         onScroll={(e) => updateScrollState(e.currentTarget)}
         className="flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory scrollbar-none [&::-webkit-scrollbar]:hidden"
       >
-        {data.map(game => (
+        {games.map(game => (
           <button 
             key={game.id} 
             onClick={() => onSelectGame?.(game.id, game)}

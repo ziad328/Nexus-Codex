@@ -25,7 +25,8 @@ export default defineConfig({
     reuseExistingServer: false,
     timeout: 180_000,
     env: {
-      VITE_RAWG_API_KEY: 'e2e-rawg-key',
+      // The preview server must never call IGDB in a test; the browser's stubs answer /api instead.
+      E2E_NO_UPSTREAM: '1',
       VITE_SUPABASE_URL: 'https://supabase.test.invalid',
       VITE_SUPABASE_PUBLISHABLE_KEY: 'e2e-publishable-key',
     },

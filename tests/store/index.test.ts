@@ -113,3 +113,51 @@ describe('after a page reload', () => {
     consoleError.mockRestore();
   });
 });
+
+describe('the move to IGDB (saved data version 1)', () => {
+  // How redux-persist stored data before IGDB: each slice as a JSON string, and no version.
+  const savedBeforeIgdb = () => {
+    const lists = [{ name: 'playing', games: [makeGame(7)] }, { name: 'beaten', games: [] }, { name: 'backlog', games: [] }, { name: 'wishlist', games: [] }];
+    localStorage.setItem(ROOT_KEY, JSON.stringify({
+      favorites: JSON.stringify({ items: [makeGame(1)] }),
+      collections: JSON.stringify({ lists }),
+      _persist: JSON.stringify({ version: -1, rehydrated: true }),
+    }));
+    localStorage.setItem(UI_KEY, JSON.stringify({
+      viewMode: JSON.stringify('list'),
+      recentlyViewed: JSON.stringify([makeGame(3)]),
+      _persist: JSON.stringify({ version: -1, rehydrated: true }),
+    }));
+  };
+
+  it('drops games saved with RAWG ids, so none can open the wrong game', async () => {
+    savedBeforeIgdb();
+
+    const { store } = await loadApp();
+
+    expect(store.getState().favorites.items).toEqual([]);
+    expect(store.getState().collections.lists.every((list) => list.games.length === 0)).toBe(true);
+    expect(store.getState().collections.lists.map((list) => list.name)).toEqual(['playing', 'beaten', 'backlog', 'wishlist']);
+    expect(store.getState().ui.recentlyViewed).toEqual([]);
+  });
+
+  it('keeps the view mode, which has nothing to do with ids', async () => {
+    savedBeforeIgdb();
+
+    const { store } = await loadApp();
+
+    expect(store.getState().ui.viewMode).toBe('list');
+  });
+
+  it('keeps games saved after the move', async () => {
+    const first = await loadApp();
+    await first.store.dispatch(first.favorites.toggleFavoriteInDb(makeGame(1)));
+    first.store.dispatch(first.ui.addRecentlyViewed(makeGame(2)));
+    await first.persistor.flush();
+
+    const { store } = await loadApp();
+
+    expect(store.getState().favorites.items.map((game) => game.id)).toEqual([1]);
+    expect(store.getState().ui.recentlyViewed.map((game) => game.id)).toEqual([2]);
+  });
+});

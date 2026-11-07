@@ -221,8 +221,9 @@ export const getGame = async (deps: Deps, idText: string): Promise<GameDetails |
   };
 };
 
-/** IGDB's genres, with Action first. */
-export const listGenres = async (deps: Deps): Promise<GenreSummary[]> => {
+/** IGDB's genres, with Action first, in the same shape as every list. */
+export const listGenres = async (deps: Deps): Promise<{ count: number; next: null; results: GenreSummary[] }> => {
   const genres = await igdb<{ id: number; name: string; slug: string }[]>(deps, 'genres', 'fields name,slug; sort name asc; limit 100;');
-  return [ACTION_GENRE, ...genres].map(({ id, name, slug: genreSlug }) => ({ id, name, slug: genreSlug, image_background: null }));
+  const results = [ACTION_GENRE, ...genres].map(({ id, name, slug: genreSlug }) => ({ id, name, slug: genreSlug, image_background: null }));
+  return { count: results.length, next: null, results };
 };

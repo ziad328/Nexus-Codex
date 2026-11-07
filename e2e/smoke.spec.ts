@@ -14,7 +14,7 @@ test.describe('at 1440 px', () => {
   });
 
   test('a deep link opens the game, and closing it clears the URL', async ({ page }) => {
-    await page.goto('/?gameId=1');
+    await page.goto('/?game=1');
 
     await expect(page.getByRole('heading', { name: 'Portal', level: 1 })).toBeVisible();
     await expect(page).toHaveTitle('Portal | Nexus Codex');
@@ -160,7 +160,7 @@ test.describe('at 375 px', () => {
   });
 
   test('the game modal fits', async ({ page }) => {
-    await page.goto(`/?gameId=${portal.id}`);
+    await page.goto(`/?game=${portal.id}`);
 
     await expect(page.getByRole('heading', { name: 'Portal', level: 1 })).toBeVisible();
     const box = await page.locator('#game-modal-content').boundingBox();

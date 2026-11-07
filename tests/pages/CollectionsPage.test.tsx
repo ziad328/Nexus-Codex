@@ -288,8 +288,8 @@ describe('CollectionsPage', () => {
       expect(await modalTitle('Doom')).toBeInTheDocument();
     });
 
-    it.fails('BUG-30: ?gameId= opens the game, as on every other page', async () => {
-      setup(library, '/collection?gameId=1');
+    it.fails('BUG-30: ?game= opens the game, as on every other page', async () => {
+      setup(library, '/collection?game=1');
 
       expect(await modalTitle('Portal')).toBeInTheDocument();
     });
@@ -300,7 +300,7 @@ describe('CollectionsPage', () => {
       fireEvent.click(screen.getByRole('button', { name: 'View details for Portal' }));
       await modalTitle('Portal');
 
-      await waitFor(() => expect(screen.getByTestId('url')).toHaveTextContent('/collection?gameId=1'));
+      await waitFor(() => expect(screen.getByTestId('url')).toHaveTextContent('/collection?game=1'));
     });
 
     it.fails('BUG-28: opening a game adds it to Recently Viewed', async () => {

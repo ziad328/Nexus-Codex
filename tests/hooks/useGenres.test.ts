@@ -2,7 +2,7 @@ import { renderHook, waitFor } from '@testing-library/react';
 import useGenres from '../../src/hooks/useGenres';
 import { apiRequests, deferred, mockApi, mockApiError } from '../fakes/network';
 
-const CACHE_KEY = 'nexus-genres';
+const CACHE_KEY = 'nexus-genres-v2';
 const action = { id: 1, name: 'Action', slug: 'action', image_background: 'action.jpg' };
 const puzzle = { id: 2, name: 'Puzzle', slug: 'puzzle', image_background: 'puzzle.jpg' };
 

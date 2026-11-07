@@ -1,4 +1,4 @@
-import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import GameDetailsModal from '../../../src/components/game/GameDetailsModal';
 import { apiRequests, deferred, mockApi, mockApiError } from '../../fakes/network';
 import { makeGame } from '../../fixtures';
@@ -15,10 +15,9 @@ const details = {
   id: 1,
   name: 'Portal',
   slug: 'portal',
-  background_image: 'https://media.rawg.io/media/games/1.jpg',
+  background_image: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co1.jpg',
   parent_platforms: [{ platform: { id: 1, name: 'PC', slug: 'pc' } }],
   metacritic: 90,
-  rating_top: 5,
   description_raw: 'A puzzle game',
   released: '2007-10-10',
   developers: [{ id: 1, name: 'Valve', slug: 'valve' }, { id: 2, name: 'Hidden Path', slug: 'hidden-path' }],
@@ -28,25 +27,18 @@ const details = {
   reddit_url: 'https://reddit.test/portal',
 };
 
-const shot = { id: 5, image: 'https://media.rawg.io/media/screenshots/5.jpg', width: 1, height: 1 };
-const trailer = { id: 6, name: 'Trailer', preview: 'https://img.test/p.jpg', data: { 480: 'https://video.test/480.mp4', max: 'https://video.test/max.mp4' } };
+const shot = { id: 5, image: 'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc5.jpg', width: 1, height: 1 };
 
 interface Related {
   game?: object;
   screenshots?: object[];
-  movies?: object[];
   stores?: object[];
-  achievements?: object[];
   similar?: object[];
 }
 
-const mockGame = ({ game, screenshots = [], movies = [], stores = [], achievements = [], similar = [] }: Related = {}) => {
-  mockApi('/games/1', { ...details, ...game });
-  mockApi('/games/1/screenshots', { results: screenshots });
-  mockApi('/games/1/movies', { results: movies });
-  mockApi('/games/1/stores', { results: stores });
-  mockApi('/games/1/achievements', { results: achievements });
-  mockApi('/games/1/game-series', { results: similar });
+/** One details answer carries everything the modal shows, as the proxy sends it. */
+const mockGame = ({ game, screenshots = [], stores = [], similar = [] }: Related = {}) => {
+  mockApi('/games/1', { ...details, screenshots, store_links: stores, trailers: [], similar, ...game });
 };
 
 const setup = (gameId: number | null = 1) => {
@@ -144,19 +136,17 @@ describe('game information', () => {
 });
 
 describe('gallery', () => {
-  it('shows cropped screenshots', async () => {
+  it('shows the screenshots, and uses the first as the wide header image', async () => {
     await renderLoaded({ screenshots: [shot] });
 
-    const image = await screen.findByRole('img', { name: 'Screenshot' });
-    expect(image).toHaveAttribute('src', 'https://media.rawg.io/media/crop/600/400/screenshots/5.jpg');
+    expect(await screen.findByRole('img', { name: 'Screenshot' })).toHaveAttribute('src', shot.image);
+    expect(screen.getByRole('img', { name: 'Portal' })).toHaveAttribute('src', shot.image);
   });
 
-  it('plays the 480p trailer with its poster above the screenshots', async () => {
-    await renderLoaded({ screenshots: [shot], movies: [trailer] });
+  it('uses the cover as the header image when there are no screenshots', async () => {
+    await renderLoaded();
 
-    await waitFor(() => expect(document.querySelector('video')).toBeInTheDocument());
-    expect(document.querySelector('video')).toHaveAttribute('src', 'https://video.test/480.mp4');
-    expect(document.querySelector('video')).toHaveAttribute('poster', 'https://img.test/p.jpg');
+    expect(screen.getByRole('img', { name: 'Portal' })).toHaveAttribute('src', details.background_image);
   });
 
   it('has no gallery without screenshots or trailers', async () => {
@@ -165,11 +155,6 @@ describe('gallery', () => {
     expect(screen.queryByText('Gallery')).not.toBeInTheDocument();
   });
 
-  it.fails('BUG-4: still plays a trailer when there are no screenshots', async () => {
-    await renderLoaded({ movies: [trailer] });
-
-    await waitFor(() => expect(document.querySelector('video')).toBeInTheDocument());
-  });
 });
 
 describe('where to buy', () => {
@@ -223,12 +208,6 @@ describe('official links', () => {
 });
 
 describe('related sections', () => {
-  it('shows achievements', async () => {
-    await renderLoaded({ achievements: [{ id: 1, name: 'First Steps', description: 'd', image: 'a.jpg', percent: '1' }] });
-
-    expect(await screen.findByText('Top Achievements')).toBeInTheDocument();
-  });
-
   it('opens a similar game', async () => {
     const similar = makeGame(2);
     const { onSelectGame } = await renderLoaded({ similar: [similar] });
@@ -283,7 +262,7 @@ describe('sharing', () => {
     fireEvent.click(screen.getByRole('button', { name: /share/i }));
 
     expect(await screen.findByText('Copied!')).toBeInTheDocument();
-    expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/?gameId=1`);
+    expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/?game=1`);
   });
 
   it('says so when sharing fails', async () => {
@@ -391,23 +370,3 @@ describe('glow from the cover', () => {
   });
 });
 
-describe('adult content', () => {
-  const adult = { name: 'Hentai Quest', tags: [{ id: 1, name: 'NSFW', slug: 'nsfw' }] };
-
-  it.fails('BUG-6: does not open an adult game from a deep link', async () => {
-    mockGame({ game: adult });
-    setup();
-    await waitFor(() => expect(screen.queryByText('Loading...')).not.toBeInTheDocument());
-
-    expect(screen.queryByRole('heading', { name: 'Hentai Quest', level: 1 })).not.toBeInTheDocument();
-  });
-
-  it.fails('BUG-6: does not suggest an adult game as similar', async () => {
-    await renderLoaded({ similar: [makeGame(2, { name: 'Hentai Quest' })] });
-    // The spinner can be gone before the carousel has even asked, so wait for its request.
-    await waitFor(() => expect(apiRequests.some((request) => request.url === '/games/1/game-series')).toBe(true));
-    await act(() => new Promise((resolve) => setTimeout(resolve, 20)));
-
-    expect(screen.queryByRole('heading', { name: 'Hentai Quest' })).not.toBeInTheDocument();
-  });
-});

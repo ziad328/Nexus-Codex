@@ -37,7 +37,7 @@ describe('useSearchContext', () => {
 
   it('ignores the query string when choosing the page', () => {
     const { result } = renderHookWithProviders(() => useSearchContext(), {
-      route: '/?gameId=1',
+      route: '/?game=1',
       preloadedState: uiWith({ '/': 'zelda' }),
     });
 

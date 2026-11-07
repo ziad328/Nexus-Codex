@@ -2,16 +2,13 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import PlatformSelector from '../../../src/components/shared/PlatformSelector';
 import StoreSelector from '../../../src/components/shared/StoreSelector';
 import TagSelector from '../../../src/components/shared/TagSelector';
-import { deferred, mockApi, mockApiError } from '../../fakes/network';
 
 const isChecked = (name: string) => screen.getByRole('button', { name }).querySelector('.lucide-check') !== null;
 
 describe('PlatformSelector', () => {
-  const pc = { id: 1, name: 'PC', slug: 'pc' };
   const xbox = { id: 3, name: 'Xbox', slug: 'xbox' };
 
   beforeEach(() => {
-    mockApi('/platforms/lists/parents', { results: [pc, xbox] });
   });
 
   const openMenu = async () => {
@@ -70,20 +67,19 @@ describe('PlatformSelector', () => {
     expect(screen.queryByRole('button', { name: 'All Platforms' })).not.toBeInTheDocument();
   });
 
-  it('hides itself when platforms fail to load', async () => {
-    mockApiError('/platforms/lists/parents');
-    const { container } = render(<PlatformSelector selectedPlatform={null} onSelectPlatform={vi.fn()} />);
+  it('offers every platform family, in a fixed order', async () => {
+    render(<PlatformSelector selectedPlatform={null} onSelectPlatform={vi.fn()} />);
+    await openMenu();
 
-    await waitFor(() => expect(container).toBeEmptyDOMElement());
+    for (const name of ['PC', 'PlayStation', 'Xbox', 'Nintendo', 'Apple Macintosh', 'Linux', 'iOS', 'Android', 'Web']) {
+      expect(screen.getByRole('button', { name })).toBeInTheDocument();
+    }
   });
 });
 
 describe('StoreSelector', () => {
-  const steam = { id: 1, name: 'Steam', slug: 'steam', domain: 'steampowered.com' };
-  const gog = { id: 5, name: 'GOG', slug: 'gog', domain: 'gog.com' };
 
   const renderLoaded = async (selectedStoreId: number | null = null) => {
-    mockApi('/stores', { results: [steam, gog] });
     const onSelect = vi.fn();
     render(<StoreSelector selectedStoreId={selectedStoreId} onSelectStore={onSelect} />);
     await screen.findByRole('button', { name: selectedStoreId ? 'GOG' : 'Store' });
@@ -92,30 +88,14 @@ describe('StoreSelector', () => {
 
   const openMenu = () => fireEvent.click(screen.getAllByRole('button')[0]);
 
-  it('shows nothing while loading', () => {
-    mockApi('/stores', () => deferred().promise);
+  it('offers only stores IGDB can filter by', async () => {
+    await renderLoaded();
+    openMenu();
 
-    const { container } = render(<StoreSelector selectedStoreId={null} onSelectStore={vi.fn()} />);
-
-    expect(container).toBeEmptyDOMElement();
-  });
-
-  it('shows nothing when there are no stores', async () => {
-    mockApi('/stores', { results: [] });
-
-    const { container } = render(<StoreSelector selectedStoreId={null} onSelectStore={vi.fn()} />);
-
-    await new Promise((resolve) => setTimeout(resolve));
-    expect(container).toBeEmptyDOMElement();
-  });
-
-  it('shows nothing when loading fails', async () => {
-    mockApiError('/stores');
-
-    const { container } = render(<StoreSelector selectedStoreId={null} onSelectStore={vi.fn()} />);
-
-    await new Promise((resolve) => setTimeout(resolve));
-    expect(container).toBeEmptyDOMElement();
+    for (const name of ['Steam', 'PlayStation Store', 'Xbox Store', 'Epic Games', 'GOG', 'App Store', 'Google Play', 'itch.io']) {
+      expect(screen.getByRole('button', { name })).toBeInTheDocument();
+    }
+    expect(screen.queryByRole('button', { name: 'Nintendo Store' })).not.toBeInTheDocument();
   });
 
   it('shows the chosen store', async () => {
@@ -164,11 +144,8 @@ describe('StoreSelector', () => {
 });
 
 describe('TagSelector', () => {
-  const coop = { id: 1, name: 'Co-op', slug: 'co-op' };
-  const horror = { id: 2, name: 'Horror', slug: 'horror' };
 
   const renderLoaded = async (selectedTagSlug: string | null = null) => {
-    mockApi('/tags', { results: [coop, horror] });
     const onSelect = vi.fn();
     render(<TagSelector selectedTagSlug={selectedTagSlug} onSelectTag={onSelect} />);
     await screen.findByRole('button', { name: selectedTagSlug ? 'Horror' : 'Tag' });
@@ -177,21 +154,12 @@ describe('TagSelector', () => {
 
   const openMenu = () => fireEvent.click(screen.getAllByRole('button')[0]);
 
-  it('shows nothing while loading', () => {
-    mockApi('/tags', () => deferred().promise);
+  it('offers the curated list of tags', async () => {
+    await renderLoaded();
+    openMenu();
 
-    const { container } = render(<TagSelector selectedTagSlug={null} onSelectTag={vi.fn()} />);
-
-    expect(container).toBeEmptyDOMElement();
-  });
-
-  it('shows nothing when loading fails', async () => {
-    mockApiError('/tags');
-
-    const { container } = render(<TagSelector selectedTagSlug={null} onSelectTag={vi.fn()} />);
-
-    await new Promise((resolve) => setTimeout(resolve));
-    expect(container).toBeEmptyDOMElement();
+    expect(screen.getAllByRole('button')).toHaveLength(22); // the menu button, Any Tag and 20 tags
+    expect(screen.getByRole('button', { name: 'Open World' })).toBeInTheDocument();
   });
 
   it('shows the chosen tag', async () => {

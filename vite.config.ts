@@ -10,7 +10,16 @@ import { VitePWA } from 'vite-plugin-pwa'
  */
 function localApi(): Plugin {
   const handler = (server: ViteDevServer | null): Connect.NextHandleFunction => async (req, res, next) => {
-    if (!req.url?.startsWith('/api/')) return next()
+    const path = req.url?.split('?')[0] ?? ''
+    // API routes have no file extension; anything with one (like /api/_lib/catalog.ts) is source code for Vite.
+    if (!path.startsWith('/api/') || /\.\w+$/.test(path)) return next()
+    if (process.env.E2E_NO_UPSTREAM) {
+      // Smoke tests stub /api in the browser; anything that slips through must not reach IGDB.
+      res.statusCode = 503
+      res.setHeader('Content-Type', 'application/json')
+      res.end(JSON.stringify({ error: `Unstubbed API call in a test: ${req.url}` }))
+      return
+    }
     try {
       const { handleApi } = server
         ? await server.ssrLoadModule('/api/_lib/router.ts')
@@ -26,7 +35,8 @@ function localApi(): Plugin {
   return {
     name: 'local-api',
     config(_, { mode }) {
-      Object.assign(process.env, loadEnv(mode, process.cwd(), 'TWITCH_'))
+      // Values already set (by a test runner, say) win over .env.local.
+      for (const [key, value] of Object.entries(loadEnv(mode, process.cwd(), 'TWITCH_'))) process.env[key] ??= value
     },
     configureServer(server) {
       server.middlewares.use(handler(server))

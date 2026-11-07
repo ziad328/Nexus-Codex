@@ -21,7 +21,8 @@ function PublisherPage() {
 
   const [selectedGameId, setSelectedGameId] = useState<number | null>(
     () => {
-      const id = searchParams.get('gameId');
+      // ?game= holds an IGDB id. Old ?gameId= links held RAWG ids, which would open the wrong game, so they're ignored.
+      const id = searchParams.get('game');
       return id ? Number(id) : null;
     }
   );
@@ -46,7 +47,7 @@ function PublisherPage() {
 
   const handleSelectGame = useCallback((id: number) => {
     setSelectedGameId(id);
-    setSearchParams({ gameId: String(id) }, { replace: true });
+    setSearchParams({ game: String(id) }, { replace: true });
   }, [setSearchParams]);
 
   const handleCloseModal = useCallback(() => {

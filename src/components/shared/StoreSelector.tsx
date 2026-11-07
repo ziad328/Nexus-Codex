@@ -1,7 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import type { FC } from 'react';
 import { ChevronDown, Store as StoreIcon, Check } from 'lucide-react';
-import useStoresList from '../../hooks/useStoresList';
+import { STORES } from '../../../api/_lib/catalog';
+
+// Only stores IGDB can filter by.
+const stores = STORES.filter((store) => store.source !== null);
 
 
 interface Props {
@@ -10,7 +13,6 @@ interface Props {
 }
 
 const StoreSelector: FC<Props> = ({ selectedStoreId, onSelectStore }) => {
-  const { data, isLoading } = useStoresList();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -27,9 +29,7 @@ const StoreSelector: FC<Props> = ({ selectedStoreId, onSelectStore }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
 
-  if (isLoading || data.length === 0) return null;
-
-  const selectedStore = data.find(s => s.id === selectedStoreId);
+  const selectedStore = stores.find(s => s.id === selectedStoreId);
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -60,7 +60,7 @@ const StoreSelector: FC<Props> = ({ selectedStoreId, onSelectStore }) => {
               {!selectedStoreId && <Check className="w-4 h-4 text-accent" />}
             </button>
             <div className="h-px bg-white/5 mx-2" />
-            {data.map((store) => (
+            {stores.map((store) => (
               <button
                 key={store.id}
                 onClick={() => {

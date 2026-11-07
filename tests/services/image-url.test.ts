@@ -10,7 +10,7 @@ describe('getCroppedImageUrl', () => {
     expect(getCroppedImageUrl('')).toBe('');
   });
 
-  it.fails('BUG-11: leaves a URL without a media folder unchanged', () => {
+  it('leaves an IGDB URL unchanged (BUG-11, fixed)', () => {
     const url = 'https://images.igdb.com/igdb/image/upload/t_cover_big/abc.jpg';
     expect(getCroppedImageUrl(url)).toBe(url);
   });

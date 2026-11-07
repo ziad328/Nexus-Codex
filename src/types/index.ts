@@ -8,23 +8,11 @@ export interface PlatformInfo {
   platform: Platform;
 }
 
-export interface Genre {
-  id: number;
-  name: string;
-  slug: string;
-  image_background: string;
-}
+// What the proxy (api/) answers. One definition, so the app and the server can't drift apart.
+export type { GameDetails, GenreSummary as Genre } from '../../api/_lib/games';
+import type { GameSummary } from '../../api/_lib/games';
 
-export interface Game {
-  id: number;
-  name: string;
-  slug: string;
-  background_image: string;
-  parent_platforms: PlatformInfo[];
-  metacritic: number;
-  rating_top: number;
-  tags?: Tag[];
-}
+export type Game = GameSummary & { tags?: Tag[] };
 
 export interface FetchResponse<T> {
   count: number;
@@ -41,58 +29,6 @@ export interface GameQuery {
   publishers?: string;
   storeId?: number | null;
   tagSlug?: string;
-}
-
-export interface Publisher {
-  id: number;
-  name: string;
-  slug: string;
-}
-
-export interface Developer {
-  id: number;
-  name: string;
-  slug: string;
-}
-
-export interface Store {
-  id: number;
-  name: string;
-  slug: string;
-  domain: string;
-}
-
-export interface GameStore {
-  id: number;
-  store_id: number;
-  url: string;
-}
-
-export interface GameDetails extends Game {
-  description_raw: string;
-  released: string;
-  publishers: Publisher[];
-  developers: Developer[];
-  stores: { id: number; store: Store }[];
-  reddit_url?: string;
-  website?: string;
-}
-
-export interface Screenshot {
-  id: number;
-  image: string;
-  width: number;
-  height: number;
-}
-
-export interface Trailer {
-  id: number;
-  name: string;
-  preview: string;
-  data: {
-    480: string;
-    max: string;
-  };
 }
 
 export interface FavoriteGame {
@@ -117,22 +53,4 @@ export interface Tag {
   id: number;
   name: string;
   slug: string;
-}
-
-export interface Achievement {
-  id: number;
-  name: string;
-  description: string;
-  image: string;
-  percent: string;
-}
-
-export interface RedditPost {
-  id: number;
-  name: string;
-  text: string;
-  image: string;
-  url: string;
-  username: string;
-  created: string;
 }

@@ -15,7 +15,6 @@ export default defineConfig({
     setupFiles: ['./tests/setup.ts'],
     include: ['tests/**/*.test.{ts,tsx}'],
     env: {
-      VITE_RAWG_API_KEY: 'test-rawg-key',
       VITE_SUPABASE_URL: 'https://supabase.test.invalid',
       VITE_SUPABASE_PUBLISHABLE_KEY: 'test-publishable-key',
     },

@@ -23,7 +23,8 @@ function HomePage() {
 
   const [selectedGameId, setSelectedGameId] = useState<number | null>(
     () => {
-      const id = searchParams.get('gameId');
+      // ?game= holds an IGDB id. Old ?gameId= links held RAWG ids, which would open the wrong game, so they're ignored.
+      const id = searchParams.get('game');
       return id ? Number(id) : null;
     }
   );
@@ -50,7 +51,7 @@ function HomePage() {
 
   const handleSelectGame = useCallback((id: number, game: { name: string; slug: string; background_image: string; metacritic: number | null }) => {
     setSelectedGameId(id);
-    setSearchParams({ gameId: String(id) }, { replace: true });
+    setSearchParams({ game: String(id) }, { replace: true });
     dispatch(addRecentlyViewed({ id, ...game }));
   }, [dispatch, setSearchParams]);
 

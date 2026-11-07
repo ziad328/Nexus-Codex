@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import useShare from '../../src/hooks/useShare';
 
-const data = { title: 'Portal', text: 'Play it', url: 'https://nexus.test/?gameId=1' };
+const data = { title: 'Portal', text: 'Play it', url: 'https://nexus.test/?game=1' };
 
 const stubNavigator = (values: Partial<Record<'share' | 'canShare' | 'clipboard', unknown>>) => {
   (['share', 'canShare', 'clipboard'] as const).forEach((key) => {

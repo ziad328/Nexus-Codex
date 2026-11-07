@@ -1,8 +1,7 @@
 import { test as base } from '@playwright/test';
 import type { BrowserContext, Page, Route } from '@playwright/test';
 
-const API_HOST = 'api.rawg.io';
-const IMAGE_HOST = 'media.rawg.io';
+const IMAGE_HOST = 'images.igdb.com';
 const SUPABASE_HOST = 'supabase.test.invalid';
 const AUTH_KEY = 'sb-supabase-auth-token';
 
@@ -21,9 +20,8 @@ const makeGame = (id: number, name: string) => ({
   id,
   name,
   slug: name.toLowerCase(),
-  background_image: `https://${IMAGE_HOST}/media/games/${id}.jpg`,
+  background_image: `https://${IMAGE_HOST}/igdb/image/upload/t_cover_big/co${id}.jpg`,
   metacritic: 90,
-  rating_top: 5,
   parent_platforms: [{ platform: { id: 1, name: 'PC', slug: 'pc' } }],
 });
 
@@ -32,22 +30,19 @@ export const doom = makeGame(2, 'Doom');
 export const halo = makeGame(3, 'Halo');
 
 export const genres = [
-  { id: 4, name: 'Action', slug: 'action', image_background: `https://${IMAGE_HOST}/media/genres/4.jpg` },
-  { id: 5, name: 'Puzzle', slug: 'puzzle', image_background: `https://${IMAGE_HOST}/media/genres/5.jpg` },
+  { id: -1, name: 'Action', slug: 'action', image_background: null },
+  { id: 9, name: 'Puzzle', slug: 'puzzle', image_background: null },
 ];
 
+// What our own /api answers. The filter menus are fixed lists in the app, so only genres and games are asked for.
 const lists: Record<string, unknown[]> = {
   '/genres': genres,
-  '/tags': [{ id: 31, name: 'Singleplayer', slug: 'singleplayer' }],
-  '/stores': [{ id: 11, name: 'Steam', slug: 'steam' }],
-  '/platforms/lists/parents': [{ id: 3, name: 'Xbox', slug: 'xbox' }],
   '/games': [portal, doom],
 };
 
 const answerApi = (path: string) => {
   if (lists[path]) return { count: lists[path].length, next: null, results: lists[path] };
-  const [, id, related] = path.match(/^\/games\/(\d+)(\/.*)?$/) ?? [];
-  if (related) return { count: 0, next: null, results: [] };
+  const [, id] = path.match(/^\/games\/(\d+)$/) ?? [];
   if (id) {
     const game = [portal, doom, halo].find((candidate) => candidate.id === Number(id)) ?? portal;
     return {
@@ -57,6 +52,12 @@ const answerApi = (path: string) => {
       developers: [{ id: 1, name: 'Valve', slug: 'valve' }],
       publishers: [{ id: 3, name: 'EA', slug: 'ea' }],
       stores: [],
+      store_links: [],
+      website: null,
+      reddit_url: null,
+      screenshots: [],
+      trailers: [],
+      similar: [],
     };
   }
   return null;
@@ -75,8 +76,8 @@ export class Outside {
     const path = url.pathname.replace(/^\/api/, '');
     if (path === '/games') this.gameRequests.push(url.searchParams);
     const body = this.apiDown ? null : answerApi(path);
-    if (!body) return route.fulfill({ status: this.apiDown ? 503 : 404, headers: cors, json: {} });
-    return route.fulfill({ headers: cors, json: body });
+    if (!body) return route.fulfill({ status: this.apiDown ? 503 : 404, json: { error: 'stubbed failure' } });
+    return route.fulfill({ json: body });
   }
 
   private async supabase(route: Route, url: URL) {
@@ -101,10 +102,10 @@ export class Outside {
   async install(context: BrowserContext) {
     await context.route('**/*', async (route) => {
       const url = new URL(route.request().url());
-      if (url.hostname === 'localhost') return route.continue();
+      // Our own /api is answered here; the preview server refuses to call IGDB during tests anyway.
+      if (url.hostname === 'localhost') return url.pathname.startsWith('/api/') ? this.api(route, url) : route.continue();
       if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers: cors });
       if (url.hostname === IMAGE_HOST) return route.fulfill({ contentType: 'image/png', body: PIXEL });
-      if (url.hostname === API_HOST) return this.api(route, url);
       if (url.hostname === SUPABASE_HOST) return this.supabase(route, url);
       return route.abort('blockedbyclient');
     });
@@ -129,7 +130,7 @@ export const signIn = async (context: BrowserContext) => {
 
 /** Saves the genre list as an earlier visit would have, which avoids BUG-33. */
 export const rememberGenres = (context: BrowserContext) =>
-  context.addInitScript((value) => localStorage.setItem('nexus-genres', value), JSON.stringify(genres));
+  context.addInitScript((value) => localStorage.setItem('nexus-genres-v2', value), JSON.stringify(genres));
 
 export const card = (page: Page, name: string) => page.getByRole('button', { name: `View details for ${name}` });
 

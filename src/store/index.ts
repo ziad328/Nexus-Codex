@@ -1,5 +1,6 @@
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
-import { persistStore, persistReducer } from 'redux-persist';
+import { createMigrate, persistStore, persistReducer } from 'redux-persist';
+import type { PersistedState } from 'redux-persist';
 import favoritesReducer from './favoritesSlice';
 import collectionsReducer from './collectionsSlice';
 import uiReducer from './uiSlice';
@@ -14,16 +15,32 @@ const storage = {
     Promise.resolve(localStorage.removeItem(key)),
 };
 
+// Version 1 is the move to IGDB. Games saved before it have RAWG ids, which would open the wrong game,
+// so they are dropped once. The owner chose a fresh start; there was no data worth keeping.
+const startFresh = (keys: string[]) =>
+  createMigrate({
+    1: (state: PersistedState) => {
+      if (!state) return state;
+      const kept: Record<string, unknown> = { ...state };
+      for (const key of keys) delete kept[key];
+      return kept as PersistedState;
+    },
+  });
+
 const rootPersistConfig = {
   key: 'nexus-root',
   storage,
   whitelist: ['favorites', 'collections'],
+  version: 1,
+  migrate: startFresh(['favorites', 'collections']),
 };
 
 const uiPersistConfig = {
   key: 'nexus-ui',
   storage,
   whitelist: ['viewMode', 'recentlyViewed'],
+  version: 1,
+  migrate: startFresh(['recentlyViewed']),
 };
 
 const rootReducer = combineReducers({

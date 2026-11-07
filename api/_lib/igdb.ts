@@ -9,7 +9,8 @@ export interface Deps {
 
 export const realDeps = (): Deps => ({
   fetch: (...args) => fetch(...args),
-  env: process.env,
+  // Through globalThis, because the browser app's type check also reads this file (for the shared types).
+  env: (globalThis as { process?: { env: Record<string, string | undefined> } }).process?.env ?? {},
   now: () => Date.now(),
   sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
 });

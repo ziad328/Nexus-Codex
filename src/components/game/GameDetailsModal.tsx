@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import type { FC } from 'react';
 import useGameDetails from '../../hooks/useGameDetails';
-import useScreenshots from '../../hooks/useScreenshots';
 import CriticScore from '../shared/CriticScore';
 import PlatformIconList from '../shared/PlatformIconList';
 import getCroppedImageUrl from '../../services/image-url';
@@ -11,11 +10,7 @@ import CollectionButton from '../shared/CollectionButton';
 import { Link } from 'react-router-dom';
 import useShare from '../../hooks/useShare';
 import { Share2, Check, X, ExternalLink } from 'lucide-react';
-import useGameTrailers from '../../hooks/useGameTrailers';
-import useGameStores from '../../hooks/useGameStores';
 import SimilarGamesCarousel from './SimilarGamesCarousel';
-import CustomVideoPlayer from '../shared/CustomVideoPlayer';
-import AchievementsList from './AchievementsList';
 import SEO from '../shared/SEO';
 import type { Game } from '../../types';
 
@@ -27,9 +22,9 @@ interface Props {
 
 const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
   const { data: game, isLoading, error } = useGameDetails(gameId);
-  const { data: screenshots, isLoading: screenshotsLoading } = useScreenshots(gameId);
-  const { data: trailers, isLoading: trailersLoading } = useGameTrailers(gameId);
-  const { data: storeLinks } = useGameStores(gameId);
+  // Everything comes with the details, in one request.
+  const screenshots = game?.screenshots ?? [];
+  const storeLinks = game?.store_links ?? [];
   const { share, status: shareStatus } = useShare();
   const [accent, setAccent] = useState<{ gameId: number; color: string } | null>(null);
   const accentColor = accent?.gameId === gameId ? accent.color : null;
@@ -139,7 +134,7 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
               <div className="relative w-full h-56 md:h-80 shrink-0">
                 <img
                   ref={heroImgRef}
-                  src={game.background_image}
+                  src={screenshots[0]?.image || game.background_image}
                   alt={game.name}
                   onLoad={handleHeroLoad}
                   className="w-full h-full object-cover"
@@ -178,7 +173,7 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
                         onClick={() => share({
                           title: game.name,
                           text: `Check out ${game.name} on Nexus Codex!`,
-                          url: `${window.location.origin}/?gameId=${gameId}`,
+                          url: `${window.location.origin}/?game=${gameId}`,
                         })}
                         className={`flex items-center gap-1.5 px-3 h-8 rounded-full text-xs font-semibold transition-all duration-300 shadow-lg ${
                           shareStatus === 'copied'
@@ -220,18 +215,9 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
                     </p>
                   </div>
 
-                  {!screenshotsLoading && screenshots.length > 0 && (
+                  {screenshots.length > 0 && (
                     <div>
                       <h2 className="text-lg font-semibold text-zinc-100 mb-3">Gallery</h2>
-                      
-                      {!trailersLoading && trailers.length > 0 && (
-                        <div className="mb-4">
-                          <CustomVideoPlayer 
-                            src={trailers[0].data[480]} 
-                            poster={trailers[0].preview} 
-                          />
-                        </div>
-                      )}
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {screenshots.map(ss => (
@@ -310,8 +296,6 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
                     )}
 
 
-                    <AchievementsList gameId={game.id} />
-                    
                     {(game.reddit_url || game.website) && (
                       <div className="pt-2 border-t border-white/5">
                         <p className="text-zinc-500 text-xs font-semibold uppercase tracking-widest mb-3">Official Links</p>
@@ -347,7 +331,7 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
               </div>
               
               <div className="px-6 pb-10 md:px-10 flex flex-col gap-4">
-                <SimilarGamesCarousel gameId={game.id} onSelectGame={onSelectGame} />
+                <SimilarGamesCarousel games={game.similar} onSelectGame={onSelectGame} />
               </div>
             </div>
           )}

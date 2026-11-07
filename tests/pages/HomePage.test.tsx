@@ -1,7 +1,7 @@
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { Link, Route, Routes } from 'react-router-dom';
 import HomePage from '../../src/pages/HomePage';
-import { apiRequests, mockApi, mockApiError } from '../fakes/network';
+import { apiRequests, mockApiError } from '../fakes/network';
 import { makeGame } from '../fixtures';
 import { renderWithProviders } from '../render';
 import type { TestState } from '../render';
@@ -64,7 +64,7 @@ describe('HomePage', () => {
 
     it.each([
       ['Tag', 'Singleplayer', 'Any Tag', { tags: 'singleplayer' }],
-      ['Store', 'Steam', 'Any Store', { stores: 11 }],
+      ['Store', 'Steam', 'Any Store', { stores: 1 }],
       ['Platform', 'Xbox', 'All Platforms', { parent_platforms: 3 }],
     ])('sends the %s filter to the grid, and clears it', async (menu, option, clear, params) => {
       setup();
@@ -83,7 +83,7 @@ describe('HomePage', () => {
       await choose('Store', 'Steam');
       await choose('Platform', 'Xbox');
 
-      await waitFor(() => expect(lastGamesParams()).toEqual({ tags: 'singleplayer', stores: 11, parent_platforms: 3, page: 1 }));
+      await waitFor(() => expect(lastGamesParams()).toEqual({ tags: 'singleplayer', stores: 1, parent_platforms: 3, page: 1 }));
     });
 
     it('keeps earlier filters whichever is picked last', async () => {
@@ -93,7 +93,7 @@ describe('HomePage', () => {
       await choose('Store', 'Steam');
       await choose('Tag', 'Singleplayer');
 
-      await waitFor(() => expect(lastGamesParams()).toEqual({ tags: 'singleplayer', stores: 11, parent_platforms: 3, page: 1 }));
+      await waitFor(() => expect(lastGamesParams()).toEqual({ tags: 'singleplayer', stores: 1, parent_platforms: 3, page: 1 }));
     });
 
     it('switches between grid and list view', async () => {
@@ -155,23 +155,23 @@ describe('HomePage', () => {
 
     it.fails('BUG-27: says so for a genre that does not exist, instead of Loading forever', async () => {
       setup('/genre/not-a-genre');
-      await waitFor(() => expect(localStorage.getItem('nexus-genres')).not.toBeNull());
+      await waitFor(() => expect(localStorage.getItem('nexus-genres-v2')).not.toBeNull());
       await new Promise((resolve) => setTimeout(resolve, 20));
 
       expect(heading()).not.toHaveTextContent('Loading...');
     });
   });
 
-  describe('the ?gameId= deep link', () => {
+  describe('the ?game= deep link', () => {
     it('opens the modal on that game', async () => {
-      setup('/?gameId=1');
+      setup('/?game=1');
 
       expect(await modalTitle('Portal')).toBeInTheDocument();
-      await waitFor(() => expect(url()).toBe('/?gameId=1'));
+      await waitFor(() => expect(url()).toBe('/?game=1'));
     });
 
     it('works on a genre route too', async () => {
-      setup('/genre/action?gameId=2');
+      setup('/genre/action?game=2');
 
       expect(await modalTitle('Doom')).toBeInTheDocument();
       expect(lastGamesParams()).toMatchObject({ genres: 'action' });
@@ -185,7 +185,7 @@ describe('HomePage', () => {
     });
 
     it('ignores one that is not a number', async () => {
-      setup('/?gameId=abc');
+      setup('/?game=abc');
       await screen.findByRole('button', { name: 'View details for Portal' });
 
       expect(modal()).not.toBeInTheDocument();
@@ -193,7 +193,7 @@ describe('HomePage', () => {
     });
 
     it.fails('BUG-28: adds the game to Recently Viewed', async () => {
-      const { store } = setup('/?gameId=1');
+      const { store } = setup('/?game=1');
       await modalTitle('Portal');
 
       expect(recentIds(store)).toContain(1);
@@ -207,7 +207,7 @@ describe('HomePage', () => {
       await openCard('Portal');
 
       expect(await modalTitle('Portal')).toBeInTheDocument();
-      await waitFor(() => expect(url()).toBe('/?gameId=1'));
+      await waitFor(() => expect(url()).toBe('/?game=1'));
       expect(recentIds(store)).toEqual([1]);
       expect(screen.getByTitle('Portal')).toHaveAttribute('title', 'Portal');
     });
@@ -231,7 +231,7 @@ describe('HomePage', () => {
 
       await openCard('Portal');
 
-      await waitFor(() => expect(url()).toBe('/?gameId=1'));
+      await waitFor(() => expect(url()).toBe('/?game=1'));
       expect(screen.getByTestId('url')).toHaveAttribute('data-navigation', 'REPLACE');
     });
 
@@ -244,14 +244,14 @@ describe('HomePage', () => {
       fireEvent.click(await within(modal()!).findByRole('button', { name: /Doom/ }));
 
       expect(await modalTitle('Doom')).toBeInTheDocument();
-      await waitFor(() => expect(url()).toBe('/?gameId=2'));
+      await waitFor(() => expect(url()).toBe('/?game=2'));
       expect(recentIds(store)).toEqual([2, 1]);
     });
   });
 
   describe('closing the modal', () => {
     it('clears the URL and closes it', async () => {
-      setup('/?gameId=1');
+      setup('/?game=1');
       await modalTitle('Portal');
 
       fireEvent.click(screen.getByRole('button', { name: 'Close' }));
@@ -262,7 +262,7 @@ describe('HomePage', () => {
     });
 
     it('keeps the filters and the genre', async () => {
-      setup('/genre/action?gameId=1');
+      setup('/genre/action?game=1');
       await choose('Tag', 'Singleplayer');
       await waitFor(() => expect(lastGamesParams()).toMatchObject({ tags: 'singleplayer' }));
 
@@ -290,7 +290,7 @@ describe('HomePage', () => {
       fireEvent.click(screen.getByTitle('Portal'));
       await modalTitle('Portal');
 
-      await waitFor(() => expect(url()).toBe('/?gameId=1'));
+      await waitFor(() => expect(url()).toBe('/?game=1'));
     });
 
     it.fails('BUG-29: moves the chosen game to the front', async () => {
@@ -361,11 +361,10 @@ describe('HomePage', () => {
     expect(screen.getByRole('link', { name: /View Collections Cache/ })).toHaveAttribute('href', '/collection');
   });
 
-  it('asks for one set of game details per open', async () => {
-    mockApi('/games/1', { ...makeGame(1, { name: 'Portal' }), parent_platforms: [], developers: [], publishers: [], stores: [] });
-    setup('/?gameId=1');
+  it('loads everything the modal shows in one request', async () => {
+    setup('/?game=1');
     await modalTitle('Portal');
 
-    expect(apiRequests.filter((request) => request.url === '/games/1')).toHaveLength(1);
+    expect(apiRequests.filter((request) => request.url.startsWith('/games/1'))).toHaveLength(1);
   });
 });
