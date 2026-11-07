@@ -2,7 +2,7 @@
 
 The one living document for this project: what it's for, what it must do, how it's built, where it stands and what comes next. Update it whenever one of those changes. Day-to-day rules are in [../CLAUDE.md](../CLAUDE.md). The API research is in [rawg-vs-igdb.md](rawg-vs-igdb.md).
 
-_Last updated: 2026-11-07 (service and hook tests added, BUG-3 proved, BUG-11 to BUG-15 found. Before that: store tests, BUG-9 and BUG-10; Phase 2 started with test setup, `CLAUDE.md` and this document)._
+_Last updated: 2026-11-07 (shared component tests added, BUG-8 proved, BUG-16 to BUG-19 found. Before that: service and hook tests, BUG-3 proved, BUG-11 to BUG-15; store tests, BUG-9 and BUG-10; Phase 2 started with test setup, `CLAUDE.md` and this document)._
 
 ---
 
@@ -57,7 +57,7 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 - [x] Store
 - [x] Services
 - [x] Hooks
-- [ ] Shared components
+- [x] Shared components
 - [ ] Auth and game components
 - [ ] Layout
 - [ ] Pages and `App`
@@ -65,7 +65,7 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 - [ ] Fix existing lint errors
 - [ ] Coverage report and hand-check list
 
-**Latest verification (2026-11-07):** 171 tests pass and 20 expected failures mark known problems. `npx tsc -b --noEmit` clean, build passes. `npm run lint` still fails on the same 24 existing errors (issue 3); the test code adds none. Coverage: `src/store` 99% of lines and 92% of branches; `src/hooks` and `src/services` 100% of both. 54 deliberate breakages of this code were all caught. Live site: game data doesn't load (issue 2).
+**Latest verification (2026-11-07):** 279 tests pass and 25 expected failures mark known problems. `npx tsc -b --noEmit` clean, build passes. `npm run lint` still fails on the same 24 existing errors (issue 3); the test code adds none. Coverage: `src/store` 99% of lines and 92% of branches; `src/hooks` and `src/services` 100% of both; `src/components/shared` 98% and 93%. 103 deliberate breakages of this code were all caught. Live site: game data doesn't load (issue 2).
 
 **Test skips**
 | Skipped | Why |
@@ -102,7 +102,7 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 | BUG-5 | Similar-game clicks do nothing on the Collections page | `CollectionsPage` | Pending |
 | BUG-6 | The adult filter covers the grid only, not deep links or similar games | `useGames` | Pending |
 | BUG-7 | A failed merge upload is only logged, while the item looks saved. The item isn't lost: the next merge retries it. | both list slices | ✅ Proved |
-| BUG-8 | A failed add or remove shows the user nothing. The store does report the failure; the buttons ignore it. | `CollectionButton`, `FavoriteButton` | Pending |
+| BUG-8 | A failed add or remove shows the user nothing. The store does report the failure; the buttons ignore it. | `CollectionButton`, `FavoriteButton` | ✅ Proved |
 | BUG-9 | Merges running at once upload the same game twice, and duplicate cloud rows then show as duplicate cards. A magic-link sign-in looks able to trigger this: `App` merges on every auth event with a session, and Supabase's code sends both `INITIAL_SESSION` and `SIGNED_IN`. **A database unique constraint would block the duplicates, but the schema is unknown.** | both list slices, `App` | ✅ Proved in the store with the fake; not reproduced against real Supabase |
 | BUG-10 | `fetchFavorites` with nobody signed in wipes local favorites, while `fetchCollections` keeps its lists. `App` never calls it that way today, so it can't happen yet. | `favoritesSlice` | ✅ Proved |
 | BUG-11 | On a non-RAWG URL, the crop helper returns a broken address (`httpscrop/600/400/://images…`). Harmless today, but **every IGDB image would break**. | `image-url` | ✅ Proved; must change in Phase 3 |
@@ -110,6 +110,10 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 | BUG-13 | Changing a filter after scrolling first requests page 2 of the new filter, aborts it, then requests page 1. A wasted request, which matters more with IGDB's 4 per second limit. | `useGames` | ✅ Proved |
 | BUG-14 | The adult filter hides innocent games: "Command & Conquer: Yuri's Revenge" is hidden because of the word "yuri". | `useGames` | ✅ Proved |
 | BUG-15 | With no genre cache, genres are requested twice. | `useGenres` | ✅ Proved |
+| BUG-16 | The video player's mute, play and fullscreen buttons have no names, so screen readers can't announce them. | `CustomVideoPlayer` | ✅ Proved |
+| BUG-17 | Pressing Enter on the progress bar sets the video time to an invalid value, because the key handler reuses the mouse handler. | `CustomVideoPlayer` | ✅ Proved in jsdom |
+| BUG-18 | A broken image keeps its loading animation forever. It will matter more with IGDB, which removes replaced images after 30 days. | `ProgressiveImage` | ✅ Proved |
+| BUG-19 | Mouse-wheel scrolling on Recently Viewed may log an error and scroll the page too: it calls `preventDefault`, and React's wheel listeners are normally passive. jsdom can't show this. | `RecentlyViewed` | Pending; check by hand |
 
 ## 7. Roadmap
 
