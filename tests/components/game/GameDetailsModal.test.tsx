@@ -139,8 +139,22 @@ describe('gallery', () => {
   it('shows the screenshots, and uses the first as the wide header image', async () => {
     await renderLoaded({ screenshots: [shot] });
 
-    expect(await screen.findByRole('img', { name: 'Screenshot' })).toHaveAttribute('src', shot.image);
+    expect(await screen.findByRole('img', { name: 'Screenshot 1 of 1' })).toHaveAttribute('src', shot.image);
     expect(screen.getByRole('img', { name: 'Portal' })).toHaveAttribute('src', shot.image);
+  });
+
+  it('starts the next game on its own first screenshot', async () => {
+    const shots = [shot, { ...shot, id: 6, image: 'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc6.jpg' }];
+    mockGame({ screenshots: shots });
+    const { rerender } = setup();
+    fireEvent.click(await screen.findByRole('button', { name: 'Next screenshot' }));
+    expect(screen.getByText('2 / 2')).toBeInTheDocument();
+
+    mockApi('/games/2', { ...details, id: 2, name: 'Doom', screenshots: shots, store_links: [], similar: [], trailers: [] });
+    rerender(<GameDetailsModal gameId={2} onClose={vi.fn()} />);
+
+    await screen.findByRole('heading', { name: 'Doom', level: 1 });
+    expect(screen.getByText('1 / 2')).toBeInTheDocument();
   });
 
   it('uses the cover as the header image when there are no screenshots', async () => {

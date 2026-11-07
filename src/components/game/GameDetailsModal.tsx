@@ -11,6 +11,7 @@ import useShare from '../../hooks/useShare';
 import { Share2, Check, X, ExternalLink } from 'lucide-react';
 import SimilarGamesCarousel from './SimilarGamesCarousel';
 import YouTubeTrailer from './YouTubeTrailer';
+import ScreenshotGallery from './ScreenshotGallery';
 import SEO from '../shared/SEO';
 import type { Game } from '../../types';
 
@@ -219,24 +220,8 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
                   {/* Its own section, so a game without screenshots still shows its trailers. */}
                   <YouTubeTrailer trailers={game.trailers} />
 
-                  {screenshots.length > 0 && (
-                    <div>
-                      <h2 className="text-lg font-semibold text-zinc-100 mb-3">Gallery</h2>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {screenshots.map(ss => (
-                          <div key={ss.id} className="aspect-video rounded-xl overflow-hidden bg-zinc-800 hover:ring-2 hover:ring-accent/60 transition-all duration-300">
-                            <img
-                              src={ss.image}
-                              crossOrigin="anonymous"
-                              alt="Screenshot"
-                              className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  {/* Keyed by game, so the next game starts on its first screenshot. */}
+                  <ScreenshotGallery key={game.id} screenshots={screenshots} />
                 </div>
 
                 <div className="space-y-4">
