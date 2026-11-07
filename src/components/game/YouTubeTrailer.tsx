@@ -15,6 +15,9 @@ interface Props {
 // A YouTube id is short and URL-safe; anything else is skipped rather than put into a URL.
 const VALID_ID = /^[\w-]{6,20}$/;
 
+// Some games have 20 or more trailers; the rest wait behind "Show all".
+const SHOWN = 5;
+
 /**
  * Trailers come from YouTube. Until a visitor presses play, only a thumbnail image loads: no player,
  * no cookies. Then YouTube's privacy-enhanced player (youtube-nocookie.com) plays it.
@@ -23,6 +26,7 @@ const YouTubeTrailer: FC<Props> = ({ trailers }) => {
   const playable = trailers.filter((trailer) => VALID_ID.test(trailer.youtube_id));
   const [chosen, setChosen] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const [showAll, setShowAll] = useState(false);
 
   if (playable.length === 0) return null;
   const trailer = playable[Math.min(chosen, playable.length - 1)];
@@ -61,7 +65,7 @@ const YouTubeTrailer: FC<Props> = ({ trailers }) => {
 
       {playable.length > 1 && (
         <div className="flex flex-wrap gap-2 mt-3">
-          {playable.map((item, index) => (
+          {(showAll ? playable : playable.slice(0, SHOWN)).map((item, index) => (
             <button
               key={item.id}
               onClick={() => { setChosen(index); setPlaying(false); }}
@@ -73,6 +77,14 @@ const YouTubeTrailer: FC<Props> = ({ trailers }) => {
               {item.name}
             </button>
           ))}
+          {!showAll && playable.length > SHOWN && (
+            <button
+              onClick={() => setShowAll(true)}
+              className="px-3 py-1.5 rounded-full text-xs font-semibold transition-colors cursor-pointer text-accent ring-1 ring-accent/40 hover:bg-accent/10"
+            >
+              Show all ({playable.length})
+            </button>
+          )}
         </div>
       )}
     </div>

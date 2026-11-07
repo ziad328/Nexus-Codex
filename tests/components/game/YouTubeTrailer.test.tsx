@@ -54,4 +54,42 @@ describe('YouTubeTrailer', () => {
 
     expect(container).toBeEmptyDOMElement();
   });
+
+  describe('with many trailers', () => {
+    const many = (count: number) =>
+      Array.from({ length: count }, (_, i) => ({ id: i + 1, name: `Trailer ${i + 1}`, youtube_id: `vid${i + 1}xyz` }));
+    const choices = () => screen.getAllByRole('button', { name: /^Trailer \d+$/ }).map((button) => button.textContent);
+
+    it('shows five choices and a button for the rest', () => {
+      render(<YouTubeTrailer trailers={many(20)} />);
+
+      expect(choices()).toEqual(['Trailer 1', 'Trailer 2', 'Trailer 3', 'Trailer 4', 'Trailer 5']);
+      expect(screen.getByRole('button', { name: 'Show all (20)' })).toBeInTheDocument();
+    });
+
+    it('reveals every choice, then hides the button', () => {
+      render(<YouTubeTrailer trailers={many(20)} />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Show all (20)' }));
+
+      expect(choices()).toHaveLength(20);
+      expect(screen.queryByRole('button', { name: /Show all/ })).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Trailer 17' }));
+      expect(screen.getByRole('button', { name: 'Play trailer: Trailer 17' })).toBeInTheDocument();
+    });
+
+    it('needs no button for exactly five', () => {
+      render(<YouTubeTrailer trailers={many(5)} />);
+
+      expect(choices()).toHaveLength(5);
+      expect(screen.queryByRole('button', { name: /Show all/ })).not.toBeInTheDocument();
+    });
+
+    it('counts only playable trailers', () => {
+      render(<YouTubeTrailer trailers={[...many(6), { id: 99, name: 'Bad', youtube_id: 'x"/>' }]} />);
+
+      expect(screen.getByRole('button', { name: 'Show all (6)' })).toBeInTheDocument();
+    });
+  });
 });
