@@ -112,6 +112,7 @@ function App() {
               </div>
               <button 
                 onClick={() => setAuthError(null)}
+                aria-label="Dismiss"
                 className="absolute top-2 right-2 p-1.5 text-zinc-500 hover:text-white rounded-full transition-colors"
               >
                 <X className="w-4 h-4" />

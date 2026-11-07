@@ -93,7 +93,7 @@ describe('SimilarGamesCarousel', () => {
     expect(scrollBy).toHaveBeenLastCalledWith({ left: -320, behavior: 'smooth' });
   });
 
-  it.fails('BUG-22: does not show a stray 0 for a game scored 0', async () => {
+  it('does not show a stray 0 for a game scored 0 (BUG-22, fixed)', async () => {
     render(<SimilarGamesCarousel games={games(makeGame(2, { metacritic: 0 }))} />);
     await screen.findByRole('heading', { name: 'Game 2' });
 

@@ -359,12 +359,12 @@ describe('App', () => {
       expect(vi.getTimerCount()).toBe(0);
     });
 
-    it.fails('BUG-32: the dismiss button has a name screen readers can announce', async () => {
+    it('the dismiss button has a name screen readers can announce (BUG-32, fixed)', async () => {
       arrive(`/${expired}`);
       const { store } = setup();
       await settled(store);
 
-      expect(dismiss()).toHaveAccessibleName();
+      expect(dismiss()).toHaveAccessibleName('Dismiss');
     });
   });
 

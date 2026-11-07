@@ -67,7 +67,7 @@ const SimilarGamesCarousel: FC<Props> = ({ games, onSelectGame }) => {
             </div>
             <div className="p-3 flex flex-col gap-1.5">
               <h3 className="text-zinc-100 font-semibold text-sm leading-snug line-clamp-2">{game.name}</h3>
-              {game.metacritic && <CriticScore score={game.metacritic} />}
+              <CriticScore score={game.metacritic ?? null} />
             </div>
           </button>
         ))}

@@ -55,12 +55,23 @@ describe('ProgressiveImage', () => {
     expect(placeholder(container)).toHaveClass('opacity-100');
   });
 
-  it.fails('BUG-18: stops the loading placeholder when the image fails', () => {
+  it('stops the loading placeholder when the image fails, keeping the broken image hidden (BUG-18, fixed)', () => {
     stubImageComplete(false);
     const { container } = render(<ProgressiveImage src="missing.jpg" alt="Portal" />);
 
     fireEvent.error(screen.getByAltText('Portal'));
 
     expect(placeholder(container)).toHaveClass('opacity-0');
+    expect(screen.getByAltText('Portal')).toHaveClass('opacity-0');
+  });
+
+  it('tries again for a new image after a failure', () => {
+    stubImageComplete(false);
+    const { container, rerender } = render(<ProgressiveImage src="missing.jpg" alt="Portal" />);
+    fireEvent.error(screen.getByAltText('Portal'));
+
+    rerender(<ProgressiveImage src="b.jpg" alt="Portal" />);
+
+    expect(placeholder(container)).toHaveClass('opacity-100');
   });
 });

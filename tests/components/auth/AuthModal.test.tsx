@@ -85,15 +85,17 @@ describe('AuthModal', () => {
       expect(screen.queryByText(/valid, complete|typos/i)).not.toBeInTheDocument();
     });
 
-    it.fails('BUG-20: does not suggest gmail for a hotmail typo', async () => {
-      setup();
+    it.each([['hotmai.com', 'hotmail.com'], ['yahoo.co', 'yahoo.com'], ['GMAL.com', 'gmail.com']])(
+      'suggests the right domain for %s (BUG-20, fixed)',
+      async (typo, meant) => {
+        setup();
 
-      type('player@hotmai.com');
-      leaveField();
-      await screen.findByText(/check your email for typos/i);
+        type(`player@${typo}`);
+        leaveField();
 
-      expect(screen.queryByText(/gmail/i)).not.toBeInTheDocument();
-    });
+        expect(await screen.findByText(`Did you mean @${meant}? Please check your email for typos.`)).toBeInTheDocument();
+      },
+    );
   });
 
   describe('sending the link', () => {
@@ -226,10 +228,10 @@ describe('AuthModal', () => {
       expect(screen.queryByText('Too many requests')).not.toBeInTheDocument();
     });
 
-    it.fails('BUG-16: names the close button for screen readers', () => {
+    it('names the close button for screen readers (BUG-16, fixed)', () => {
       setup();
 
-      expect(screen.getByRole('button', { name: /close/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Close sign-in' })).toBeInTheDocument();
     });
   });
 });

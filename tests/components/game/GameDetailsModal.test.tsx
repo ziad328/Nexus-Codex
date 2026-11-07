@@ -6,8 +6,10 @@ import { renderWithProviders } from '../../render';
 
 // The real library reads pixels from a canvas, which jsdom lacks. Same shape as colorthief 3's exports.
 const cover = { css: () => 'rgb(232, 67, 147)', array: () => [232, 67, 147], hex: () => '#e84393' };
+// colorthief answers null when it finds no colour; a test can set that.
+let found: typeof cover | null = cover;
 vi.mock('colorthief', () => ({
-  getColor: async () => cover,
+  getColor: async () => found,
   getColorSync: () => cover,
 }));
 
@@ -120,10 +122,11 @@ describe('game information', () => {
     expect(screen.getByText('Publisher').nextElementSibling).toHaveTextContent('—');
   });
 
-  it.fails('BUG-24: shows a dash when the developer list is empty', async () => {
-    await renderLoaded({ game: { developers: [] } });
+  it('shows a dash when the developer and publisher lists are empty (BUG-24, fixed)', async () => {
+    await renderLoaded({ game: { developers: [], publishers: [] } });
 
     expect(screen.getByText('Developer').nextElementSibling).toHaveTextContent('—');
+    expect(screen.getByText('Publisher').nextElementSibling).toHaveTextContent('—');
   });
 
   it('sets the page title and a shortened description for sharing', async () => {
@@ -335,7 +338,7 @@ describe('closing', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it.fails('BUG-23: closes with Escape wherever the focus is', async () => {
+  it('closes with Escape wherever the focus is, once (BUG-23, fixed)', async () => {
     const { onClose } = await renderLoaded();
 
     fireEvent.keyDown(document.body, { key: 'Escape' });
@@ -389,12 +392,23 @@ describe('glow from the cover', () => {
     expect(glow()).toContain('rgba(0,0,0,0.8)');
   });
 
-  it.fails('BUG-1: takes its colour from the cover once it loads', async () => {
+  it('takes its colour from the cover once it loads (BUG-1, fixed)', async () => {
     await renderLoaded();
 
     fireEvent.load(screen.getByRole('img', { name: 'Portal' }));
 
-    await waitFor(() => expect(glow()).toContain('232'));
+    await waitFor(() => expect(glow()).toContain('rgba(232, 67, 147, 0.53)'));
+  });
+
+  it('keeps the plain shadow when no colour is found', async () => {
+    found = null;
+    await renderLoaded();
+
+    fireEvent.load(screen.getByRole('img', { name: 'Portal' }));
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    expect(glow()).toContain('rgba(0,0,0,0.8)');
+    found = cover;
   });
 
   it('requests the cover in a way that lets its colours be read (one of the three BUG-1 causes, fixed)', async () => {

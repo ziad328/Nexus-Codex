@@ -9,10 +9,13 @@ interface Props {
 
 const ProgressiveImage: FC<Props> = ({ src, alt, className = '' }) => {
   const [isLoaded, setIsLoaded] = useState(false);
+  // A broken image ends the shimmer but stays hidden, leaving the plain box instead of a broken-image icon.
+  const [failed, setFailed] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
     setIsLoaded(Boolean(imgRef.current?.complete));
+    setFailed(false);
   }, [src]);
 
   return (
@@ -20,7 +23,7 @@ const ProgressiveImage: FC<Props> = ({ src, alt, className = '' }) => {
       {/* Skeleton / Placeholder */}
       <div 
         className={`absolute inset-0 bg-linear-to-r from-zinc-800/50 via-zinc-700/50 to-zinc-800/50 bg-size-[200%_100%] animate-pulse transition-opacity duration-500 ${
-          isLoaded ? 'opacity-0' : 'opacity-100'
+          isLoaded || failed ? 'opacity-0' : 'opacity-100'
         }`}
       />
       
@@ -33,6 +36,7 @@ const ProgressiveImage: FC<Props> = ({ src, alt, className = '' }) => {
         alt={alt}
         loading="lazy"
         onLoad={() => setIsLoaded(true)}
+        onError={() => setFailed(true)}
         className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
           isLoaded ? 'opacity-100' : 'opacity-0'
         }`}

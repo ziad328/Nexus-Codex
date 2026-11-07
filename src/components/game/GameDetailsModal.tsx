@@ -81,14 +81,22 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
     };
   }, [gameId]);
 
+  // Escape closes the modal wherever focus is.
+  useEffect(() => {
+    if (!gameId) return;
+    const closeOnEscape = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [gameId, onClose]);
+
   const handleHeroLoad = async () => {
     if (!heroImgRef.current || !gameId) return;
     try {
-      const mod = await import('colorthief');
-      const ColorThief = ((mod as unknown as { default?: unknown }).default ?? mod) as new () => { getColor(img: HTMLImageElement): [number, number, number] };
-      const ct = new ColorThief();
-      const [r, g, b] = ct.getColor(heroImgRef.current);
-      setAccent({ gameId, color: `rgb(${r}, ${g}, ${b})` });
+      const { getColor } = await import('colorthief');
+      const color = await getColor(heroImgRef.current);
+      if (!color) return;
+      const [r, g, b] = color.array();
+      setAccent({ gameId, color: `rgba(${r}, ${g}, ${b}, 0.53)` });
     } catch { /* ignore cross-origin or load errors */ }
   };
 
@@ -106,7 +114,7 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
       <div
         className="absolute inset-0 bg-black/75 backdrop-blur-sm"
         onClick={onClose}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === 'Escape') onClose(); }}
+        onKeyDown={(e) => { if (e.key === 'Enter') onClose(); }}
         role="button"
         tabIndex={0}
         aria-label="Close modal"
@@ -117,7 +125,7 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
         className="relative w-full max-w-5xl max-h-[92vh] bg-zinc-900 rounded-3xl overflow-hidden ring-1 ring-white/5 flex flex-col z-10 transition-shadow duration-700"
         style={{
           boxShadow: accentColor
-            ? `0 0 0 1px rgba(255,255,255,0.05), 0 0 80px -10px ${accentColor}88`
+            ? `0 0 0 1px rgba(255,255,255,0.05), 0 0 80px -10px ${accentColor}`
             : '0 0 60px rgba(0,0,0,0.8)',
         }}
       >
@@ -235,27 +243,27 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
                     <div>
                       <p className="text-zinc-500 text-xs font-semibold uppercase tracking-widest mb-1">Developer</p>
                       <p className="text-zinc-100 text-sm font-medium flex flex-wrap gap-1">
-                        {game.developers?.map((d, i) => (
+                        {game.developers?.length ? game.developers.map((d, i) => (
                           <span key={d.id}>
                             <Link to={`/developer/${d.slug}`} onClick={onClose} className="hover:text-accent hover:underline transition-colors">
                               {d.name}
                             </Link>
                             {i < game.developers.length - 1 && ', '}
                           </span>
-                        )) || '—'}
+                        )) : '—'}
                       </p>
                     </div>
                     <div>
                       <p className="text-zinc-500 text-xs font-semibold uppercase tracking-widest mb-1">Publisher</p>
                       <p className="text-zinc-100 text-sm font-medium flex flex-wrap gap-1">
-                        {game.publishers?.map((p, i) => (
+                        {game.publishers?.length ? game.publishers.map((p, i) => (
                           <span key={p.id}>
                             <Link to={`/publisher/${p.slug}`} onClick={onClose} className="hover:text-accent hover:underline transition-colors">
                               {p.name}
                             </Link>
                             {i < game.publishers.length - 1 && ', '}
                           </span>
-                        )) || '—'}
+                        )) : '—'}
                       </p>
                     </div>
 

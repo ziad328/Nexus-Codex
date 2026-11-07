@@ -11,6 +11,16 @@ interface Props {
   onClose: () => void;
 }
 
+// Common domain typos and what was meant.
+const COMMON_TYPOS: Record<string, string> = {
+  'gmai.com': 'gmail.com',
+  'gmal.com': 'gmail.com',
+  'gmail.co': 'gmail.com',
+  'yahoo.co': 'yahoo.com',
+  'hotmai.com': 'hotmail.com',
+  'hotmail.co': 'hotmail.com',
+};
+
 const AuthModal: FC<Props> = ({ isOpen, onClose }) => {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -27,18 +37,9 @@ const AuthModal: FC<Props> = ({ isOpen, onClose }) => {
           'Please enter a valid, complete email address (e.g., name@domain.com).'
         )
         .required('Email is required.')
-        .test('no-common-typos', 'Did you mean @gmail.com? Please check your email for typos.', (value) => {
-          if (!value) return true;
-          const commonTypos: Record<string, string> = {
-            'gmai.com': 'gmail.com',
-            'gmal.com': 'gmail.com',
-            'gmail.co': 'gmail.com',
-            'yahoo.co': 'yahoo.com',
-            'hotmai.com': 'hotmail.com',
-            'hotmail.co': 'hotmail.com'
-          };
-          const domain = value.split('@')[1]?.toLowerCase();
-          return !(domain && commonTypos[domain]);
+        .test('no-common-typos', function (value) {
+          const fix = COMMON_TYPOS[value?.split('@')[1]?.toLowerCase() ?? ''];
+          return !fix || this.createError({ message: `Did you mean @${fix}? Please check your email for typos.` });
         }),
     }),
     onSubmit: async (values) => {
@@ -96,6 +97,7 @@ const AuthModal: FC<Props> = ({ isOpen, onClose }) => {
               </h2>
               <button
                 onClick={handleClose}
+                aria-label="Close sign-in"
                 className="p-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-full transition-colors"
               >
                 <X className="w-5 h-5" />
