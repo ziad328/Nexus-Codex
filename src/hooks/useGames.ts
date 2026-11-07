@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import apiClient, { CanceledError } from "../services/api-client";
 import type { FetchResponse, Game, GameQuery } from "../types";
 
+const ADULT_WORDS = /\b(hentai|nsfw|porn|pornographic|erotic|eroge|ecchi|lewd|smut|uncensored|adults? only|futanari|netorare)\b/i;
+
 const useGames = (gameQuery: GameQuery) => {
   const [data, setData] = useState<Game[]>([]);
   const [error, setError] = useState("");
@@ -9,6 +11,26 @@ const useGames = (gameQuery: GameQuery) => {
   const [isFetchingNextPage, setFetchingNextPage] = useState(false);
   const [hasNextPage, setHasNextPage] = useState(true);
   const [page, setPage] = useState(1);
+
+  const queryKey = JSON.stringify([
+    gameQuery.genreSlug,
+    gameQuery.platform?.id,
+    gameQuery.sortOrder,
+    gameQuery.searchText,
+    gameQuery.developers,
+    gameQuery.publishers,
+    gameQuery.storeId,
+    gameQuery.tagSlug,
+  ]);
+  const [lastQueryKey, setLastQueryKey] = useState(queryKey);
+  if (queryKey !== lastQueryKey) {
+    setLastQueryKey(queryKey);
+    setPage(1);
+    setHasNextPage(true);
+    setData([]);
+    setFetchingNextPage(false);
+    setLoading(true);
+  }
 
   useEffect(() => {
     const controller = new AbortController();
@@ -40,22 +62,9 @@ const useGames = (gameQuery: GameQuery) => {
           signal: controller.signal,
         });
 
-        const nsfwKeywords = /\b(hentai|nsfw|erotic|nudity|porn|pornograph|sexual|sex|nude|uncensored|lewd|smut|bdsm|fetish|18\+|18 plus|adults? only|ecchi|eroge|futanari|yaoi|yuri|bara|incest|tentacles?|netorare|netori|ntr)\b/i;
-        
-        const nsfwTags = [
-          'nsfw', 'hentai', 'erotic', 'nudity', 'full-nudity', 'partial-nudity',
-          'sexual-content', 'sexual-themes', 'explicit-sexual-content', 
-          'adult', 'adult-only', 'adults-only', '18', 'ao18', 'porn', 
-          'pornographic', 'pornography', 'nsfw-game', 'ecchi', 'eroge', 
-          'explicit', 'smut', 'lewd', 'bdsm', 'fetish', 'futanari', 
-          'yaoi', 'yuri', 'bara', 'incest', 'tentacle', 'netorare', 'ntr'
-        ];
-        
-        const safeResults = res.data.results.filter(game => {
-          if (nsfwKeywords.test(game.name) || nsfwKeywords.test(game.slug)) return false;
-          if (game.tags && game.tags.some(tag => nsfwTags.includes(tag.slug.toLowerCase()))) return false;
-          return true;
-        });
+        // The proxy already drops games IGDB marks erotic. This only catches untagged ones by name,
+        // using words with no innocent meaning ("yuri" or "tentacle" hid Yuri's Revenge and Day of the Tentacle).
+        const safeResults = res.data.results.filter((game) => !ADULT_WORDS.test(game.name) && !ADULT_WORDS.test(game.slug));
 
         setData(prev => isFirstPage ? safeResults : [...prev, ...safeResults]);
         setHasNextPage(!!res.data.next);
@@ -88,22 +97,6 @@ const useGames = (gameQuery: GameQuery) => {
     page
   ]);
 
-
-  useEffect(() => {
-    setPage(1);
-    setHasNextPage(true);
-    setData([]);
-    setFetchingNextPage(false);
-  }, [
-    gameQuery.genreSlug, 
-    gameQuery.platform?.id, 
-    gameQuery.sortOrder, 
-    gameQuery.searchText,
-    gameQuery.developers,
-    gameQuery.publishers,
-    gameQuery.storeId,
-    gameQuery.tagSlug
-  ]);
 
   return { 
     data, 

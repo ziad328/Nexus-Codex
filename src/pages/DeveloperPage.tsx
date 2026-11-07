@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import type { GameQuery } from '../types';
 import GameGrid from '../components/game/GameGrid';
 import GameDetailsModal from '../components/game/GameDetailsModal';
@@ -8,26 +8,18 @@ import useAppSelector from '../hooks/useAppSelector';
 import useAppDispatch from '../hooks/useAppDispatch';
 import useSearchContext from '../hooks/useSearchContext';
 import { setViewMode } from '../store/uiSlice';
+import useGameParam from '../hooks/useGameParam';
 import PlatformSelector from '../components/shared/PlatformSelector';
 import StoreSelector from '../components/shared/StoreSelector';
 import TagSelector from '../components/shared/TagSelector';
 import SEO from '../components/shared/SEO';
 
 function DeveloperPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const { developerSlug } = useParams<{ developerSlug?: string }>();
-  const [gameQuery, setGameQuery] = useState<GameQuery>({ developers: developerSlug });
-  
-  useEffect(() => {
-    setGameQuery(prev => ({ ...prev, developers: developerSlug }));
-  }, [developerSlug]);
+  const [filters, setFilters] = useState<GameQuery>({});
+  const gameQuery: GameQuery = { ...filters, developers: developerSlug };
 
-  const [selectedGameId, setSelectedGameId] = useState<number | null>(
-    () => {
-      const id = searchParams.get('gameId');
-      return id ? Number(id) : null;
-    }
-  );
+  const { gameId, openGame, closeGame } = useGameParam();
   const [showScrollButton, setShowScrollButton] = useState(false);
 
   const dispatch = useAppDispatch();
@@ -47,15 +39,6 @@ function DeveloperPage() {
   }, []);
 
 
-  const handleSelectGame = useCallback((id: number) => {
-    setSelectedGameId(id);
-    setSearchParams({ gameId: String(id) }, { replace: true });
-  }, [setSearchParams]);
-
-  const handleCloseModal = useCallback(() => {
-    setSelectedGameId(null);
-    setSearchParams({}, { replace: true });
-  }, [setSearchParams]);
 
   return (
     <>
@@ -63,7 +46,7 @@ function DeveloperPage() {
         title={`${displayName} Games | Nexus Codex`}
         description={`Explore the full catalogue of games developed by ${displayName}.`}
       />
-      <GameDetailsModal gameId={selectedGameId} onClose={handleCloseModal} onSelectGame={handleSelectGame} />
+      <GameDetailsModal gameId={gameId} onClose={closeGame} onSelectGame={openGame} />
 
       <div className="grow flex flex-col w-full min-w-0">
         <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -78,21 +61,21 @@ function DeveloperPage() {
           <div className="flex flex-wrap items-center gap-3">
             <TagSelector 
               selectedTagSlug={gameQuery.tagSlug || null} 
-              onSelectTag={(tagSlug) => setGameQuery({ ...gameQuery, tagSlug: tagSlug || undefined })} 
+              onSelectTag={(tagSlug) => setFilters({ ...filters, tagSlug: tagSlug || undefined })} 
             />
             <StoreSelector 
               selectedStoreId={gameQuery.storeId || null} 
-              onSelectStore={(storeId) => setGameQuery({ ...gameQuery, storeId: storeId || undefined })} 
+              onSelectStore={(storeId) => setFilters({ ...filters, storeId: storeId || undefined })} 
             />
             <PlatformSelector 
               selectedPlatform={gameQuery.platform} 
-              onSelectPlatform={(platform) => setGameQuery({ ...gameQuery, platform })} 
+              onSelectPlatform={(platform) => setFilters({ ...filters, platform })} 
             />
             <ViewToggle viewMode={viewMode} onToggle={(mode) => dispatch(setViewMode(mode))} />
           </div>
         </div>
 
-        <GameGrid gameQuery={{ ...gameQuery, searchText }} onSelectGame={handleSelectGame} viewMode={viewMode} />
+        <GameGrid gameQuery={{ ...gameQuery, searchText }} onSelectGame={openGame} viewMode={viewMode} />
       </div>
 
       <div

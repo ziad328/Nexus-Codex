@@ -1,10 +1,6 @@
-import axios, { CanceledError } from "axios";
+import axios, { CanceledError } from 'axios';
 
-export default axios.create({
-  baseURL: "https://api.rawg.io/api",
-  params: {
-    key: import.meta.env.VITE_RAWG_API_KEY,
-  },
-});
+// Our own proxy (api/), which holds the IGDB keys. The browser never sees a key.
+export default axios.create({ baseURL: '/api' });
 
 export { CanceledError };

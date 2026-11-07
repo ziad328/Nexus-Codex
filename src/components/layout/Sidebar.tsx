@@ -5,6 +5,7 @@ import { Link, useLocation, useParams } from 'react-router-dom';
 import useGenres from '../../hooks/useGenres';
 import GenreSkeleton from '../shared/GenreSkeleton';
 import useAppSelector from '../../hooks/useAppSelector';
+import { genreIcon } from './genreIcons';
 
 const Sidebar: FC = () => {
   const { data, isLoading, error } = useGenres();
@@ -15,8 +16,6 @@ const Sidebar: FC = () => {
     const favIds = s.favorites.items.map(f => f.id);
     return new Set([...collectionIds, ...favIds]).size;
   });
-
-  if (error) return null;
 
   return (
     <aside className="w-full lg:w-64 shrink-0 lg:pr-8">
@@ -50,6 +49,10 @@ const Sidebar: FC = () => {
         Genres
       </h2>
       <div className="flex flex-col gap-0.5">
+        {error && data.length === 0 && (
+          <p role="alert" className="px-2 pb-2 text-sm text-zinc-500">Genres couldn't load.</p>
+        )}
+
         {isLoading && Array.from({ length: 15 }).map((_, i) => <GenreSkeleton key={i} />)}
 
         {!isLoading && (
@@ -74,7 +77,9 @@ const Sidebar: FC = () => {
           </Link>
         )}
 
-        {data.map(genre => (
+        {data.map(genre => {
+          const Icon = genreIcon(genre.slug);
+          return (
           <Link
             key={genre.id}
             to={`/genre/${genre.slug}`}
@@ -84,19 +89,25 @@ const Sidebar: FC = () => {
                 : 'text-gray-400 border border-transparent'
               }`}
           >
-            <div className="w-8 h-8 shrink-0 bg-background-card rounded-lg overflow-hidden">
-              <img
-                src={genre.image_background}
-                className="w-full h-full object-cover filter brightness-75"
-                alt={genre.name}
-              />
+            <div className={`w-8 h-8 shrink-0 rounded-lg flex items-center justify-center transition-colors ${
+              genreSlug === genre.slug ? 'bg-accent/20 text-accent' : 'bg-zinc-800 text-zinc-400'
+            }`}>
+              <Icon className="w-4.5 h-4.5" aria-hidden="true" />
             </div>
             <span className={`text-left text-[15px] ${genreSlug === genre.slug ? 'font-bold' : 'font-medium'}`}>
               {genre.name}
             </span>
           </Link>
-        ))}
+          );
+        })}
       </div>
+
+      <p className="mt-6 px-2 text-xs text-zinc-600">
+        Game data from{' '}
+        <a href="https://www.igdb.com" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-400 underline underline-offset-2">
+          IGDB.com
+        </a>
+      </p>
     </aside>
   );
 };

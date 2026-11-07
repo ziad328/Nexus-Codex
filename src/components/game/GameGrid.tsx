@@ -7,6 +7,7 @@ import type { GameQuery } from '../../types';
 import GameCard from './GameCard';
 import GameCardSkeleton from '../shared/GameCardSkeleton';
 import { Link } from 'react-router-dom';
+import { GRID_LAYOUT, LIST_LAYOUT } from './gridLayout';
 import { AlertCircle, FolderHeart } from 'lucide-react';
 
 interface Props {
@@ -82,7 +83,7 @@ const GameGrid: FC<Props> = ({ gameQuery, onSelectGame, viewMode = 'grid' }) => 
 
   return (
     <div className="w-full pb-10">
-      <div className={viewMode === 'list' ? 'flex flex-col gap-2' : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6'}>
+      <div className={viewMode === 'list' ? LIST_LAYOUT : GRID_LAYOUT}>
         {isLoading && skeletons.map((_, index) => <GameCardSkeleton key={`skeleton-${index}`} />)}
         
         <AnimatePresence mode="popLayout">
@@ -95,21 +96,22 @@ const GameGrid: FC<Props> = ({ gameQuery, onSelectGame, viewMode = 'grid' }) => 
               animate="visible"
               exit="exit"
               layout
+              className="h-full"
             >
               <GameCard game={game} onClick={onSelectGame} viewMode={viewMode} />
             </motion.div>
           ))}
         </AnimatePresence>
         
-        {!isLoading && data.length === 0 && (
+        {!isLoading && data.length === 0 && !hasNextPage && (
           <div className="col-span-full text-center text-gray-500 mt-10 text-xl font-bold tracking-widest uppercase">
             No games found in the abyss.
           </div>
         )}
       </div>
       
-      {/* Infinite Scroll Trigger / Offline Banner */}
-      {!isLoading && data.length > 0 && (
+      {/* Infinite Scroll Trigger / Offline Banner. It stays while more pages exist, even if the adult filter emptied this one. */}
+      {!isLoading && (data.length > 0 || hasNextPage) && (
         <div ref={loadMoreRef} className="h-20 flex items-center justify-center mt-8">
           {error ? (
             <div className="flex items-center gap-2 text-red-400 bg-red-500/10 px-4 py-2 rounded-full text-sm font-medium border border-red-500/20">

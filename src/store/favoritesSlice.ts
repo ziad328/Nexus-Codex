@@ -11,48 +11,62 @@ const initialState: FavoritesState = {
   items: [],
 };
 
-export const fetchFavorites = createAsyncThunk(
+// One merge at a time: two at once would both upload the same local games.
+let merging = false;
+
+export const fetchFavorites = createAsyncThunk<FavoriteGame[] | null, void, { rejectValue: FavoriteGame[] }>(
   'favorites/fetchFavorites',
-  async (_, { getState }) => {
+  async (_, { getState, rejectWithValue }) => {
     const state = getState() as RootState;
     const user = state.auth.user;
-    if (!user) return [];
-    
-    const localItems = state.favorites.items;
-    
-    const { data: cloudData, error } = await supabase.from('favorites').select('*');
-    if (error) throw error;
-    
-    const cloudGameIds = new Set(cloudData.map(item => item.game_id));
-    
-    const itemsToUpload = localItems.filter(game => !cloudGameIds.has(game.id));
-    
-    if (itemsToUpload.length > 0) {
-      const { error: insertError } = await supabase.from('favorites').insert(
-        itemsToUpload.map(game => ({
-          user_id: user.id,
-          game_id: game.id,
-          name: game.name,
-          slug: game.slug,
-          background_image: game.background_image,
-          metacritic: game.metacritic,
-          parent_platforms: game.parent_platforms,
-        }))
-      );
-      if (insertError) console.error("Failed to sync local favorites:", insertError);
-    }
-    
-    const formattedCloudData = cloudData.map(item => ({
-      id: item.game_id,
-      name: item.name,
-      slug: item.slug,
-      background_image: item.background_image,
-      metacritic: item.metacritic,
-      parent_platforms: item.parent_platforms,
-    })) as FavoriteGame[];
+    // Nobody signed in: nothing to merge with, so local favorites stay as they are.
+    if (!user) return null;
+    merging = true;
+    try {
+      const localItems = state.favorites.items;
 
-    return [...formattedCloudData, ...itemsToUpload];
-  }
+      const { data: cloudData, error } = await supabase.from('favorites').select('*');
+      if (error) throw error;
+
+      // Duplicate cloud rows (two devices saving at once) show as one game.
+      const cloudRows = cloudData.filter((item, i) => cloudData.findIndex(other => other.game_id === item.game_id) === i);
+      const cloudGameIds = new Set(cloudRows.map(item => item.game_id));
+
+      const itemsToUpload = localItems.filter(game => !cloudGameIds.has(game.id));
+      let uploadFailed = false;
+
+      if (itemsToUpload.length > 0) {
+        const { error: insertError } = await supabase.from('favorites').insert(
+          itemsToUpload.map(game => ({
+            user_id: user.id,
+            game_id: game.id,
+            name: game.name,
+            slug: game.slug,
+            background_image: game.background_image,
+            metacritic: game.metacritic,
+            parent_platforms: game.parent_platforms,
+          }))
+        );
+        if (insertError) uploadFailed = true;
+      }
+
+      const formattedCloudData = cloudRows.map(item => ({
+        id: item.game_id,
+        name: item.name,
+        slug: item.slug,
+        background_image: item.background_image,
+        metacritic: item.metacritic,
+        parent_platforms: item.parent_platforms,
+      })) as FavoriteGame[];
+
+      const merged = [...formattedCloudData, ...itemsToUpload];
+      // A failed upload keeps the games on this device (the next merge retries them) and rejects, so the app can say so.
+      return uploadFailed ? rejectWithValue(merged) : merged;
+    } finally {
+      merging = false;
+    }
+  },
+  { condition: () => !merging },
 );
 
 export const toggleFavoriteInDb = createAsyncThunk(
@@ -105,7 +119,10 @@ const favoritesSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(fetchFavorites.fulfilled, (state, action) => {
-        state.items = action.payload;
+        if (action.payload) state.items = action.payload;
+      })
+      .addCase(fetchFavorites.rejected, (state, action) => {
+        if (action.payload) state.items = action.payload;
       })
       .addCase(toggleFavoriteInDb.fulfilled, (state, action) => {
         if (!action.payload) return;

@@ -1,6 +1,7 @@
 import { useRef, useEffect } from 'react';
 import type { ReactNode, FC } from 'react';
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-react';
+import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-react';
 import 'overlayscrollbars/overlayscrollbars.css';
 
 interface Props {
@@ -10,7 +11,7 @@ interface Props {
 }
 
 const SmoothScrollbar: FC<Props> = ({ children, className, onScroll }) => {
-  const osRef = useRef<any>(null);
+  const osRef = useRef<OverlayScrollbarsComponentRef>(null);
 
   useEffect(() => {
     const handleScrollToTop = () => {

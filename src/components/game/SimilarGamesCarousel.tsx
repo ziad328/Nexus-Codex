@@ -1,17 +1,16 @@
 import { useRef, useState, useCallback } from 'react';
 import type { FC } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import useSimilarGames from '../../hooks/useSimilarGames';
-import getCroppedImageUrl from '../../services/image-url';
 import CriticScore from '../shared/CriticScore';
+import type { Game } from '../../types';
 
 interface Props {
-  gameId: number;
-  onSelectGame?: (id: number, game: any) => void;
+  /** Come with the game's details, so there is nothing to load. */
+  games: Game[];
+  onSelectGame?: (id: number, game: Game) => void;
 }
 
-const SimilarGamesCarousel: FC<Props> = ({ gameId, onSelectGame }) => {
-  const { data, isLoading, error } = useSimilarGames(gameId);
+const SimilarGamesCarousel: FC<Props> = ({ games, onSelectGame }) => {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -28,16 +27,10 @@ const SimilarGamesCarousel: FC<Props> = ({ gameId, onSelectGame }) => {
 
   const scroll = (direction: 'left' | 'right') => {
     const el = scrollRef.current;
-    if (el) el.scrollBy({ left: direction === 'right' ? 296 : -296, behavior: 'smooth' });
+    if (el) el.scrollBy({ left: direction === 'right' ? 320 : -320, behavior: 'smooth' });
   };
 
-  if (error) return null;
-  if (isLoading) return (
-    <div className="flex justify-center p-8">
-      <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
-    </div>
-  );
-  if (data.length === 0) return null;
+  if (games.length === 0) return null;
 
   return (
     <div className="mt-12 pt-8 border-t border-white/10 relative">
@@ -58,24 +51,23 @@ const SimilarGamesCarousel: FC<Props> = ({ gameId, onSelectGame }) => {
         onScroll={(e) => updateScrollState(e.currentTarget)}
         className="flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory scrollbar-none [&::-webkit-scrollbar]:hidden"
       >
-        {data.map(game => (
+        {games.map(game => (
           <button 
             key={game.id} 
             onClick={() => onSelectGame?.(game.id, game)}
-            className="text-left min-w-70 max-w-70 shrink-0 snap-start bg-zinc-800/50 rounded-2xl overflow-hidden border border-white/5 hover:border-accent/30 transition-colors group cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent"
+            className="text-left w-36 sm:w-40 shrink-0 snap-start bg-zinc-800/50 rounded-2xl overflow-hidden border border-white/5 hover:border-accent/30 transition-colors group cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent"
           >
-            <div className="aspect-video relative overflow-hidden bg-zinc-900">
+            <div className="aspect-3/4 relative overflow-hidden bg-zinc-900">
               <img 
-                src={getCroppedImageUrl(game.background_image)} 
+                src={game.background_image}
+                crossOrigin="anonymous"
                 alt={game.name}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
             </div>
-            <div className="p-4">
-              <div className="flex justify-between items-start gap-2 mb-2">
-                <h3 className="text-zinc-100 font-bold text-lg leading-tight line-clamp-2">{game.name}</h3>
-                {game.metacritic && <CriticScore score={game.metacritic} />}
-              </div>
+            <div className="p-3 flex flex-col gap-1.5">
+              <h3 className="text-zinc-100 font-semibold text-sm leading-snug line-clamp-2">{game.name}</h3>
+              <CriticScore score={game.metacritic ?? null} />
             </div>
           </button>
         ))}

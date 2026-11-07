@@ -1,41 +1,52 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import type { FC } from 'react';
 import useGameDetails from '../../hooks/useGameDetails';
-import useScreenshots from '../../hooks/useScreenshots';
 import CriticScore from '../shared/CriticScore';
 import PlatformIconList from '../shared/PlatformIconList';
-import getCroppedImageUrl from '../../services/image-url';
 import SmoothScrollbar from '../shared/SmoothScrollbar';
 import FavoriteButton from '../shared/FavoriteButton';
 import CollectionButton from '../shared/CollectionButton';
 import { Link } from 'react-router-dom';
 import useShare from '../../hooks/useShare';
 import { Share2, Check, X, ExternalLink } from 'lucide-react';
-import useGameTrailers from '../../hooks/useGameTrailers';
-import useGameStores from '../../hooks/useGameStores';
 import SimilarGamesCarousel from './SimilarGamesCarousel';
-import CustomVideoPlayer from '../shared/CustomVideoPlayer';
-import AchievementsList from './AchievementsList';
+import YouTubeTrailer from './YouTubeTrailer';
+import ScreenshotGallery from './ScreenshotGallery';
 import SEO from '../shared/SEO';
+import type { FavoriteGame, Game } from '../../types';
+import useAppDispatch from '../../hooks/useAppDispatch';
+import { addRecentlyViewed } from '../../store/uiSlice';
 
 interface Props {
   gameId: number | null;
   onClose: () => void;
-  onSelectGame?: (id: number, game: any) => void;
+  onSelectGame?: (id: number, game: Game) => void;
 }
 
 const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
   const { data: game, isLoading, error } = useGameDetails(gameId);
-  const { data: screenshots, isLoading: screenshotsLoading } = useScreenshots(gameId);
-  const { data: trailers, isLoading: trailersLoading } = useGameTrailers(gameId);
-  const { data: storeLinks } = useGameStores(gameId);
+  // Everything comes with the details, in one request.
+  const screenshots = game?.screenshots ?? [];
+  const storeLinks = game?.store_links ?? [];
   const { share, status: shareStatus } = useShare();
-  const [accentColor, setAccentColor] = useState<string | null>(null);
+  const [accent, setAccent] = useState<{ gameId: number; color: string } | null>(null);
+  const accentColor = accent?.gameId === gameId ? accent.color : null;
   const heroImgRef = useRef<HTMLImageElement>(null);
+  const dispatch = useAppDispatch();
+  // What favorites, lists and Recently Viewed keep of this game.
+  const saved = useMemo((): FavoriteGame | null => game && {
+    id: game.id,
+    name: game.name,
+    slug: game.slug ?? '',
+    background_image: game.background_image,
+    metacritic: game.metacritic ?? null,
+    parent_platforms: game.parent_platforms,
+  }, [game]);
 
+  // Every game the modal shows counts as viewed, however it was opened (any page, a deep link, Recently Viewed).
   useEffect(() => {
-    setAccentColor(null);
-  }, [gameId]);
+    if (saved) dispatch(addRecentlyViewed(saved));
+  }, [saved, dispatch]);
 
   useEffect(() => {
     if (!gameId) return;
@@ -70,15 +81,22 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
     };
   }, [gameId]);
 
+  // Escape closes the modal wherever focus is.
+  useEffect(() => {
+    if (!gameId) return;
+    const closeOnEscape = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [gameId, onClose]);
+
   const handleHeroLoad = async () => {
-    if (!heroImgRef.current) return;
+    if (!heroImgRef.current || !gameId) return;
     try {
-      const mod = await import('colorthief');
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const ColorThief = (mod as any).default ?? mod;
-      const ct = new ColorThief() as { getColor(img: HTMLImageElement): [number, number, number] };
-      const [r, g, b] = ct.getColor(heroImgRef.current);
-      setAccentColor(`rgb(${r}, ${g}, ${b})`);
+      const { getColor } = await import('colorthief');
+      const color = await getColor(heroImgRef.current);
+      if (!color) return;
+      const [r, g, b] = color.array();
+      setAccent({ gameId, color: `rgba(${r}, ${g}, ${b}, 0.53)` });
     } catch { /* ignore cross-origin or load errors */ }
   };
 
@@ -96,7 +114,7 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
       <div
         className="absolute inset-0 bg-black/75 backdrop-blur-sm"
         onClick={onClose}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === 'Escape') onClose(); }}
+        onKeyDown={(e) => { if (e.key === 'Enter') onClose(); }}
         role="button"
         tabIndex={0}
         aria-label="Close modal"
@@ -107,7 +125,7 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
         className="relative w-full max-w-5xl max-h-[92vh] bg-zinc-900 rounded-3xl overflow-hidden ring-1 ring-white/5 flex flex-col z-10 transition-shadow duration-700"
         style={{
           boxShadow: accentColor
-            ? `0 0 0 1px rgba(255,255,255,0.05), 0 0 80px -10px ${accentColor}88`
+            ? `0 0 0 1px rgba(255,255,255,0.05), 0 0 80px -10px ${accentColor}`
             : '0 0 60px rgba(0,0,0,0.8)',
         }}
       >
@@ -142,7 +160,8 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
               <div className="relative w-full h-56 md:h-80 shrink-0">
                 <img
                   ref={heroImgRef}
-                  src={game.background_image}
+                  src={screenshots[0]?.image || game.background_image}
+                  crossOrigin="anonymous"
                   alt={game.name}
                   onLoad={handleHeroLoad}
                   className="w-full h-full object-cover"
@@ -154,34 +173,15 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
                     <CriticScore score={game.metacritic} />
                     <div className="ml-auto flex items-center gap-2">
                       {/* Collection button */}
-                      <CollectionButton
-                        game={{
-                          id: game.id,
-                          name: game.name,
-                          slug: (game as any).slug ?? '',
-                          background_image: game.background_image,
-                          metacritic: game.metacritic ?? null,
-                          parent_platforms: game.parent_platforms,
-                        }}
-                      />
+                      <CollectionButton game={saved!} />
                       {/* Favorite button */}
-                      <FavoriteButton
-                        game={{
-                          id: game.id,
-                          name: game.name,
-                          slug: (game as any).slug ?? '',
-                          background_image: game.background_image,
-                          metacritic: game.metacritic ?? null,
-                          parent_platforms: game.parent_platforms,
-                        }}
-                        className="shadow-lg"
-                      />
+                      <FavoriteButton game={saved!} className="shadow-lg" />
                       {/* Share button */}
                       <button
                         onClick={() => share({
                           title: game.name,
                           text: `Check out ${game.name} on Nexus Codex!`,
-                          url: `${window.location.origin}/?gameId=${gameId}`,
+                          url: `${window.location.origin}/?game=${gameId}`,
                         })}
                         className={`flex items-center gap-1.5 px-3 h-8 rounded-full text-xs font-semibold transition-all duration-300 shadow-lg ${
                           shareStatus === 'copied'
@@ -223,32 +223,11 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
                     </p>
                   </div>
 
-                  {!screenshotsLoading && screenshots.length > 0 && (
-                    <div>
-                      <h2 className="text-lg font-semibold text-zinc-100 mb-3">Gallery</h2>
-                      
-                      {!trailersLoading && trailers.length > 0 && (
-                        <div className="mb-4">
-                          <CustomVideoPlayer 
-                            src={trailers[0].data[480]} 
-                            poster={trailers[0].preview} 
-                          />
-                        </div>
-                      )}
+                  {/* Its own section, so a game without screenshots still shows its trailers. */}
+                  <YouTubeTrailer trailers={game.trailers} />
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {screenshots.map(ss => (
-                          <div key={ss.id} className="aspect-video rounded-xl overflow-hidden bg-zinc-800 hover:ring-2 hover:ring-accent/60 transition-all duration-300">
-                            <img
-                              src={getCroppedImageUrl(ss.image)}
-                              alt="Screenshot"
-                              className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  {/* Keyed by game, so the next game starts on its first screenshot. */}
+                  <ScreenshotGallery key={game.id} screenshots={screenshots} />
                 </div>
 
                 <div className="space-y-4">
@@ -264,27 +243,27 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
                     <div>
                       <p className="text-zinc-500 text-xs font-semibold uppercase tracking-widest mb-1">Developer</p>
                       <p className="text-zinc-100 text-sm font-medium flex flex-wrap gap-1">
-                        {game.developers?.map((d, i) => (
+                        {game.developers?.length ? game.developers.map((d, i) => (
                           <span key={d.id}>
                             <Link to={`/developer/${d.slug}`} onClick={onClose} className="hover:text-accent hover:underline transition-colors">
                               {d.name}
                             </Link>
                             {i < game.developers.length - 1 && ', '}
                           </span>
-                        )) || '—'}
+                        )) : '—'}
                       </p>
                     </div>
                     <div>
                       <p className="text-zinc-500 text-xs font-semibold uppercase tracking-widest mb-1">Publisher</p>
                       <p className="text-zinc-100 text-sm font-medium flex flex-wrap gap-1">
-                        {game.publishers?.map((p, i) => (
+                        {game.publishers?.length ? game.publishers.map((p, i) => (
                           <span key={p.id}>
                             <Link to={`/publisher/${p.slug}`} onClick={onClose} className="hover:text-accent hover:underline transition-colors">
                               {p.name}
                             </Link>
                             {i < game.publishers.length - 1 && ', '}
                           </span>
-                        )) || '—'}
+                        )) : '—'}
                       </p>
                     </div>
 
@@ -313,8 +292,6 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
                     )}
 
 
-                    <AchievementsList gameId={game.id} />
-                    
                     {(game.reddit_url || game.website) && (
                       <div className="pt-2 border-t border-white/5">
                         <p className="text-zinc-500 text-xs font-semibold uppercase tracking-widest mb-3">Official Links</p>
@@ -350,7 +327,7 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
               </div>
               
               <div className="px-6 pb-10 md:px-10 flex flex-col gap-4">
-                <SimilarGamesCarousel gameId={game.id} onSelectGame={onSelectGame} />
+                <SimilarGamesCarousel games={game.similar} onSelectGame={onSelectGame} />
               </div>
             </div>
           )}

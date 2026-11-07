@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import type { FC } from 'react';
 import { ChevronDown, Tag as TagIcon, Check } from 'lucide-react';
-import useTags from '../../hooks/useTags';
+import { TAGS } from '../../../api/_lib/catalog';
 
 
 interface Props {
@@ -10,7 +10,6 @@ interface Props {
 }
 
 const TagSelector: FC<Props> = ({ selectedTagSlug, onSelectTag }) => {
-  const { data, isLoading } = useTags();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -27,9 +26,7 @@ const TagSelector: FC<Props> = ({ selectedTagSlug, onSelectTag }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
 
-  if (isLoading || data.length === 0) return null;
-
-  const selectedTag = data.find(t => t.slug === selectedTagSlug);
+  const selectedTag = TAGS.find(t => t.slug === selectedTagSlug);
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -60,7 +57,7 @@ const TagSelector: FC<Props> = ({ selectedTagSlug, onSelectTag }) => {
               {!selectedTagSlug && <Check className="w-4 h-4 text-accent" />}
             </button>
             <div className="h-px bg-white/5 mx-2" />
-            {data.map((tag) => (
+            {TAGS.map((tag) => (
               <button
                 key={tag.id}
                 onClick={() => {

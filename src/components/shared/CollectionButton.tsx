@@ -5,6 +5,7 @@ import useAppSelector from '../../hooks/useAppSelector';
 import useAppDispatch from '../../hooks/useAppDispatch';
 import { shallowEqual } from 'react-redux';
 import { addToCollectionInDb, removeFromCollectionInDb } from '../../store/collectionsSlice';
+import SaveFailedNotice from './SaveFailedNotice';
 import type { CollectionName, FavoriteGame } from '../../types';
 
 interface Props {
@@ -24,6 +25,7 @@ const COLLECTIONS: { name: CollectionName; label: string; Icon: ElementType }[] 
 const CollectionButton: FC<Props> = ({ game, className = '', dropDirection = 'down' }) => {
   const dispatch = useAppDispatch();
   const [open, setOpen] = useState(false);
+  const [failures, setFailures] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
 
   const memberOf = useAppSelector((s) =>
@@ -51,15 +53,15 @@ const CollectionButton: FC<Props> = ({ game, className = '', dropDirection = 'do
   }, [open]);
 
   const toggle = (name: CollectionName) => {
-    if (memberOf.includes(name)) {
-      dispatch(removeFromCollectionInDb({ collectionName: name, gameId: game.id }));
-    } else {
-      dispatch(addToCollectionInDb({ collectionName: name, game }));
-    }
+    const saving = memberOf.includes(name)
+      ? dispatch(removeFromCollectionInDb({ collectionName: name, gameId: game.id }))
+      : dispatch(addToCollectionInDb({ collectionName: name, game }));
+    saving.unwrap().catch(() => setFailures((n) => n + 1));
   };
 
   return (
     <div ref={ref} className={`relative ${className}`}>
+      {failures > 0 && <SaveFailedNotice key={failures} />}
       <button
         onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }}
         title="Add to collection"

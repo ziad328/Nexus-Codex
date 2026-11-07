@@ -13,75 +13,92 @@ const initialState: CollectionsState = {
   lists: DEFAULT_COLLECTIONS.map((name) => ({ name, games: [] })),
 };
 
-export const fetchCollections = createAsyncThunk(
+// One merge at a time: two at once would both upload the same local games.
+let merging = false;
+
+export const fetchCollections = createAsyncThunk<Collection[] | null, void, { rejectValue: Collection[] }>(
   'collections/fetchCollections',
-  async (_, { getState }) => {
+  async (_, { getState, rejectWithValue }) => {
     const state = getState() as RootState;
     const user = state.auth.user;
     if (!user) return null;
-    
-    const localLists = state.collections.lists;
-    
-    const { data: cloudData, error } = await supabase.from('collections').select('*');
-    if (error) throw error;
-    
-    const cloudRecords = new Set(cloudData.map(item => `${item.collection_name}_${item.game_id}`));
-    
-    const itemsToUpload: any[] = [];
-    localLists.forEach(list => {
-      list.games.forEach(game => {
-        if (!cloudRecords.has(`${list.name}_${game.id}`)) {
-          itemsToUpload.push({
-            user_id: user.id,
-            game_id: game.id,
-            collection_name: list.name,
-            name: game.name,
-            slug: game.slug,
-            background_image: game.background_image,
-            metacritic: game.metacritic,
-            parent_platforms: game.parent_platforms,
+    merging = true;
+    try {
+      const localLists = state.collections.lists;
+
+      const { data: cloudData, error } = await supabase.from('collections').select('*');
+      if (error) throw error;
+
+      const cloudRecords = new Set<string>();
+      // Duplicate cloud rows (two devices saving at once) show as one game.
+      const cloudRows = cloudData.filter((item) => {
+        const key = `${item.collection_name}_${item.game_id}`;
+        if (cloudRecords.has(key)) return false;
+        cloudRecords.add(key);
+        return true;
+      });
+
+      const itemsToUpload: (Omit<FavoriteGame, 'id'> & { user_id: string; game_id: number; collection_name: CollectionName })[] = [];
+      localLists.forEach(list => {
+        list.games.forEach(game => {
+          if (!cloudRecords.has(`${list.name}_${game.id}`)) {
+            itemsToUpload.push({
+              user_id: user.id,
+              game_id: game.id,
+              collection_name: list.name,
+              name: game.name,
+              slug: game.slug,
+              background_image: game.background_image,
+              metacritic: game.metacritic,
+              parent_platforms: game.parent_platforms,
+            });
+          }
+        });
+      });
+
+      let uploadFailed = false;
+      if (itemsToUpload.length > 0) {
+        const { error: insertError } = await supabase.from('collections').insert(itemsToUpload);
+        if (insertError) uploadFailed = true;
+      }
+
+      const lists = DEFAULT_COLLECTIONS.map((name) => ({ name, games: [] as FavoriteGame[] }));
+
+      cloudRows.forEach(item => {
+        const list = lists.find(l => l.name === item.collection_name);
+        if (list) {
+          list.games.push({
+            id: item.game_id,
+            name: item.name,
+            slug: item.slug,
+            background_image: item.background_image,
+            metacritic: item.metacritic,
+            parent_platforms: item.parent_platforms,
           });
         }
       });
-    });
-    
-    if (itemsToUpload.length > 0) {
-      const { error: insertError } = await supabase.from('collections').insert(itemsToUpload);
-      if (insertError) console.error("Failed to sync local collections:", insertError);
+
+      itemsToUpload.forEach(item => {
+        const list = lists.find(l => l.name === item.collection_name);
+        if (list) {
+          list.games.push({
+            id: item.game_id,
+            name: item.name,
+            slug: item.slug,
+            background_image: item.background_image,
+            metacritic: item.metacritic,
+            parent_platforms: item.parent_platforms,
+          });
+        }
+      });
+
+      // A failed upload keeps the games on this device (the next merge retries them) and rejects, so the app can say so.
+      return uploadFailed ? rejectWithValue(lists) : lists;
+    } finally {
+      merging = false;
     }
-    
-    const lists = DEFAULT_COLLECTIONS.map((name) => ({ name, games: [] as FavoriteGame[] }));
-    
-    cloudData.forEach(item => {
-      const list = lists.find(l => l.name === item.collection_name);
-      if (list) {
-        list.games.push({
-          id: item.game_id,
-          name: item.name,
-          slug: item.slug,
-          background_image: item.background_image,
-          metacritic: item.metacritic,
-          parent_platforms: item.parent_platforms,
-        });
-      }
-    });
-    
-    itemsToUpload.forEach(item => {
-      const list = lists.find(l => l.name === item.collection_name);
-      if (list) {
-        list.games.push({
-          id: item.game_id,
-          name: item.name,
-          slug: item.slug,
-          background_image: item.background_image,
-          metacritic: item.metacritic,
-          parent_platforms: item.parent_platforms,
-        });
-      }
-    });
-    
-    return lists;
-  }
+  },
+  { condition: () => !merging },
 );
 
 export const addToCollectionInDb = createAsyncThunk(
@@ -148,6 +165,9 @@ const collectionsSlice = createSlice({
         if (action.payload) {
           state.lists = action.payload;
         }
+      })
+      .addCase(fetchCollections.rejected, (state, action) => {
+        if (action.payload) state.lists = action.payload;
       })
       .addCase(addToCollectionInDb.fulfilled, (state, action) => {
         if (!action.payload) return;

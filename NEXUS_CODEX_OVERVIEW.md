@@ -6,7 +6,7 @@
 ## 🎯 Target Audience
 - **The Explorer:** Unearth hidden gems and chart-topping hits with our infinite discovery engine.
 - **The Collector:** Organize your digital display case using custom collections and favorites.
-- **The Enthusiast:** Dive deep into trailers, screenshots, critic scores, and metadata—all in one place.
+- **The Enthusiast:** Dive deep into trailers, screenshots, critic scores, and metadata, all in one place.
 
 ## ✨ Core Features
 
@@ -15,9 +15,9 @@
 - **Smart Validation:** Industry-standard form handling with Formik and Yup, featuring intelligent typo detection for common email domains.
 
 ### 🌍 Infinite Game Discovery
-- **RAWG API Integration:** Access to hundreds of thousands of games with rich metadata.
-- **Infinite Scrolling:** Seamlessly load more games as you scroll using React Query and Intersection Observers.
-- **Dynamic Routing:** Instantly browse by Genre, Developer, Publisher, or Platform.
+- **IGDB Integration:** Hundreds of thousands of games with rich metadata, served through a secure proxy that keeps the API keys off the browser.
+- **Infinite Scrolling:** Seamlessly load more games as you scroll, using Intersection Observers.
+- **Dynamic Routing:** Instantly browse by Genre, Developer or Publisher, and filter by Platform, Store or Tag.
 - **Precision Filtering & Real-Time Search:** Deep filtering system paired with a debounced, highly responsive search engine.
 
 ### 📱 Progressive Web App (PWA) & Offline Mode
@@ -26,8 +26,8 @@
 - **Offline Collections:** View your personal collections and favorites even without an internet connection, complete with custom offline fallback UI states.
 
 ### 🎬 Deep Dive Media Experience
-- **Cinematic Overlays:** High-quality gameplay trailers and gorgeous HD screenshot galleries.
-- **Comprehensive Metadata:** Metacritic scores, deep lore descriptions, release dates, and achievement tracking.
+- **Cinematic Overlays:** Gameplay trailers that load from YouTube only when played, and HD screenshot galleries.
+- **Comprehensive Metadata:** Critic scores, descriptions, release dates, developers, publishers and where to buy.
 - **Smart Recommendations:** "Similar Games" carousel to keep the discovery loop going.
 
 ### 📚 Build Your Dream Library

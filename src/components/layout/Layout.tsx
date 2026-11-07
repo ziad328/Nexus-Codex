@@ -1,8 +1,9 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import type { FC } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
+import MobileAccount from './MobileAccount';
 import SmoothScrollbar from '../shared/SmoothScrollbar';
 
 const Layout: FC = () => {
@@ -12,9 +13,11 @@ const Layout: FC = () => {
   const handleMenuToggle = useCallback(() => setIsMobileMenuOpen(p => !p), []);
 
 
-  useEffect(() => {
+  const [lastPathname, setLastPathname] = useState(pathname);
+  if (pathname !== lastPathname) {
+    setLastPathname(pathname);
     setIsMobileMenuOpen(false);
-  }, [pathname]);
+  }
 
   return (
     <div className="min-h-screen bg-background text-white flex flex-col font-sans selection:bg-accent selection:text-white">
@@ -41,6 +44,8 @@ const Layout: FC = () => {
           <div className="h-full w-full lg:hidden">
             <SmoothScrollbar className="h-full">
               <div className="p-5 pb-24">
+                {/* The navbar shows the account from md up */}
+                <MobileAccount onAction={() => setIsMobileMenuOpen(false)} />
                 <Sidebar />
               </div>
             </SmoothScrollbar>
