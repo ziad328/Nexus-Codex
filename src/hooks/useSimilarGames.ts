@@ -16,9 +16,9 @@ const useSimilarGames = (gameId: number | null) => {
       try {
         const res = await apiClient.get<FetchResponse<Game>>(`/games/${gameId}/game-series`, { signal: controller.signal });
         setData(res.data.results);
-      } catch (err: any) {
+      } catch (err) {
         if (err instanceof CanceledError) return;
-        setError(err.message);
+        setError((err as Error).message);
       }
     });
 

@@ -14,9 +14,9 @@ const usePlatforms = () => {
       try {
         const res = await apiClient.get<FetchResponse<Platform>>("/platforms/lists/parents", { signal: controller.signal });
         setData(res.data.results);
-      } catch (err: any) {
+      } catch (err) {
         if (err instanceof CanceledError) return;
-        setError(err.message);
+        setError((err as Error).message);
       }
     });
 

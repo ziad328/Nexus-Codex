@@ -10,6 +10,26 @@ const useGames = (gameQuery: GameQuery) => {
   const [hasNextPage, setHasNextPage] = useState(true);
   const [page, setPage] = useState(1);
 
+  const queryKey = JSON.stringify([
+    gameQuery.genreSlug,
+    gameQuery.platform?.id,
+    gameQuery.sortOrder,
+    gameQuery.searchText,
+    gameQuery.developers,
+    gameQuery.publishers,
+    gameQuery.storeId,
+    gameQuery.tagSlug,
+  ]);
+  const [lastQueryKey, setLastQueryKey] = useState(queryKey);
+  if (queryKey !== lastQueryKey) {
+    setLastQueryKey(queryKey);
+    setPage(1);
+    setHasNextPage(true);
+    setData([]);
+    setFetchingNextPage(false);
+    setLoading(true);
+  }
+
   useEffect(() => {
     const controller = new AbortController();
 
@@ -88,22 +108,6 @@ const useGames = (gameQuery: GameQuery) => {
     page
   ]);
 
-
-  useEffect(() => {
-    setPage(1);
-    setHasNextPage(true);
-    setData([]);
-    setFetchingNextPage(false);
-  }, [
-    gameQuery.genreSlug, 
-    gameQuery.platform?.id, 
-    gameQuery.sortOrder, 
-    gameQuery.searchText,
-    gameQuery.developers,
-    gameQuery.publishers,
-    gameQuery.storeId,
-    gameQuery.tagSlug
-  ]);
 
   return { 
     data, 

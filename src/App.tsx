@@ -33,24 +33,20 @@ function ScrollToTop() {
 function App() {
   const dispatch = useAppDispatch();
   const { isAuthModalOpen } = useSelector((state: RootState) => state.ui);
-  const [authError, setAuthError] = useState<string | null>(null);
+  const [authError, setAuthError] = useState<string | null>(() => {
+    const hash = window.location.hash;
+    return hash.includes('error=access_denied') && hash.includes('error_code=otp_expired')
+      ? 'This magic link has expired. Please try signing in again.'
+      : null;
+  });
 
   useEffect(() => {
+    if (!authError) return;
 
-    const hash = window.location.hash;
-    if (hash && hash.includes('error=access_denied') && hash.includes('error_code=otp_expired')) {
-      setAuthError('This magic link has expired. Please try signing in again.');
-
-      window.history.replaceState(null, '', window.location.pathname + window.location.search);
-      
-
-      const timer = setTimeout(() => {
-        setAuthError(null);
-      }, 6000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, []);
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    const timer = setTimeout(() => setAuthError(null), 6000);
+    return () => clearTimeout(timer);
+  }, [authError]);
 
   useEffect(() => {
 

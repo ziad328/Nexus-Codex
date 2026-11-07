@@ -56,8 +56,8 @@ const AuthModal: FC<Props> = ({ isOpen, onClose }) => {
         if (signInError) throw signInError;
         
         setIsSuccess(true);
-      } catch (err: any) {
-        setSubmitError(err.message || 'Failed to send magic link. Please try again.');
+      } catch (err) {
+        setSubmitError((err as Error).message || 'Failed to send magic link. Please try again.');
       } finally {
         setIsLoading(false);
       }

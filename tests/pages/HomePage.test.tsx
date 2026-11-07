@@ -86,6 +86,16 @@ describe('HomePage', () => {
       await waitFor(() => expect(lastGamesParams()).toEqual({ tags: 'singleplayer', stores: 11, parent_platforms: 3, page: 1 }));
     });
 
+    it('keeps earlier filters whichever is picked last', async () => {
+      setup();
+
+      await choose('Platform', 'Xbox');
+      await choose('Store', 'Steam');
+      await choose('Tag', 'Singleplayer');
+
+      await waitFor(() => expect(lastGamesParams()).toEqual({ tags: 'singleplayer', stores: 11, parent_platforms: 3, page: 1 }));
+    });
+
     it('switches between grid and list view', async () => {
       const { store } = setup();
       await screen.findByRole('button', { name: 'View details for Portal' });
@@ -126,6 +136,7 @@ describe('HomePage', () => {
     it('follows the URL to another genre, keeping the other filters', async () => {
       setup('/genre/action');
       await choose('Tag', 'Singleplayer');
+      await waitFor(() => expect(lastGamesParams()).toMatchObject({ tags: 'singleplayer' }));
 
       fireEvent.click(screen.getByRole('link', { name: 'go to puzzle' }));
 

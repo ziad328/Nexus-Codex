@@ -42,7 +42,7 @@ const CustomVideoPlayer: FC<Props> = ({ src, poster }) => {
       video.removeEventListener('timeupdate', handleTimeUpdate);
       video.removeEventListener('ended', handleEnded);
     };
-  }, []);
+  }, [isMuted, volume]);
 
   const togglePlay = () => {
     if (!videoRef.current) return;
@@ -136,7 +136,7 @@ const CustomVideoPlayer: FC<Props> = ({ src, poster }) => {
         <div 
           className="w-full h-1.5 bg-white/20 rounded-full mb-4 cursor-pointer relative group/bar"
           onClick={handleSeek}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSeek(e as any); } }}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSeek(e as unknown as React.MouseEvent<HTMLDivElement>); } }}
           role="slider"
           aria-label="Video progress"
           aria-valuenow={progress}

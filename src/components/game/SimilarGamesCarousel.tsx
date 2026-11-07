@@ -4,10 +4,11 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import useSimilarGames from '../../hooks/useSimilarGames';
 import getCroppedImageUrl from '../../services/image-url';
 import CriticScore from '../shared/CriticScore';
+import type { Game } from '../../types';
 
 interface Props {
   gameId: number;
-  onSelectGame?: (id: number, game: any) => void;
+  onSelectGame?: (id: number, game: Game) => void;
 }
 
 const SimilarGamesCarousel: FC<Props> = ({ gameId, onSelectGame }) => {

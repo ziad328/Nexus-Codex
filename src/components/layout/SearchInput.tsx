@@ -15,9 +15,11 @@ const SearchInput: FC<Props> = ({ autoFocus, onClose }) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
 
-  useEffect(() => {
+  const [lastQuery, setLastQuery] = useState(query);
+  if (query !== lastQuery) {
+    setLastQuery(query);
     setValue(query);
-  }, [query]);
+  }
 
   useEffect(() => {
     if (autoFocus && inputRef.current) {

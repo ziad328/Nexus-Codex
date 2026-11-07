@@ -36,9 +36,9 @@ const useGenres = () => {
         }
         
         setLoading(false);
-      } catch (err: any) {
+      } catch (err) {
         if (err instanceof CanceledError) return;
-        setError(err.message);
+        setError((err as Error).message);
         setLoading(false);
       }
     };

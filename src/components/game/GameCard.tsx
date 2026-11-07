@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import type { FC } from 'react';
-import type { Game } from '../../types';
+import type { FavoriteGame } from '../../types';
 import PlatformIconList from '../shared/PlatformIconList';
 import CriticScore from '../shared/CriticScore';
 import getCroppedImageUrl from '../../services/image-url';
@@ -12,7 +12,7 @@ import useAppDispatch from '../../hooks/useAppDispatch';
 import { toggleFavoriteInDb } from '../../store/favoritesSlice';
 
 interface Props {
-  game: Game;
+  game: FavoriteGame;
   onClick: (id: number, game: { name: string; slug: string; background_image: string; metacritic: number | null }) => void;
   viewMode?: 'grid' | 'list';
   isFavoritePage?: boolean;
@@ -23,7 +23,7 @@ const GameCard: FC<Props> = ({ game, onClick, viewMode = 'grid', isFavoritePage 
   const favoriteData = {
     id: game.id,
     name: game.name,
-    slug: (game as any).slug ?? '',
+    slug: game.slug ?? '',
     background_image: game.background_image,
     metacritic: game.metacritic ?? null,
     parent_platforms: game.parent_platforms,

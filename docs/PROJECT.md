@@ -2,7 +2,7 @@
 
 The one living document for this project: what it's for, what it must do, how it's built, where it stands and what comes next. Update it whenever one of those changes. Day-to-day rules are in [../CLAUDE.md](../CLAUDE.md). The API research is in [rawg-vs-igdb.md](rawg-vs-igdb.md).
 
-_Last updated: 2026-11-07 (Playwright smoke suite added, BUG-19 proved. Before that: page and `App` tests, BUG-5 proved, BUG-27 to BUG-33, two timing faults in older tests fixed; layout tests, BUG-2 proved, BUG-25 and BUG-26; auth and game component tests, BUG-1, BUG-4 and BUG-6 proved, BUG-20 to BUG-24; shared component tests, BUG-8 proved, BUG-16 to BUG-19; service and hook tests, BUG-3 proved, BUG-11 to BUG-15; store tests, BUG-9 and BUG-10; Phase 2 started with test setup, `CLAUDE.md` and this document)._
+_Last updated: 2026-11-07 (lint errors fixed without disabling rules, which also fixed BUG-13. Before that: Playwright smoke suite, BUG-19 proved; page and `App` tests, BUG-5 proved, BUG-27 to BUG-33, two timing faults in older tests fixed; layout tests, BUG-2 proved, BUG-25 and BUG-26; auth and game component tests, BUG-1, BUG-4 and BUG-6 proved, BUG-20 to BUG-24; shared component tests, BUG-8 proved, BUG-16 to BUG-19; service and hook tests, BUG-3 proved, BUG-11 to BUG-15; store tests, BUG-9 and BUG-10; Phase 2 started with test setup, `CLAUDE.md` and this document)._
 
 ---
 
@@ -19,7 +19,7 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 2. **No secret in the browser bundle.** (Not met yet: issue 1.)
 3. **Works at 1440 px and 375 px**, with no sideways scroll.
 4. **Offline:** saved lists and already-seen data still show; everything else gets a clear message.
-5. **Quality bar:** tests, `npx tsc -b --noEmit`, `npm run build` and `npm run lint` all pass. (Lint not met yet: issue 3.)
+5. **Quality bar:** tests, `npx tsc -b --noEmit`, `npm run build` and `npm run lint` all pass.
 
 **Features**
 - **Discovery:** paged grid with infinite scroll, genre sidebar, platform, tag and store filters, debounced search, developer and publisher pages, grid/list toggle.
@@ -62,10 +62,10 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 - [x] Layout
 - [x] Pages and `App`
 - [x] Playwright smoke suite
-- [ ] Fix existing lint errors
+- [x] Fix existing lint errors
 - [ ] Coverage report and hand-check list
 
-**Latest verification (2026-11-07):** 566 tests pass and 59 expected failures mark known problems. `npx tsc -b --noEmit` clean, build passes. `npm run lint` still fails on the same 24 existing errors (issue 3); the test code adds none. Coverage: `src/store` 99% of lines and 92% of branches; `src/hooks`, `src/services` and `src/components/layout` 100% of both; `src/components/shared` 98% and 93%; `src/components/auth` and `game` 100% and 93%; `src/pages` 100% of lines and 95% of branches. Of 366 deliberate breakages of this code, 362 were caught. The other four: an empty-value guard in `AuthModal`'s typo check has no visible effect; `Sidebar`'s `if (error)` is BUG-2 itself, pinned by an expected failure; and two things jsdom can't show, which need a hand check: `CollectionsPage` attaching scrollbars to the page body, and `App`'s `reducedMotion="user"`. Smoke suite (`npm run test:e2e`): 12 pass and 3 expected failures (BUG-19, BUG-25, BUG-33) at 1440 px and 375 px, plus offline with the real service worker. All 18 deliberate breakages of the built app were caught, including a trial fix for each of the three bugs. One first attempt, widening the modal, broke nothing because its flex parent shrinks it, so it was replaced by one that really overflows. Live site: game data doesn't load (issue 2).
+**Latest verification (2026-11-07):** 580 tests pass and 58 expected failures mark known problems. `npx tsc -b --noEmit`, the build and `npm run lint` are all clean, with no lint warnings. Coverage: `src/store` 99% of lines and 92% of branches; `src/hooks`, `src/services` and `src/components/layout` 100% of both; `src/components/shared` 98% and 93%; `src/components/auth` and `game` 100% and 93%; `src/pages` 100% of lines and 95% of branches. Of 403 deliberate breakages of this code, 396 were caught. The other seven: the two glow lines rewritten in `GameDetailsModal` can't run because of BUG-1; removing `video.muted = isMuted` changes nothing, as it only repeats the default; an empty-value guard in `AuthModal`'s typo check has no visible effect; `Sidebar`'s `if (error)` is BUG-2 itself, pinned by an expected failure; and two things jsdom can't show, which need a hand check: `CollectionsPage` attaching scrollbars to the page body, and `App`'s `reducedMotion="user"`. Smoke suite (`npm run test:e2e`): 12 pass and 3 expected failures (BUG-19, BUG-25, BUG-33) at 1440 px and 375 px, plus offline with the real service worker. All 18 deliberate breakages of the built app were caught, including a trial fix for each of the three bugs. One first attempt, widening the modal, broke nothing because its flex parent shrinks it, so it was replaced by one that really overflows. Live site: game data doesn't load (issue 2).
 
 **Test skips**
 | Skipped | Why |
@@ -85,7 +85,7 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 |:--|:--|:--|:--|
 | 1 | The RAWG key ships in the browser bundle | Anyone can copy it | Removed in Phase 3 |
 | 2 | RAWG's API and site return 522 (checked 2026-11-07) | The live app shows no games | Phase 3 |
-| 3 | `npm run lint`: 24 errors and 1 warning in 21 files, all there before testing started (15 `no-explicit-any`, 9 `set-state-in-effect`) | One of the four checks can't pass | Fix at the end of Phase 2, once tests protect the code, without disabling rules |
+| 3 | One older rule exception remains: `useData` disables `exhaustive-deps` on one line. Lint itself passes. | None today | Review when `useData` changes in Phase 3 |
 | 4 | RLS is unconfirmed; `collections` and `favorites` are read with no user filter | Lists may be readable by anyone | Owner checks |
 | 5 | A game deleted on one device comes back from another at sign-in. Confirmed by `it.fails('ISSUE-5…')` in both slice tests. | Deletions don't stick across devices | Owner to decide; needs deletion records or merging guest items only |
 | 6 | RAWG's terms require a link on pages using its data; the app has none | Terms breach while RAWG is in use | Goes away with RAWG |
@@ -107,7 +107,7 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 | BUG-10 | `fetchFavorites` with nobody signed in wipes local favorites, while `fetchCollections` keeps its lists. `App` never calls it that way today, so it can't happen yet. | `favoritesSlice` | ✅ Proved |
 | BUG-11 | On a non-RAWG URL, the crop helper returns a broken address (`httpscrop/600/400/://images…`). Harmless today, but **every IGDB image would break**. | `image-url` | ✅ Proved; must change in Phase 3 |
 | BUG-12 | After one failed request, the error stays even when a later request succeeds. Sections that hide on error stay hidden for later games until the modal closes. | `useData`, `useGameTrailers`, `useGameStores`, `useSimilarGames` | ✅ Proved |
-| BUG-13 | Changing a filter after scrolling first requests page 2 of the new filter, aborts it, then requests page 1. A wasted request, which matters more with IGDB's 4 per second limit. | `useGames` | ✅ Proved |
+| BUG-13 | Changing a filter after scrolling first requested page 2 of the new filter, aborted it, then requested page 1. | `useGames` | ✅ Fixed by the lint work; see section 9 |
 | BUG-14 | The adult filter hides innocent games: "Command & Conquer: Yuri's Revenge" is hidden because of the word "yuri". | `useGames` | ✅ Proved |
 | BUG-15 | With no genre cache, genres are requested twice. | `useGenres` | ✅ Proved |
 | BUG-16 | The video player's mute, play and fullscreen buttons and the sign-in modal's close button have no names, so screen readers can't announce them. | `CustomVideoPlayer`, `AuthModal` | ✅ Proved |
@@ -158,4 +158,6 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 
 ## 9. Fix history
 
-Nothing fixed yet.
+| Date | Fixed | How |
+|:--|:--|:--|
+| 2026-11-07 | BUG-13, a side effect of the lint fixes | `useGames` now resets while rendering, not in an effect after the request has started. The owner reviews this with the lint task. |

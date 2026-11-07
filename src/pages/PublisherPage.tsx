@@ -16,11 +16,8 @@ import SEO from '../components/shared/SEO';
 function PublisherPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { publisherSlug } = useParams<{ publisherSlug?: string }>();
-  const [gameQuery, setGameQuery] = useState<GameQuery>({ publishers: publisherSlug });
-  
-  useEffect(() => {
-    setGameQuery(prev => ({ ...prev, publishers: publisherSlug }));
-  }, [publisherSlug]);
+  const [filters, setFilters] = useState<GameQuery>({});
+  const gameQuery: GameQuery = { ...filters, publishers: publisherSlug };
 
   const [selectedGameId, setSelectedGameId] = useState<number | null>(
     () => {
@@ -78,15 +75,15 @@ function PublisherPage() {
           <div className="flex flex-wrap items-center gap-3">
             <TagSelector 
               selectedTagSlug={gameQuery.tagSlug || null} 
-              onSelectTag={(tagSlug) => setGameQuery({ ...gameQuery, tagSlug: tagSlug || undefined })} 
+              onSelectTag={(tagSlug) => setFilters({ ...filters, tagSlug: tagSlug || undefined })} 
             />
             <StoreSelector 
               selectedStoreId={gameQuery.storeId || null} 
-              onSelectStore={(storeId) => setGameQuery({ ...gameQuery, storeId: storeId || undefined })} 
+              onSelectStore={(storeId) => setFilters({ ...filters, storeId: storeId || undefined })} 
             />
             <PlatformSelector 
               selectedPlatform={gameQuery.platform} 
-              onSelectPlatform={(platform) => setGameQuery({ ...gameQuery, platform })} 
+              onSelectPlatform={(platform) => setFilters({ ...filters, platform })} 
             />
             <ViewToggle viewMode={viewMode} onToggle={(mode) => dispatch(setViewMode(mode))} />
           </div>

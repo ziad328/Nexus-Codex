@@ -12,10 +12,7 @@ const ProgressiveImage: FC<Props> = ({ src, alt, className = '' }) => {
   const imgRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
-    setIsLoaded(false);
-    if (imgRef.current?.complete) {
-      setIsLoaded(true);
-    }
+    setIsLoaded(Boolean(imgRef.current?.complete));
   }, [src]);
 
   return (

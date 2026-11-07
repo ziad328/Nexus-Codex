@@ -59,6 +59,7 @@ describe.each([
     setup();
     fireEvent.click(await screen.findByRole('button', { name: 'Tag' }));
     fireEvent.click(await screen.findByRole('button', { name: 'Singleplayer' }));
+    await waitFor(() => expect(lastGamesParams()).toMatchObject({ tags: 'singleplayer' }));
 
     fireEvent.click(screen.getByRole('link', { name: 'go elsewhere' }));
 
@@ -80,6 +81,17 @@ describe.each([
     fireEvent.click(screen.getByRole('button', { name: option }));
     fireEvent.click(await screen.findByRole('button', { name: clear }));
     await waitFor(() => expect(lastGamesParams()).toEqual({ [param]: 'naughty-dog', page: 1 }));
+  });
+
+  it('keeps earlier filters whichever is picked last', async () => {
+    setup();
+
+    for (const [menu, option] of [['Tag', 'Singleplayer'], ['Store', 'Steam'], ['Platform', 'Xbox'], ['Singleplayer', 'Any Tag'], ['Tag', 'Singleplayer']]) {
+      fireEvent.click(await screen.findByRole('button', { name: menu }));
+      fireEvent.click(await screen.findByRole('button', { name: option }));
+    }
+
+    await waitFor(() => expect(lastGamesParams()).toEqual({ [param]: 'naughty-dog', tags: 'singleplayer', stores: 11, parent_platforms: 3, page: 1 }));
   });
 
   it('searches for the text saved for this page and says so', async () => {

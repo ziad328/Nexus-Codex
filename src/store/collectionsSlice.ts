@@ -27,7 +27,7 @@ export const fetchCollections = createAsyncThunk(
     
     const cloudRecords = new Set(cloudData.map(item => `${item.collection_name}_${item.game_id}`));
     
-    const itemsToUpload: any[] = [];
+    const itemsToUpload: (Omit<FavoriteGame, 'id'> & { user_id: string; game_id: number; collection_name: CollectionName })[] = [];
     localLists.forEach(list => {
       list.games.forEach(game => {
         if (!cloudRecords.has(`${list.name}_${game.id}`)) {

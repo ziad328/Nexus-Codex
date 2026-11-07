@@ -174,7 +174,7 @@ const CollectionsPage: FC = () => {
               {filtered.map(game => (
                 <GameCard
                   key={game.id}
-                  game={game as any}
+                  game={game}
                   onClick={handleSelectGame}
                   viewMode={viewMode}
                   isFavoritePage={activeFilter === 'favorites'}

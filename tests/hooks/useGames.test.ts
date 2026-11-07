@@ -1,4 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
+import { useLayoutEffect } from 'react';
 import useGames from '../../src/hooks/useGames';
 import type { GameQuery, Platform } from '../../src/types';
 import { apiRequests, deferred, mockApi, mockApiError } from '../fakes/network';
@@ -181,7 +182,7 @@ describe('when filters change', () => {
     expect(apiRequests).toHaveLength(1);
   });
 
-  it.fails('BUG-13: changing a filter on page 2 asks only for page 1', async () => {
+  it('changing a filter on page 2 asks only for page 1 (BUG-13, fixed)', async () => {
     mockTwoPages();
     const { result, rerender } = render();
     await settled(result);
@@ -193,6 +194,76 @@ describe('when filters change', () => {
     await settled(result);
 
     expect(apiRequests.map((request) => request.params.page)).toEqual([1]);
+  });
+
+  it.each<[string, GameQuery]>([
+    ['platform', { platform: { id: 3, name: 'Xbox', slug: 'xbox' } }],
+    ['sort order', { sortOrder: '-rating' }],
+    ['search text', { searchText: 'zelda' }],
+    ['developer', { developers: 'valve' }],
+    ['publisher', { publishers: 'ea' }],
+    ['store', { storeId: 11 }],
+    ['tag', { tagSlug: 'singleplayer' }],
+  ])('starts again from page 1 when the %s changes', async (_, gameQuery) => {
+    mockTwoPages();
+    const { result, rerender } = render();
+    await settled(result);
+    act(() => result.current.fetchNextPage());
+    await settled(result);
+    apiRequests.length = 0;
+
+    rerender({ gameQuery });
+    await settled(result);
+
+    expect(apiRequests.map((request) => request.params.page)).toEqual([1]);
+    expect(ids(result)).toEqual([1, 2]);
+  });
+
+  it('expects more pages again, even after reaching the last one', async () => {
+    mockApi('/games', page([1], false));
+    const { result, rerender } = render();
+    await settled(result);
+    expect(result.current.hasNextPage).toBe(false);
+
+    mockApi('/games', () => deferred().promise);
+    rerender({ gameQuery: { genreSlug: 'rpg' } });
+
+    expect(result.current.hasNextPage).toBe(true);
+  });
+
+  it('can still load more after a filter changes while a next page is loading', async () => {
+    mockApi('/games', ({ params }: RecordedRequest) => (params.page === 1 ? page([1, 2]) : deferred().promise));
+    const { result, rerender } = render();
+    await settled(result);
+    act(() => result.current.fetchNextPage());
+    await waitFor(() => expect(result.current.isFetchingNextPage).toBe(true));
+
+    rerender({ gameQuery: { genreSlug: 'rpg' } });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.isFetchingNextPage).toBe(false);
+  });
+
+  it('never shows an empty grid as finished while the new filter is loading', async () => {
+    mockTwoPages();
+    const finishedAndEmpty: boolean[] = [];
+    const { result, rerender } = renderHook(
+      ({ gameQuery }) => {
+        const games = useGames(gameQuery);
+        useLayoutEffect(() => {
+          finishedAndEmpty.push(!games.isLoading && games.data.length === 0);
+        });
+        return games;
+      },
+      { initialProps: { gameQuery: {} as GameQuery } },
+    );
+    await settled(result);
+    finishedAndEmpty.length = 0;
+
+    rerender({ gameQuery: { genreSlug: 'rpg' } });
+    await settled(result);
+
+    expect(finishedAndEmpty).not.toContain(true);
   });
 });
 

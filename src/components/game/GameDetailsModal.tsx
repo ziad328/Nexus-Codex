@@ -17,11 +17,12 @@ import SimilarGamesCarousel from './SimilarGamesCarousel';
 import CustomVideoPlayer from '../shared/CustomVideoPlayer';
 import AchievementsList from './AchievementsList';
 import SEO from '../shared/SEO';
+import type { Game } from '../../types';
 
 interface Props {
   gameId: number | null;
   onClose: () => void;
-  onSelectGame?: (id: number, game: any) => void;
+  onSelectGame?: (id: number, game: Game) => void;
 }
 
 const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
@@ -30,12 +31,9 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
   const { data: trailers, isLoading: trailersLoading } = useGameTrailers(gameId);
   const { data: storeLinks } = useGameStores(gameId);
   const { share, status: shareStatus } = useShare();
-  const [accentColor, setAccentColor] = useState<string | null>(null);
+  const [accent, setAccent] = useState<{ gameId: number; color: string } | null>(null);
+  const accentColor = accent?.gameId === gameId ? accent.color : null;
   const heroImgRef = useRef<HTMLImageElement>(null);
-
-  useEffect(() => {
-    setAccentColor(null);
-  }, [gameId]);
 
   useEffect(() => {
     if (!gameId) return;
@@ -71,14 +69,13 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
   }, [gameId]);
 
   const handleHeroLoad = async () => {
-    if (!heroImgRef.current) return;
+    if (!heroImgRef.current || !gameId) return;
     try {
       const mod = await import('colorthief');
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const ColorThief = (mod as any).default ?? mod;
-      const ct = new ColorThief() as { getColor(img: HTMLImageElement): [number, number, number] };
+      const ColorThief = ((mod as unknown as { default?: unknown }).default ?? mod) as new () => { getColor(img: HTMLImageElement): [number, number, number] };
+      const ct = new ColorThief();
       const [r, g, b] = ct.getColor(heroImgRef.current);
-      setAccentColor(`rgb(${r}, ${g}, ${b})`);
+      setAccent({ gameId, color: `rgb(${r}, ${g}, ${b})` });
     } catch { /* ignore cross-origin or load errors */ }
   };
 
@@ -158,7 +155,7 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
                         game={{
                           id: game.id,
                           name: game.name,
-                          slug: (game as any).slug ?? '',
+                          slug: game.slug ?? '',
                           background_image: game.background_image,
                           metacritic: game.metacritic ?? null,
                           parent_platforms: game.parent_platforms,
@@ -169,7 +166,7 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
                         game={{
                           id: game.id,
                           name: game.name,
-                          slug: (game as any).slug ?? '',
+                          slug: game.slug ?? '',
                           background_image: game.background_image,
                           metacritic: game.metacritic ?? null,
                           parent_platforms: game.parent_platforms,
