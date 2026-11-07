@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import type { GameQuery } from '../types';
 import GameGrid from '../components/game/GameGrid';
 import GameDetailsModal from '../components/game/GameDetailsModal';
@@ -8,24 +8,18 @@ import useAppSelector from '../hooks/useAppSelector';
 import useAppDispatch from '../hooks/useAppDispatch';
 import useSearchContext from '../hooks/useSearchContext';
 import { setViewMode } from '../store/uiSlice';
+import useGameParam from '../hooks/useGameParam';
 import PlatformSelector from '../components/shared/PlatformSelector';
 import StoreSelector from '../components/shared/StoreSelector';
 import TagSelector from '../components/shared/TagSelector';
 import SEO from '../components/shared/SEO';
 
 function PublisherPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const { publisherSlug } = useParams<{ publisherSlug?: string }>();
   const [filters, setFilters] = useState<GameQuery>({});
   const gameQuery: GameQuery = { ...filters, publishers: publisherSlug };
 
-  const [selectedGameId, setSelectedGameId] = useState<number | null>(
-    () => {
-      // ?game= holds an IGDB id. Old ?gameId= links held RAWG ids, which would open the wrong game, so they're ignored.
-      const id = searchParams.get('game');
-      return id ? Number(id) : null;
-    }
-  );
+  const { gameId, openGame, closeGame } = useGameParam();
   const [showScrollButton, setShowScrollButton] = useState(false);
 
   const dispatch = useAppDispatch();
@@ -45,15 +39,6 @@ function PublisherPage() {
   }, []);
 
 
-  const handleSelectGame = useCallback((id: number) => {
-    setSelectedGameId(id);
-    setSearchParams({ game: String(id) }, { replace: true });
-  }, [setSearchParams]);
-
-  const handleCloseModal = useCallback(() => {
-    setSelectedGameId(null);
-    setSearchParams({}, { replace: true });
-  }, [setSearchParams]);
 
   return (
     <>
@@ -61,7 +46,7 @@ function PublisherPage() {
         title={`${displayName} Games | Nexus Codex`}
         description={`Explore the full catalogue of games published by ${displayName}.`}
       />
-      <GameDetailsModal gameId={selectedGameId} onClose={handleCloseModal} onSelectGame={handleSelectGame} />
+      <GameDetailsModal gameId={gameId} onClose={closeGame} onSelectGame={openGame} />
 
       <div className="grow flex flex-col w-full min-w-0">
         <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -90,7 +75,7 @@ function PublisherPage() {
           </div>
         </div>
 
-        <GameGrid gameQuery={{ ...gameQuery, searchText }} onSelectGame={handleSelectGame} viewMode={viewMode} />
+        <GameGrid gameQuery={{ ...gameQuery, searchText }} onSelectGame={openGame} viewMode={viewMode} />
       </div>
 
       <div

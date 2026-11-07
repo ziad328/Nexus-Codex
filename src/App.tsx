@@ -16,6 +16,7 @@ import HomePage from './pages/HomePage';
 import CollectionsPage from './pages/CollectionsPage';
 import DeveloperPage from './pages/DeveloperPage';
 import PublisherPage from './pages/PublisherPage';
+import NotFoundPage from './pages/NotFoundPage';
 import SmoothScrollbar from './components/shared/SmoothScrollbar';
 import AuthModal from './components/auth/AuthModal';
 import PWAReloadPrompt from './components/shared/PWAReloadPrompt';
@@ -87,6 +88,7 @@ function App() {
               <Route path="/developer/:developerSlug" element={<DeveloperPage />} />
               <Route path="/publisher/:publisherSlug" element={<PublisherPage />} />
               <Route path="/collection" element={<CollectionsPage />} />
+              <Route path="*" element={<NotFoundPage />} />
             </Route>
           </Routes>
         </SmoothScrollbar>

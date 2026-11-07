@@ -174,13 +174,13 @@ describe.each([
       await waitFor(() => expect(lastGamesParams()).toMatchObject({ [param]: linkSlug }));
     });
 
-    it.fails('BUG-28: opening a game adds it to Recently Viewed', async () => {
+    it('opening a game adds it to Recently Viewed (BUG-28, fixed)', async () => {
       const { store } = setup();
 
       await openCard('Portal');
       await modalTitle('Portal');
 
-      expect(store.getState().ui.recentlyViewed.map((game) => game.id)).toContain(1);
+      await waitFor(() => expect(store.getState().ui.recentlyViewed.map((game) => game.id)).toContain(1));
     });
   });
 

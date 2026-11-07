@@ -91,14 +91,14 @@ describe('App', () => {
       await settled(store);
     });
 
-    it.fails('BUG-31: an unknown URL shows a way back, not a blank screen', async () => {
-      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    it('an unknown URL shows a not-found page with a way back, inside the layout (BUG-31, fixed)', async () => {
       const { store } = setup('/no-such-page');
       await settled(store);
 
-      const hasContent = screen.queryByRole('link') !== null || screen.queryByRole('heading') !== null;
-      warn.mockRestore();
-      expect(hasContent).toBe(true);
+      expect(screen.getByRole('heading', { name: 'Page not found', level: 1 })).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'Back to all games' })).toHaveAttribute('href', '/');
+      expect(screen.getByPlaceholderText('Search games...')).toBeInTheDocument();
+      await waitFor(() => expect(document.title).toBe('Page Not Found | Nexus Codex'));
     });
 
     it('scrolls to the top when the page changes', async () => {

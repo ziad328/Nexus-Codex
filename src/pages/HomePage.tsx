@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import type { GameQuery } from '../types';
 import GameGrid from '../components/game/GameGrid';
 import GameDetailsModal from '../components/game/GameDetailsModal';
@@ -8,7 +8,8 @@ import RecentlyViewed from '../components/shared/RecentlyViewed';
 import useAppSelector from '../hooks/useAppSelector';
 import useAppDispatch from '../hooks/useAppDispatch';
 import useSearchContext from '../hooks/useSearchContext';
-import { addRecentlyViewed, setViewMode } from '../store/uiSlice';
+import { setViewMode } from '../store/uiSlice';
+import useGameParam from '../hooks/useGameParam';
 import useGenres from '../hooks/useGenres';
 import PlatformSelector from '../components/shared/PlatformSelector';
 import StoreSelector from '../components/shared/StoreSelector';
@@ -18,18 +19,11 @@ import SEO from '../components/shared/SEO';
 const prettySlug = (slug: string) => slug.split('-').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 
 function HomePage() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const { genreSlug } = useParams<{ genreSlug?: string }>();
   const [filters, setFilters] = useState<GameQuery>({});
   const gameQuery: GameQuery = { ...filters, genreSlug };
 
-  const [selectedGameId, setSelectedGameId] = useState<number | null>(
-    () => {
-      // ?game= holds an IGDB id. Old ?gameId= links held RAWG ids, which would open the wrong game, so they're ignored.
-      const id = searchParams.get('game');
-      return id ? Number(id) : null;
-    }
-  );
+  const { gameId, openGame, closeGame } = useGameParam();
   const [showScrollButton, setShowScrollButton] = useState(false);
 
   const dispatch = useAppDispatch();
@@ -54,16 +48,6 @@ function HomePage() {
 
 
 
-  const handleSelectGame = useCallback((id: number, game: { name: string; slug: string; background_image: string; metacritic: number | null }) => {
-    setSelectedGameId(id);
-    setSearchParams({ game: String(id) }, { replace: true });
-    dispatch(addRecentlyViewed({ id, ...game }));
-  }, [dispatch, setSearchParams]);
-
-  const handleCloseModal = useCallback(() => {
-    setSelectedGameId(null);
-    setSearchParams({}, { replace: true });
-  }, [setSearchParams]);
 
   return (
     <>
@@ -71,10 +55,10 @@ function HomePage() {
         title={genreSlug ? `${genreName} Games | Nexus Codex` : 'Nexus Codex | The Ultimate Game Library'}
         description={`Explore the best ${genreName} games on Nexus Codex. Track your collections and discover your next obsession.`}
       />
-      <GameDetailsModal gameId={selectedGameId} onClose={handleCloseModal} onSelectGame={handleSelectGame} />
+      <GameDetailsModal gameId={gameId} onClose={closeGame} onSelectGame={openGame} />
 
       <div className="grow flex flex-col w-full min-w-0">
-        <RecentlyViewed onSelectGame={setSelectedGameId} />
+        <RecentlyViewed onSelectGame={openGame} />
 
         <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
@@ -102,7 +86,7 @@ function HomePage() {
           </div>
         </div>
 
-        <GameGrid gameQuery={{ ...gameQuery, searchText }} onSelectGame={handleSelectGame} viewMode={viewMode} />
+        <GameGrid gameQuery={{ ...gameQuery, searchText }} onSelectGame={openGame} viewMode={viewMode} />
       </div>
 
       <div

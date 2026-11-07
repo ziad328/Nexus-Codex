@@ -277,7 +277,7 @@ describe('CollectionsPage', () => {
       expect(document.body.style.overflow).toBe('');
     });
 
-    it.fails('BUG-5: a similar-game click moves on to that game', async () => {
+    it('a similar-game click moves on to that game (BUG-5, fixed)', async () => {
       mockGameDetails(1, 'Portal', [doom]);
       setup(library);
       fireEvent.click(screen.getByRole('button', { name: 'View details for Portal' }));
@@ -288,13 +288,13 @@ describe('CollectionsPage', () => {
       expect(await modalTitle('Doom')).toBeInTheDocument();
     });
 
-    it.fails('BUG-30: ?game= opens the game, as on every other page', async () => {
+    it('?game= opens the game, as on every other page (BUG-30, fixed)', async () => {
       setup(library, '/collection?game=1');
 
       expect(await modalTitle('Portal')).toBeInTheDocument();
     });
 
-    it.fails('BUG-30: opening a game sets the URL, as on every other page', async () => {
+    it('opening a game sets the URL, as on every other page (BUG-30, fixed)', async () => {
       setup(library);
 
       fireEvent.click(screen.getByRole('button', { name: 'View details for Portal' }));
@@ -303,13 +303,13 @@ describe('CollectionsPage', () => {
       await waitFor(() => expect(screen.getByTestId('url')).toHaveTextContent('/collection?game=1'));
     });
 
-    it.fails('BUG-28: opening a game adds it to Recently Viewed', async () => {
+    it('opening a game adds it to Recently Viewed (BUG-28, fixed)', async () => {
       const { store } = setup(library);
 
       fireEvent.click(screen.getByRole('button', { name: 'View details for Portal' }));
       await modalTitle('Portal');
 
-      expect(store.getState().ui.recentlyViewed.map((game) => game.id)).toContain(1);
+      await waitFor(() => expect(store.getState().ui.recentlyViewed.map((game) => game.id)).toContain(1));
     });
   });
 });

@@ -5,7 +5,7 @@ import { apiRequests, mockApiError } from '../fakes/network';
 import { makeGame } from '../fixtures';
 import { renderWithProviders } from '../render';
 import type { TestState } from '../render';
-import { doom, lastGamesParams, mockCatalog, mockGameDetails, portal } from './catalog';
+import { doom, lastGamesParams, mockCatalog, mockGameDetails } from './catalog';
 import { CurrentUrl } from './CurrentUrl';
 
 const setup = (route = '/', preloadedState?: Partial<TestState>) =>
@@ -193,11 +193,11 @@ describe('HomePage', () => {
       expect(apiRequests.map((request) => request.url)).not.toContain('/games/NaN');
     });
 
-    it.fails('BUG-28: adds the game to Recently Viewed', async () => {
+    it('adds the game to Recently Viewed (BUG-28, fixed)', async () => {
       const { store } = setup('/?game=1');
       await modalTitle('Portal');
 
-      expect(recentIds(store)).toContain(1);
+      await waitFor(() => expect(recentIds(store)).toContain(1));
     });
   });
 
@@ -209,22 +209,24 @@ describe('HomePage', () => {
 
       expect(await modalTitle('Portal')).toBeInTheDocument();
       await waitFor(() => expect(url()).toBe('/?game=1'));
-      expect(recentIds(store)).toEqual([1]);
+      await waitFor(() => expect(recentIds(store)).toEqual([1]));
       expect(screen.getByTitle('Portal')).toHaveAttribute('title', 'Portal');
     });
 
-    it('saves the details Recently Viewed needs', async () => {
+    it('saves the details Recently Viewed needs, from the loaded game', async () => {
       const { store } = setup();
 
       await openCard('Portal');
+      await modalTitle('Portal');
 
-      expect(store.getState().ui.recentlyViewed[0]).toMatchObject({
+      await waitFor(() => expect(store.getState().ui.recentlyViewed[0]).toEqual({
         id: 1,
         name: 'Portal',
-        slug: portal.slug,
-        background_image: portal.background_image,
-        metacritic: portal.metacritic,
-      });
+        slug: 'portal',
+        background_image: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co1.jpg',
+        metacritic: 90,
+        parent_platforms: [],
+      }));
     });
 
     it('replaces the history entry, so Back leaves the page instead of reopening games', async () => {
@@ -246,7 +248,7 @@ describe('HomePage', () => {
 
       expect(await modalTitle('Doom')).toBeInTheDocument();
       await waitFor(() => expect(url()).toBe('/?game=2'));
-      expect(recentIds(store)).toEqual([2, 1]);
+      await waitFor(() => expect(recentIds(store)).toEqual([2, 1]));
     });
   });
 
@@ -285,7 +287,7 @@ describe('HomePage', () => {
       expect(await modalTitle('Portal')).toBeInTheDocument();
     });
 
-    it.fails('BUG-29: sets the URL like every other way of opening a game', async () => {
+    it('sets the URL like every other way of opening a game (BUG-29, fixed)', async () => {
       setup('/', saved);
 
       fireEvent.click(screen.getByTitle('Portal'));
@@ -294,13 +296,13 @@ describe('HomePage', () => {
       await waitFor(() => expect(url()).toBe('/?game=1'));
     });
 
-    it.fails('BUG-29: moves the chosen game to the front', async () => {
+    it('moves the chosen game to the front (BUG-29, fixed)', async () => {
       const { store } = setup('/', saved);
 
       fireEvent.click(screen.getByTitle('Portal'));
       await modalTitle('Portal');
 
-      expect(recentIds(store)).toEqual([1, 2]);
+      await waitFor(() => expect(recentIds(store)).toEqual([1, 2]));
     });
   });
 

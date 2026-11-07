@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import type { FC } from 'react';
 import { useOverlayScrollbars } from 'overlayscrollbars-react';
 import { Heart, Bookmark, Trophy, Clock, Star, LayoutGrid, ListPlus } from 'lucide-react';
@@ -12,6 +12,7 @@ import { setViewMode, setAuthModalOpen } from '../store/uiSlice';
 import type { FavoriteGame, CollectionName } from '../types';
 import { Cloud } from 'lucide-react';
 import SEO from '../components/shared/SEO';
+import useGameParam from '../hooks/useGameParam';
 import { GRID_LAYOUT, LIST_LAYOUT } from '../components/game/gridLayout';
 
 
@@ -35,7 +36,7 @@ const CollectionsPage: FC = () => {
   const collections = useAppSelector((s) => s.collections.lists);
   const user        = useAppSelector((s) => s.auth.user);
   const [activeFilter, setActiveFilter] = useState<FilterId>('all');
-  const [selectedGameId, setSelectedGameId] = useState<number | null>(null);
+  const { gameId: selectedGameId, openGame, closeGame } = useGameParam();
 
   const hasLocalGames = favorites.length > 0 || collections.some(c => c.games.length > 0);
 
@@ -73,8 +74,6 @@ const CollectionsPage: FC = () => {
   const activeLabel = activeFilterData.label;
   const ActiveIcon = activeFilterData.Icon;
 
-  const handleSelectGame = useCallback((id: number) => setSelectedGameId(id), []);
-  const handleCloseModal = useCallback(() => setSelectedGameId(null), []);
 
   return (
     <>
@@ -82,7 +81,7 @@ const CollectionsPage: FC = () => {
         title={`${activeLabel} | Nexus Codex`}
         description={`Manage your ${activeLabel.toLowerCase()} game collection on Nexus Codex.`}
       />
-      <GameDetailsModal gameId={selectedGameId} onClose={handleCloseModal} />
+      <GameDetailsModal gameId={selectedGameId} onClose={closeGame} onSelectGame={openGame} />
 
       <div className="grow flex flex-col w-full min-w-0">
 
@@ -176,7 +175,7 @@ const CollectionsPage: FC = () => {
                 <GameCard
                   key={game.id}
                   game={game}
-                  onClick={handleSelectGame}
+                  onClick={openGame}
                   viewMode={viewMode}
                   isFavoritePage={activeFilter === 'favorites'}
                 />

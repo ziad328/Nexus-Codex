@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import type { FC } from 'react';
 import useGameDetails from '../../hooks/useGameDetails';
 import CriticScore from '../shared/CriticScore';
@@ -13,7 +13,9 @@ import SimilarGamesCarousel from './SimilarGamesCarousel';
 import YouTubeTrailer from './YouTubeTrailer';
 import ScreenshotGallery from './ScreenshotGallery';
 import SEO from '../shared/SEO';
-import type { Game } from '../../types';
+import type { FavoriteGame, Game } from '../../types';
+import useAppDispatch from '../../hooks/useAppDispatch';
+import { addRecentlyViewed } from '../../store/uiSlice';
 
 interface Props {
   gameId: number | null;
@@ -30,6 +32,21 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
   const [accent, setAccent] = useState<{ gameId: number; color: string } | null>(null);
   const accentColor = accent?.gameId === gameId ? accent.color : null;
   const heroImgRef = useRef<HTMLImageElement>(null);
+  const dispatch = useAppDispatch();
+  // What favorites, lists and Recently Viewed keep of this game.
+  const saved = useMemo((): FavoriteGame | null => game && {
+    id: game.id,
+    name: game.name,
+    slug: game.slug ?? '',
+    background_image: game.background_image,
+    metacritic: game.metacritic ?? null,
+    parent_platforms: game.parent_platforms,
+  }, [game]);
+
+  // Every game the modal shows counts as viewed, however it was opened (any page, a deep link, Recently Viewed).
+  useEffect(() => {
+    if (saved) dispatch(addRecentlyViewed(saved));
+  }, [saved, dispatch]);
 
   useEffect(() => {
     if (!gameId) return;
@@ -148,28 +165,9 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
                     <CriticScore score={game.metacritic} />
                     <div className="ml-auto flex items-center gap-2">
                       {/* Collection button */}
-                      <CollectionButton
-                        game={{
-                          id: game.id,
-                          name: game.name,
-                          slug: game.slug ?? '',
-                          background_image: game.background_image,
-                          metacritic: game.metacritic ?? null,
-                          parent_platforms: game.parent_platforms,
-                        }}
-                      />
+                      <CollectionButton game={saved!} />
                       {/* Favorite button */}
-                      <FavoriteButton
-                        game={{
-                          id: game.id,
-                          name: game.name,
-                          slug: game.slug ?? '',
-                          background_image: game.background_image,
-                          metacritic: game.metacritic ?? null,
-                          parent_platforms: game.parent_platforms,
-                        }}
-                        className="shadow-lg"
-                      />
+                      <FavoriteButton game={saved!} className="shadow-lg" />
                       {/* Share button */}
                       <button
                         onClick={() => share({
