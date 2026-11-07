@@ -128,11 +128,15 @@ describe('infinite scroll', () => {
     expect(container.querySelector('.animate-spin')).not.toBeInTheDocument();
   });
 
-  it.fails('BUG-21: keeps going when a whole page was hidden by the adult filter', async () => {
+  it('keeps going when a whole page was hidden by the adult filter (BUG-21, fixed)', async () => {
     mockApi('/games', ({ params }: RecordedRequest) =>
       params.page === 1 ? page([1], true, { name: 'Hentai Quest' }) : page([2], false),
     );
     setup();
+    await waitFor(() => expect(apiRequests).toHaveLength(1));
+    expect(screen.queryByText(/no games found/i)).not.toBeInTheDocument();
+
+    await reachBottom();
 
     expect(await screen.findByRole('heading', { name: 'Game 2' })).toBeInTheDocument();
   });

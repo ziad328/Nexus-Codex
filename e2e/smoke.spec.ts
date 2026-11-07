@@ -120,9 +120,7 @@ test.describe('at 1440 px', () => {
     await expect(page.locator('main').getByRole('link', { name: /action/i }).locator('visible=true')).toBeVisible({ timeout: 3000 });
   });
 
-  // Expected failure: a known bug a real browser can show. It starts failing the moment it's fixed.
-  test('BUG-19: wheel-scrolling Recently Viewed logs no error', async ({ page }) => {
-    test.fail();
+  test('wheel-scrolling Recently Viewed logs no error (BUG-19, fixed)', async ({ page }) => {
     const logged: string[] = [];
     page.on('console', (message) => { if (message.type() === 'error') logged.push(message.text()); });
     await page.goto('/');

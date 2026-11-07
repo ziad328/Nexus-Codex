@@ -103,7 +103,7 @@ describe('RecentlyViewed', () => {
       const { container } = setup([makeGame(1)]);
       const element = strip(container);
 
-      fireEvent.wheel(element, { deltaY: 50 });
+      expect(fireEvent.wheel(element, { deltaY: 50 })).toBe(false);
 
       expect(element.scrollLeft).toBe(50);
     });

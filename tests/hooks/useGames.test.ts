@@ -326,24 +326,12 @@ describe('adult-content filter', () => {
     expect(await resultsFor([game(1, { slug }), game(2)])).toEqual([2]);
   });
 
-  it.each(['nudity', 'sexual-content', 'NSFW', 'adults-only'])('hides a game tagged "%s"', async (slug) => {
-    expect(await resultsFor([game(1, { tags: [{ id: 1, name: slug, slug }] }), game(2)])).toEqual([2]);
-  });
-
-  it.each(['Essex Stories', 'Sussex Farm', 'Portal 2', 'Barbarian', 'Nudge'])('keeps "%s"', async (name) => {
+  // The proxy sends no tags (IGDB's erotic theme is filtered there), so only names and slugs are checked here.
+  it.each(['Essex Stories', 'Sussex Farm', 'Portal 2', 'Barbarian', 'Nudge', 'Day of the Tentacle', 'Bara Bara'])('keeps "%s"', async (name) => {
     expect(await resultsFor([game(1, { name })])).toEqual([1]);
   });
 
-  it('keeps a game with ordinary tags', async () => {
-    const tags = [{ id: 1, name: 'Singleplayer', slug: 'singleplayer' }];
-    expect(await resultsFor([game(1, { tags })])).toEqual([1]);
-  });
-
-  it('copes with a game that has no tags', async () => {
-    expect(await resultsFor([game(1, { tags: undefined })])).toEqual([1]);
-  });
-
-  it.fails("BUG-14: keeps Command & Conquer: Yuri's Revenge", async () => {
+  it("keeps Command & Conquer: Yuri's Revenge (BUG-14, fixed)", async () => {
     expect(await resultsFor([game(1, { name: "Command & Conquer: Yuri's Revenge", slug: 'cc-revenge' })])).toEqual([1]);
   });
 });

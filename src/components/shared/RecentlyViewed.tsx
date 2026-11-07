@@ -23,7 +23,17 @@ const RecentlyViewed: FC<Props> = ({ onSelectGame }) => {
 
   const setRef = useCallback((el: HTMLDivElement | null) => {
     scrollRef.current = el;
-    if (el) updateScrollState(el);
+    if (!el) return;
+    updateScrollState(el);
+
+    // The wheel scrolls the strip sideways. React's wheel listeners are passive and can't stop the page
+    // scrolling too, so this one is added by hand.
+    const turnWheelSideways = (e: WheelEvent) => {
+      e.preventDefault();
+      el.scrollLeft += e.deltaY;
+    };
+    el.addEventListener('wheel', turnWheelSideways, { passive: false });
+    return () => el.removeEventListener('wheel', turnWheelSideways);
   }, []);
 
   if (recentlyViewed.length === 0) return null;
@@ -31,14 +41,6 @@ const RecentlyViewed: FC<Props> = ({ onSelectGame }) => {
   const scroll = (direction: 'left' | 'right') => {
     const el = scrollRef.current;
     if (el) el.scrollBy({ left: direction === 'right' ? 200 : -200, behavior: 'smooth' });
-  };
-
-  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
-    const el = scrollRef.current;
-    if (el) {
-      e.preventDefault();
-      el.scrollLeft += e.deltaY;
-    }
   };
 
   return (
@@ -70,7 +72,6 @@ const RecentlyViewed: FC<Props> = ({ onSelectGame }) => {
         <div
           ref={setRef}
           onScroll={(e) => updateScrollState(e.currentTarget)}
-          onWheel={handleWheel}
           className="flex gap-3 overflow-x-auto pb-2 scrollbar-none [&::-webkit-scrollbar]:hidden"
         >
           {recentlyViewed.map((game) => (

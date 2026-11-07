@@ -103,15 +103,15 @@ const GameGrid: FC<Props> = ({ gameQuery, onSelectGame, viewMode = 'grid' }) => 
           ))}
         </AnimatePresence>
         
-        {!isLoading && data.length === 0 && (
+        {!isLoading && data.length === 0 && !hasNextPage && (
           <div className="col-span-full text-center text-gray-500 mt-10 text-xl font-bold tracking-widest uppercase">
             No games found in the abyss.
           </div>
         )}
       </div>
       
-      {/* Infinite Scroll Trigger / Offline Banner */}
-      {!isLoading && data.length > 0 && (
+      {/* Infinite Scroll Trigger / Offline Banner. It stays while more pages exist, even if the adult filter emptied this one. */}
+      {!isLoading && (data.length > 0 || hasNextPage) && (
         <div ref={loadMoreRef} className="h-20 flex items-center justify-center mt-8">
           {error ? (
             <div className="flex items-center gap-2 text-red-400 bg-red-500/10 px-4 py-2 rounded-full text-sm font-medium border border-red-500/20">
