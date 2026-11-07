@@ -19,7 +19,7 @@ Don't trust `README.md` or `NEXUS_CODEX_OVERVIEW.md` until Phase 3 rewrites them
 - `src/store/`: `favoritesSlice` and `collectionsSlice` (user data, guest and Supabase), `authSlice`, `uiSlice`, `index.ts` (what is persisted)
 - `src/utils/supabase.ts`: the only Supabase client. It throws at import when its env values are missing.
 - `src/types/index.ts`: shared types
-- `tests/`: mirrors `src/`. `tests/setup.ts` runs before every file. `tests/fakes/` holds the fake API, Supabase, browser APIs and PWA module. `tests/render.tsx` has `renderWithProviders`.
+- `tests/`: mirrors `src/`. `tests/setup.ts` runs before every file. `tests/fakes/` holds the fake API, Supabase, browser APIs and PWA module. `tests/render.tsx` has `renderWithProviders` and `renderHookWithProviders`. `tests/fixtures.ts` has sample games and a signed-in state.
 
 ## Conventions
 - **Styling**: Tailwind with the tokens in `src/index.css` (`bg-background`, `bg-background-card`, `text-accent`, `font-medieval`). Every view must work at 1440 px and 375 px.
