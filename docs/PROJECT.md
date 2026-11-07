@@ -2,7 +2,7 @@
 
 The one living document for this project: what it's for, what it must do, how it's built, where it stands and what comes next. Update it whenever one of those changes. Day-to-day rules are in [../CLAUDE.md](../CLAUDE.md). The API research is in [rawg-vs-igdb.md](rawg-vs-igdb.md).
 
-_Last updated: 2026-11-07 (Phase 2 started: test setup, `CLAUDE.md` and this document)._
+_Last updated: 2026-11-07 (store tests added, BUG-9 and BUG-10 found. Before that: Phase 2 started with test setup, `CLAUDE.md` and this document)._
 
 ---
 
@@ -54,7 +54,7 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 
 **Phase 2 tasks**
 - [x] Test setup, `CLAUDE.md`, this document
-- [ ] Store
+- [x] Store
 - [ ] Services
 - [ ] Hooks
 - [ ] Shared components
@@ -65,7 +65,7 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 - [ ] Fix existing lint errors
 - [ ] Coverage report and hand-check list
 
-**Latest verification (2026-11-07):** 16 tests pass, `npx tsc -b --noEmit` clean, build passes. `npm run lint` still fails on the same 24 existing errors (issue 3); the new test code adds none. Live site: game data doesn't load (issue 2).
+**Latest verification (2026-11-07):** 71 tests pass and 9 known bugs are marked as expected failures. `npx tsc -b --noEmit` clean, build passes. `npm run lint` still fails on the same 24 existing errors (issue 3); the test code adds none. `src/store` coverage: 99% of lines, 92% of branches. 17 deliberate breakages of store code were all caught. Live site: game data doesn't load (issue 2).
 
 **Test skips**
 | Skipped | Why |
@@ -87,11 +87,11 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 | 2 | RAWG's API and site return 522 (checked 2026-11-07) | The live app shows no games | Phase 3 |
 | 3 | `npm run lint`: 24 errors and 1 warning in 21 files, all there before testing started (15 `no-explicit-any`, 9 `set-state-in-effect`) | One of the four checks can't pass | Fix at the end of Phase 2, once tests protect the code, without disabling rules |
 | 4 | RLS is unconfirmed; `collections` and `favorites` are read with no user filter | Lists may be readable by anyone | Owner checks |
-| 5 | A game deleted on one device comes back from another at sign-in | Deletions don't stick across devices | Owner to decide; needs deletion records or merging guest items only |
+| 5 | A game deleted on one device comes back from another at sign-in. Confirmed by `it.fails('ISSUE-5…')` in both slice tests. | Deletions don't stick across devices | Owner to decide; needs deletion records or merging guest items only |
 | 6 | RAWG's terms require a link on pages using its data; the app has none | Terms breach while RAWG is in use | Goes away with RAWG |
 | 7 | The README names `VITE_SUPABASE_ANON_KEY`; the code reads `VITE_SUPABASE_PUBLISHABLE_KEY`. Other claims are wrong too. | Misleads setup | Rewrite in Phase 3 |
 
-**Known bugs** (found by reading the code; each gets an `it.fails` test as Phase 2 reaches it, and none is fixed without the owner's OK)
+**Known bugs** (each gets an `it.fails` test as Phase 2 reaches it, and none is fixed without the owner's OK. "Pending" means found by reading the code and not yet proved by a test.)
 
 | Bug | What happens | Where | Test |
 |:--|:--|:--|:--|
@@ -101,8 +101,10 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 | BUG-4 | Trailers are hidden when a game has no screenshots | `GameDetailsModal` | Pending |
 | BUG-5 | Similar-game clicks do nothing on the Collections page | `CollectionsPage` | Pending |
 | BUG-6 | The adult filter covers the grid only, not deep links or similar games | `useGames` | Pending |
-| BUG-7 | A failed merge upload is only logged, while the item looks saved | both list slices | Pending |
-| BUG-8 | A failed add or remove shows the user nothing | `CollectionButton`, `FavoriteButton` | Pending |
+| BUG-7 | A failed merge upload is only logged, while the item looks saved. The item isn't lost: the next merge retries it. | both list slices | ✅ Proved |
+| BUG-8 | A failed add or remove shows the user nothing. The store does report the failure; the buttons ignore it. | `CollectionButton`, `FavoriteButton` | Pending |
+| BUG-9 | Merges running at once upload the same game twice, and duplicate cloud rows then show as duplicate cards. A magic-link sign-in looks able to trigger this: `App` merges on every auth event with a session, and Supabase's code sends both `INITIAL_SESSION` and `SIGNED_IN`. **A database unique constraint would block the duplicates, but the schema is unknown.** | both list slices, `App` | ✅ Proved in the store with the fake; not reproduced against real Supabase |
+| BUG-10 | `fetchFavorites` with nobody signed in wipes local favorites, while `fetchCollections` keeps its lists. `App` never calls it that way today, so it can't happen yet. | `favoritesSlice` | ✅ Proved |
 
 ## 7. Roadmap
 
