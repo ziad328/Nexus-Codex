@@ -415,16 +415,6 @@ describe('App', () => {
     });
   });
 
-  it('shows the update prompt alongside the page', async () => {
-    const { pwaFake } = await import('./fakes/pwa-register');
-    pwaFake.needRefresh = true;
-    const { store } = setup();
-    await settled(store);
-
-    expect(screen.getByRole('button', { name: /reload|refresh|update/i })).toBeInTheDocument();
-    pwaFake.needRefresh = false;
-  });
-
   describe('a first visit, with no genres saved in the browser', () => {
     const genresArrived = async () => {
       await waitFor(() => expect(localStorage.getItem('nexus-genres-v2')).not.toBeNull());

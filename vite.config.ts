@@ -54,7 +54,10 @@ export default defineConfig({
     localApi(),
     tailwindcss(),
     VitePWA({
-      registerType: 'prompt',
+      // A new version installs, takes over and reloads the page by itself. The old 'prompt' mode left visitors
+      // on the old app until they cleared site data: the update waited while any tab was open, and its
+      // button didn't reload when another tab had found the update.
+      registerType: 'autoUpdate',
       includeAssets: ['nexus_logo.png'],
       devOptions: {
         enabled: false,
