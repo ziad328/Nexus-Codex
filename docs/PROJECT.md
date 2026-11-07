@@ -2,7 +2,7 @@
 
 The one living document for this project: what it's for, what it must do, how it's built, where it stands and what comes next. Update it whenever one of those changes. Day-to-day rules are in [../CLAUDE.md](../CLAUDE.md). The API research is in [rawg-vs-igdb.md](rawg-vs-igdb.md).
 
-_Last updated: 2026-11-07 (auth and game component tests added, BUG-1, BUG-4 and BUG-6 proved, BUG-20 to BUG-24 found. Before that: shared component tests, BUG-8 proved, BUG-16 to BUG-19; service and hook tests, BUG-3 proved, BUG-11 to BUG-15; store tests, BUG-9 and BUG-10; Phase 2 started with test setup, `CLAUDE.md` and this document)._
+_Last updated: 2026-11-07 (layout tests added, BUG-2 proved, BUG-25 and BUG-26 found. Before that: auth and game component tests, BUG-1, BUG-4 and BUG-6 proved, BUG-20 to BUG-24; shared component tests, BUG-8 proved, BUG-16 to BUG-19; service and hook tests, BUG-3 proved, BUG-11 to BUG-15; store tests, BUG-9 and BUG-10; Phase 2 started with test setup, `CLAUDE.md` and this document)._
 
 ---
 
@@ -59,13 +59,13 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 - [x] Hooks
 - [x] Shared components
 - [x] Auth and game components
-- [ ] Layout
+- [x] Layout
 - [ ] Pages and `App`
 - [ ] Playwright smoke suite
 - [ ] Fix existing lint errors
 - [ ] Coverage report and hand-check list
 
-**Latest verification (2026-11-07):** 402 tests pass and 36 expected failures mark known problems. `npx tsc -b --noEmit` clean, build passes. `npm run lint` still fails on the same 24 existing errors (issue 3); the test code adds none. Coverage: `src/store` 99% of lines and 92% of branches; `src/hooks` and `src/services` 100% of both; `src/components/shared` 98% and 93%; `src/components/auth` and `game` 100% and 93%. Of 163 deliberate breakages of this code, 162 were caught; the other (an empty-value guard in `AuthModal`'s typo check) has no visible effect. Live site: game data doesn't load (issue 2).
+**Latest verification (2026-11-07):** 448 tests pass and 40 expected failures mark known problems. `npx tsc -b --noEmit` clean, build passes. `npm run lint` still fails on the same 24 existing errors (issue 3); the test code adds none. Coverage: `src/store` 99% of lines and 92% of branches; `src/hooks`, `src/services` and `src/components/layout` 100% of both; `src/components/shared` 98% and 93%; `src/components/auth` and `game` 100% and 93%. Of 202 deliberate breakages of this code, 200 were caught. The other two: an empty-value guard in `AuthModal`'s typo check has no visible effect, and `Sidebar`'s `if (error)` is BUG-2 itself, pinned by an expected failure. Live site: game data doesn't load (issue 2).
 
 **Test skips**
 | Skipped | Why |
@@ -96,7 +96,7 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 | Bug | What happens | Where | Test |
 |:--|:--|:--|:--|
 | BUG-1 | Modal glow never works, for three reasons: colorthief 3 has no class and the error is swallowed; the image lacks `crossorigin`; and the colour is built as `rgb(r, g, b)88`, which isn't valid CSS. | `GameDetailsModal` | ✅ Proved with a fake matching colorthief's real exports; the CSS fault found by reading the code |
-| BUG-2 | The whole sidebar, including My Collection, disappears on an API error | `Sidebar` | Pending |
+| BUG-2 | The whole sidebar, including My Collection, disappears on an API error | `Sidebar` | ✅ Proved |
 | BUG-3 | The previous game's trailers, store links and similar games stay until new ones arrive | `useGameTrailers`, `useGameStores`, `useSimilarGames` | ✅ Proved |
 | BUG-4 | Trailers are hidden when a game has no screenshots | `GameDetailsModal` | ✅ Proved |
 | BUG-5 | Similar-game clicks do nothing on the Collections page | `CollectionsPage` | Pending |
@@ -119,6 +119,8 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 | BUG-22 | A similar game scored 0 shows a stray "0". | `SimilarGamesCarousel` | ✅ Proved |
 | BUG-23 | Escape closes the modal only when its backdrop has focus, not wherever focus is. | `GameDetailsModal` | ✅ Proved |
 | BUG-24 | An empty developer list shows a blank instead of "—". The same code handles publishers. | `GameDetailsModal` | ✅ Proved for developers |
+| BUG-25 | **Phones can't reach sign-in or sign-out.** The whole account area is `hidden md:flex`, and the mobile menu has no replacement. A signed-out phone user can only sign in from the banner on `/collection`, which appears once they've saved a game. A signed-in phone user can't sign out at all. | `Navbar` | ✅ Proved; Sign In confirmed invisible on the live site at 375 px |
+| BUG-26 | `Layout` mounts two `Sidebar`s at once (mobile and desktop, one hidden by CSS), each asking for genres, so every page load makes at least two requests. | `Layout` | ✅ Proved |
 
 ## 7. Roadmap
 
