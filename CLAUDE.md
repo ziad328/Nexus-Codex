@@ -13,6 +13,7 @@ Don't trust `README.md` or `NEXUS_CODEX_OVERVIEW.md` until Phase 3 rewrites them
 - Use `tsc -b`. Plain `npx tsc --noEmit` checks **0 files** here, because the root `tsconfig.json` only has references.
 
 ## Layout
+- `api/`: the IGDB proxy. `api/_lib/router.ts` handles every route for Vercel and for `npm run dev`; keys come from `TWITCH_CLIENT_ID` and `TWITCH_CLIENT_SECRET` in `.env.local` (or Vercel), never `VITE_`. Tests: `tests/api/`, with a fake IGDB.
 - `src/pages/`: routes (`/`, `/genre/:genreSlug`, `/developer/:developerSlug`, `/publisher/:publisherSlug`, `/collection`), set up in `App.tsx`
 - `src/components/`: `auth/`, `game/`, `layout/`, `shared/`
 - `src/hooks/`: data hooks built on Axios and `AbortController`. There is no React Query.
