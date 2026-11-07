@@ -11,6 +11,7 @@ import { Link } from 'react-router-dom';
 import useShare from '../../hooks/useShare';
 import { Share2, Check, X, ExternalLink } from 'lucide-react';
 import SimilarGamesCarousel from './SimilarGamesCarousel';
+import YouTubeTrailer from './YouTubeTrailer';
 import SEO from '../shared/SEO';
 import type { Game } from '../../types';
 
@@ -214,6 +215,9 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
                       {game.description_raw || 'No description available.'}
                     </p>
                   </div>
+
+                  {/* Its own section, so a game without screenshots still shows its trailers. */}
+                  <YouTubeTrailer trailers={game.trailers} />
 
                   {screenshots.length > 0 && (
                     <div>

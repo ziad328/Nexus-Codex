@@ -149,7 +149,27 @@ describe('gallery', () => {
     expect(screen.getByRole('img', { name: 'Portal' })).toHaveAttribute('src', details.background_image);
   });
 
-  it('has no gallery without screenshots or trailers', async () => {
+  it('shows trailers even without screenshots (BUG-4, fixed)', async () => {
+    await renderLoaded({ game: { trailers: [{ id: 6, name: 'Launch Trailer', youtube_id: 'abc123' }] } });
+
+    expect(screen.getByRole('button', { name: 'Play trailer: Launch Trailer' })).toBeInTheDocument();
+    expect(screen.queryByText('Gallery')).not.toBeInTheDocument();
+  });
+
+  it('starts the next game on its own first trailer, not playing', async () => {
+    mockGame({ game: { trailers: [{ id: 6, name: 'Launch Trailer', youtube_id: 'abc123' }] } });
+    const { rerender } = setup();
+    fireEvent.click(await screen.findByRole('button', { name: 'Play trailer: Launch Trailer' }));
+    expect(document.querySelector('iframe')).toBeInTheDocument();
+
+    mockApi('/games/2', { ...details, id: 2, name: 'Doom', screenshots: [], store_links: [], similar: [], trailers: [{ id: 7, name: 'Doom Trailer', youtube_id: 'doom123' }] });
+    rerender(<GameDetailsModal gameId={2} onClose={vi.fn()} />);
+
+    expect(await screen.findByRole('button', { name: 'Play trailer: Doom Trailer' })).toBeInTheDocument();
+    expect(document.querySelector('iframe')).toBeNull();
+  });
+
+  it('has no gallery or trailers without screenshots or trailers', async () => {
     await renderLoaded();
 
     expect(screen.queryByText('Gallery')).not.toBeInTheDocument();
