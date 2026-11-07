@@ -76,7 +76,7 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 
 ## 5. Action needed from the owner
 
-1. **Check Row Level Security** with the read-only SQL in [rawg-vs-igdb.md, section 5](rawg-vs-igdb.md#5-report-only-items). Until confirmed, treat lists as possibly public.
+1. **Finish the Row Level Security check.** The read-only SQL in [rawg-vs-igdb.md, section 5](rawg-vs-igdb.md#5-report-only-items) came back safe on 2026-11-07. One real test remains: sign in as two different users and confirm neither sees the other's rows.
 2. **Before Phase 3:** create the Twitch app, so a short script can test real IGDB data. Exact steps come at that point.
 
 ## 6. Open issues and known limits
@@ -86,7 +86,7 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 | 1 | The RAWG key ships in the browser bundle | Anyone can copy it | Removed in Phase 3 |
 | 2 | RAWG's API and site return 522 (checked 2026-11-07) | The live app shows no games | Phase 3 |
 | 3 | One older rule exception remains: `useData` disables `exhaustive-deps` on one line. Lint itself passes. | None today | Review when `useData` changes in Phase 3 |
-| 4 | RLS is unconfirmed; `collections` and `favorites` are read with no user filter | Lists may be readable by anyone | Owner checks |
+| 4 | `collections` and `favorites` are read with no user filter, so Row Level Security alone keeps lists private. The owner's SQL (2026-11-07) shows it on, with `auth.uid() = user_id` policies for select, insert and delete. | Lists look private; not yet tested with two real users | Owner runs the two-user test |
 | 5 | A game deleted on one device comes back from another at sign-in. Confirmed by `it.fails('ISSUE-5…')` in both slice tests. | Deletions don't stick across devices | Owner to decide; needs deletion records or merging guest items only |
 | 6 | RAWG's terms require a link on pages using its data; the app has none | Terms breach while RAWG is in use | Goes away with RAWG |
 | 7 | The README names `VITE_SUPABASE_ANON_KEY`; the code reads `VITE_SUPABASE_PUBLISHABLE_KEY`. Other claims are wrong too. | Misleads setup | Rewrite in Phase 3 |
@@ -103,7 +103,7 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 | BUG-6 | The adult filter covers the grid only, not deep links or similar games | `useGames`, `GameDetailsModal`, `SimilarGamesCarousel` | ✅ Proved |
 | BUG-7 | A failed merge upload is only logged, while the item looks saved. The item isn't lost: the next merge retries it. | both list slices | ✅ Proved |
 | BUG-8 | A failed add or remove shows the user nothing. The store does report the failure; the buttons ignore it. | `CollectionButton`, `FavoriteButton` | ✅ Proved |
-| BUG-9 | Merges running at once upload the same game twice, and duplicate cloud rows then show as duplicate cards. A magic-link sign-in looks able to trigger this: `App` merges on every auth event with a session, and Supabase's code sends both `INITIAL_SESSION` and `SIGNED_IN`. **A database unique constraint would block the duplicates, but the schema is unknown.** | both list slices, `App` | ✅ Proved in the store and in `App` (two events start two merges and save each game twice; a token refresh merges again) with the fake; not reproduced against real Supabase |
+| BUG-9 | Merges running at once upload the same game twice, and duplicate cloud rows then show as duplicate cards. A magic-link sign-in looks able to trigger this: `App` merges on every auth event with a session, and Supabase's code sends both `INITIAL_SESSION` and `SIGNED_IN`. **The real database blocks this:** the owner's SQL (2026-11-07) shows unique constraints on both tables and no duplicate rows. The real cost is repeated merges, and a rejected upload that is only logged (BUG-7). The test fake has no unique constraints, so it shows duplicates the real database wouldn't. | both list slices, `App` | ✅ Proved in the store and in `App` (two events start two merges and save each game twice; a token refresh merges again) with the fake; not reproduced against real Supabase |
 | BUG-10 | `fetchFavorites` with nobody signed in wipes local favorites, while `fetchCollections` keeps its lists. `App` never calls it that way today, so it can't happen yet. | `favoritesSlice` | ✅ Proved |
 | BUG-11 | On a non-RAWG URL, the crop helper returns a broken address (`httpscrop/600/400/://images…`). Harmless today, but **every IGDB image would break**. | `image-url` | ✅ Proved; must change in Phase 3 |
 | BUG-12 | After one failed request, the error stays even when a later request succeeds. Sections that hide on error stay hidden for later games until the modal closes. | `useData`, `useGameTrailers`, `useGameStores`, `useSimilarGames` | ✅ Proved |

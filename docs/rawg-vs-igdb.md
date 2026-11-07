@@ -236,7 +236,7 @@ select conrelid::regclass, conname, pg_get_constraintdef(oid)
 from pg_constraint where conrelid in ('public.collections'::regclass, 'public.favorites'::regclass);
 ```
 
-Safe result: `relrowsecurity = true`, and policies use `auth.uid() = user_id` for all commands (for insert, in `with_check`). Then test it for real: sign in as user A in one window, and confirm user B's rows don't come back. **I couldn't check this:** I have no database access and the schema isn't in the repo. Until confirmed, treat lists as possibly public.
+Safe result: `relrowsecurity = true`, and policies use `auth.uid() = user_id` for all commands (for insert, in `with_check`). Then test it for real: sign in as user A in one window, and confirm user B's rows don't come back. **Result (owner ran it, 2026-11-07):** RLS is on for both tables, select, insert and delete policies use `auth.uid() = user_id`, both tables have unique constraints, and there are no duplicate rows. The two-user test is still to do.
 
 **Deleted games coming back: confirmed in code.** `fetchFavorites` and `fetchCollections` upload any local item missing from the cloud. If device A deletes a game, device B still has it locally and re-uploads it at its next sign-in. A real fix needs deletion records (`deleted_at`) or merging only guest items. Not fixing it unasked.
 
