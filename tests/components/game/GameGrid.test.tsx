@@ -21,8 +21,12 @@ const setup = (viewMode?: 'grid' | 'list') => {
   return { onSelectGame, ...renderWithProviders(<GameGrid gameQuery={{}} onSelectGame={onSelectGame} viewMode={viewMode} />) };
 };
 
-const reachBottom = () => act(() => triggerIntersection());
 const settle = () => act(() => new Promise((resolve) => setTimeout(resolve)));
+// Settles first: a heading can appear before the grid has attached its observer to the new scroll trigger.
+const reachBottom = async () => {
+  await settle();
+  act(() => triggerIntersection());
+};
 
 describe('loading', () => {
   it('shows 12 placeholders', () => {
@@ -78,7 +82,7 @@ describe('infinite scroll', () => {
     setup();
     await screen.findByRole('heading', { name: 'Game 1' });
 
-    reachBottom();
+    await reachBottom();
 
     expect(await screen.findByRole('heading', { name: 'Game 2' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Game 1' })).toBeInTheDocument();
@@ -91,9 +95,9 @@ describe('infinite scroll', () => {
     const { container } = setup();
     await screen.findByRole('heading', { name: 'Game 1' });
 
-    reachBottom();
+    await reachBottom();
     await waitFor(() => expect(container.querySelector('.animate-pulse.rounded-full')).toBeInTheDocument());
-    reachBottom();
+    await reachBottom();
     await settle();
 
     expect(apiRequests).toHaveLength(2);
@@ -106,7 +110,7 @@ describe('infinite scroll', () => {
     setup();
     await screen.findByRole('heading', { name: 'Game 1' });
 
-    reachBottom();
+    await reachBottom();
     await settle();
 
     expect(apiRequests).toHaveLength(1);
@@ -118,7 +122,7 @@ describe('infinite scroll', () => {
     await screen.findByRole('heading', { name: 'Game 1' });
     expect(container.querySelector('.animate-spin')).toBeInTheDocument();
 
-    reachBottom();
+    await reachBottom();
     await screen.findByRole('heading', { name: 'Game 2' });
 
     expect(container.querySelector('.animate-spin')).not.toBeInTheDocument();
@@ -150,7 +154,7 @@ describe('errors', () => {
     setup();
     await screen.findByText('Failed to connect to Nexus');
 
-    reachBottom();
+    await reachBottom();
     await settle();
 
     expect(apiRequests).toHaveLength(1);
@@ -164,7 +168,7 @@ describe('errors', () => {
       });
       setup();
       await screen.findByRole('heading', { name: 'Game 1' });
-      reachBottom();
+      await reachBottom();
       await screen.findByText(/cannot load more games/i);
     };
 
@@ -179,8 +183,8 @@ describe('errors', () => {
       await failSecondPage();
       const requestsSoFar = apiRequests.length;
 
-      reachBottom();
-      reachBottom();
+      await reachBottom();
+      await reachBottom();
       await settle();
 
       expect(apiRequests).toHaveLength(requestsSoFar);
@@ -194,7 +198,7 @@ it('stops observing when removed', async () => {
   await screen.findByRole('heading', { name: 'Game 1' });
 
   unmount();
-  reachBottom();
+  await reachBottom();
   await settle();
 
   expect(apiRequests).toHaveLength(1);

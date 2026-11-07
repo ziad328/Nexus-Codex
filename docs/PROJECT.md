@@ -2,7 +2,7 @@
 
 The one living document for this project: what it's for, what it must do, how it's built, where it stands and what comes next. Update it whenever one of those changes. Day-to-day rules are in [../CLAUDE.md](../CLAUDE.md). The API research is in [rawg-vs-igdb.md](rawg-vs-igdb.md).
 
-_Last updated: 2026-11-07 (layout tests added, BUG-2 proved, BUG-25 and BUG-26 found. Before that: auth and game component tests, BUG-1, BUG-4 and BUG-6 proved, BUG-20 to BUG-24; shared component tests, BUG-8 proved, BUG-16 to BUG-19; service and hook tests, BUG-3 proved, BUG-11 to BUG-15; store tests, BUG-9 and BUG-10; Phase 2 started with test setup, `CLAUDE.md` and this document)._
+_Last updated: 2026-11-07 (page and `App` tests added, BUG-5 proved, BUG-27 to BUG-33 found, two timing faults in older tests fixed. Before that: layout tests, BUG-2 proved, BUG-25 and BUG-26; auth and game component tests, BUG-1, BUG-4 and BUG-6 proved, BUG-20 to BUG-24; shared component tests, BUG-8 proved, BUG-16 to BUG-19; service and hook tests, BUG-3 proved, BUG-11 to BUG-15; store tests, BUG-9 and BUG-10; Phase 2 started with test setup, `CLAUDE.md` and this document)._
 
 ---
 
@@ -60,12 +60,12 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 - [x] Shared components
 - [x] Auth and game components
 - [x] Layout
-- [ ] Pages and `App`
+- [x] Pages and `App`
 - [ ] Playwright smoke suite
 - [ ] Fix existing lint errors
 - [ ] Coverage report and hand-check list
 
-**Latest verification (2026-11-07):** 448 tests pass and 40 expected failures mark known problems. `npx tsc -b --noEmit` clean, build passes. `npm run lint` still fails on the same 24 existing errors (issue 3); the test code adds none. Coverage: `src/store` 99% of lines and 92% of branches; `src/hooks`, `src/services` and `src/components/layout` 100% of both; `src/components/shared` 98% and 93%; `src/components/auth` and `game` 100% and 93%. Of 202 deliberate breakages of this code, 200 were caught. The other two: an empty-value guard in `AuthModal`'s typo check has no visible effect, and `Sidebar`'s `if (error)` is BUG-2 itself, pinned by an expected failure. Live site: game data doesn't load (issue 2).
+**Latest verification (2026-11-07):** 566 tests pass and 59 expected failures mark known problems. `npx tsc -b --noEmit` clean, build passes. `npm run lint` still fails on the same 24 existing errors (issue 3); the test code adds none. Coverage: `src/store` 99% of lines and 92% of branches; `src/hooks`, `src/services` and `src/components/layout` 100% of both; `src/components/shared` 98% and 93%; `src/components/auth` and `game` 100% and 93%; `src/pages` 100% of lines and 95% of branches. Of 366 deliberate breakages of this code, 362 were caught. The other four: an empty-value guard in `AuthModal`'s typo check has no visible effect; `Sidebar`'s `if (error)` is BUG-2 itself, pinned by an expected failure; and two things jsdom can't show, which need a hand check: `CollectionsPage` attaching scrollbars to the page body, and `App`'s `reducedMotion="user"`. Live site: game data doesn't load (issue 2).
 
 **Test skips**
 | Skipped | Why |
@@ -99,11 +99,11 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 | BUG-2 | The whole sidebar, including My Collection, disappears on an API error | `Sidebar` | ✅ Proved |
 | BUG-3 | The previous game's trailers, store links and similar games stay until new ones arrive | `useGameTrailers`, `useGameStores`, `useSimilarGames` | ✅ Proved |
 | BUG-4 | Trailers are hidden when a game has no screenshots | `GameDetailsModal` | ✅ Proved |
-| BUG-5 | Similar-game clicks do nothing on the Collections page | `CollectionsPage` | Pending |
+| BUG-5 | Similar-game clicks do nothing on the Collections page | `CollectionsPage` | ✅ Proved |
 | BUG-6 | The adult filter covers the grid only, not deep links or similar games | `useGames`, `GameDetailsModal`, `SimilarGamesCarousel` | ✅ Proved |
 | BUG-7 | A failed merge upload is only logged, while the item looks saved. The item isn't lost: the next merge retries it. | both list slices | ✅ Proved |
 | BUG-8 | A failed add or remove shows the user nothing. The store does report the failure; the buttons ignore it. | `CollectionButton`, `FavoriteButton` | ✅ Proved |
-| BUG-9 | Merges running at once upload the same game twice, and duplicate cloud rows then show as duplicate cards. A magic-link sign-in looks able to trigger this: `App` merges on every auth event with a session, and Supabase's code sends both `INITIAL_SESSION` and `SIGNED_IN`. **A database unique constraint would block the duplicates, but the schema is unknown.** | both list slices, `App` | ✅ Proved in the store with the fake; not reproduced against real Supabase |
+| BUG-9 | Merges running at once upload the same game twice, and duplicate cloud rows then show as duplicate cards. A magic-link sign-in looks able to trigger this: `App` merges on every auth event with a session, and Supabase's code sends both `INITIAL_SESSION` and `SIGNED_IN`. **A database unique constraint would block the duplicates, but the schema is unknown.** | both list slices, `App` | ✅ Proved in the store and in `App` (two events start two merges and save each game twice; a token refresh merges again) with the fake; not reproduced against real Supabase |
 | BUG-10 | `fetchFavorites` with nobody signed in wipes local favorites, while `fetchCollections` keeps its lists. `App` never calls it that way today, so it can't happen yet. | `favoritesSlice` | ✅ Proved |
 | BUG-11 | On a non-RAWG URL, the crop helper returns a broken address (`httpscrop/600/400/://images…`). Harmless today, but **every IGDB image would break**. | `image-url` | ✅ Proved; must change in Phase 3 |
 | BUG-12 | After one failed request, the error stays even when a later request succeeds. Sections that hide on error stay hidden for later games until the modal closes. | `useData`, `useGameTrailers`, `useGameStores`, `useSimilarGames` | ✅ Proved |
@@ -120,7 +120,14 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 | BUG-23 | Escape closes the modal only when its backdrop has focus, not wherever focus is. | `GameDetailsModal` | ✅ Proved |
 | BUG-24 | An empty developer list shows a blank instead of "—". The same code handles publishers. | `GameDetailsModal` | ✅ Proved for developers |
 | BUG-25 | **Phones can't reach sign-in or sign-out.** The whole account area is `hidden md:flex`, and the mobile menu has no replacement. A signed-out phone user can only sign in from the banner on `/collection`, which appears once they've saved a game. A signed-in phone user can't sign out at all. | `Navbar` | ✅ Proved; Sign In confirmed invisible on the live site at 375 px |
-| BUG-26 | `Layout` mounts two `Sidebar`s at once (mobile and desktop, one hidden by CSS), each asking for genres, so every page load makes at least two requests. | `Layout` | ✅ Proved |
+| BUG-26 | `Layout` mounts two `Sidebar`s at once (mobile and desktop, one hidden by CSS), each asking for genres, so every page load makes at least two requests. `HomePage` asks as well, making three. | `Layout`, `HomePage` | ✅ Proved |
+| BUG-27 | A genre page's title stays on "Loading..." forever if the genre names fail to load or the genre doesn't exist. The browser tab title says it too. | `HomePage` | ✅ Proved |
+| BUG-28 | Recently Viewed only records games opened from `HomePage`'s grid or modal, not from a deep link or the Developer, Publisher or Collections pages. The owner may consider some of this intended. | `HomePage`, `DeveloperPage`, `PublisherPage`, `CollectionsPage` | ✅ Proved |
+| BUG-29 | Opening a game from Recently Viewed doesn't set `?gameId=` and doesn't move the game to the front. | `HomePage` | ✅ Proved |
+| BUG-30 | The Collections page has no deep link: `?gameId=` is ignored, and opening a game doesn't set the URL. The Share button is unaffected, because it always links to the home page. | `CollectionsPage` | ✅ Proved |
+| BUG-31 | An unknown URL shows a blank screen with no navbar and no way back. There is no catch-all route. | `App` | ✅ Proved |
+| BUG-32 | The expired-link message's dismiss button has no name, so screen readers can't announce it. | `App` | ✅ Proved |
+| BUG-33 | **On a first visit, with no genres saved in the browser, only the first `useGenres` to get a response shows them.** The others find the list already saved, treat it as unchanged and never update. In order of requests, that leaves the visible desktop sidebar empty and a genre page's title on "Loading..." until a reload. | `useGenres` | ✅ Proved with the fake; not seen live because RAWG is down, and real responses may arrive in a different order |
 
 ## 7. Roadmap
 

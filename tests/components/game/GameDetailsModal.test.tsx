@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import GameDetailsModal from '../../../src/components/game/GameDetailsModal';
 import { apiRequests, deferred, mockApi, mockApiError } from '../../fakes/network';
 import { makeGame } from '../../fixtures';
@@ -404,8 +404,9 @@ describe('adult content', () => {
 
   it.fails('BUG-6: does not suggest an adult game as similar', async () => {
     await renderLoaded({ similar: [makeGame(2, { name: 'Hentai Quest' })] });
-    await waitFor(() => expect(document.querySelector('.animate-spin')).not.toBeInTheDocument());
-    await new Promise((resolve) => setTimeout(resolve));
+    // The spinner can be gone before the carousel has even asked, so wait for its request.
+    await waitFor(() => expect(apiRequests.some((request) => request.url === '/games/1/game-series')).toBe(true));
+    await act(() => new Promise((resolve) => setTimeout(resolve, 20)));
 
     expect(screen.queryByRole('heading', { name: 'Hentai Quest' })).not.toBeInTheDocument();
   });
