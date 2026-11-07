@@ -2,7 +2,7 @@
 
 The one living document for this project: what it's for, what it must do, how it's built, where it stands and what comes next. Update it whenever one of those changes. Day-to-day rules are in [../CLAUDE.md](../CLAUDE.md). The API research is in [rawg-vs-igdb.md](rawg-vs-igdb.md).
 
-_Last updated: 2026-11-07 (shared component tests added, BUG-8 proved, BUG-16 to BUG-19 found. Before that: service and hook tests, BUG-3 proved, BUG-11 to BUG-15; store tests, BUG-9 and BUG-10; Phase 2 started with test setup, `CLAUDE.md` and this document)._
+_Last updated: 2026-11-07 (auth and game component tests added, BUG-1, BUG-4 and BUG-6 proved, BUG-20 to BUG-24 found. Before that: shared component tests, BUG-8 proved, BUG-16 to BUG-19; service and hook tests, BUG-3 proved, BUG-11 to BUG-15; store tests, BUG-9 and BUG-10; Phase 2 started with test setup, `CLAUDE.md` and this document)._
 
 ---
 
@@ -58,14 +58,14 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 - [x] Services
 - [x] Hooks
 - [x] Shared components
-- [ ] Auth and game components
+- [x] Auth and game components
 - [ ] Layout
 - [ ] Pages and `App`
 - [ ] Playwright smoke suite
 - [ ] Fix existing lint errors
 - [ ] Coverage report and hand-check list
 
-**Latest verification (2026-11-07):** 279 tests pass and 25 expected failures mark known problems. `npx tsc -b --noEmit` clean, build passes. `npm run lint` still fails on the same 24 existing errors (issue 3); the test code adds none. Coverage: `src/store` 99% of lines and 92% of branches; `src/hooks` and `src/services` 100% of both; `src/components/shared` 98% and 93%. 103 deliberate breakages of this code were all caught. Live site: game data doesn't load (issue 2).
+**Latest verification (2026-11-07):** 402 tests pass and 36 expected failures mark known problems. `npx tsc -b --noEmit` clean, build passes. `npm run lint` still fails on the same 24 existing errors (issue 3); the test code adds none. Coverage: `src/store` 99% of lines and 92% of branches; `src/hooks` and `src/services` 100% of both; `src/components/shared` 98% and 93%; `src/components/auth` and `game` 100% and 93%. Of 163 deliberate breakages of this code, 162 were caught; the other (an empty-value guard in `AuthModal`'s typo check) has no visible effect. Live site: game data doesn't load (issue 2).
 
 **Test skips**
 | Skipped | Why |
@@ -95,12 +95,12 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 
 | Bug | What happens | Where | Test |
 |:--|:--|:--|:--|
-| BUG-1 | Modal glow never works: colorthief 3 has no class, the error is swallowed, and the image lacks `crossorigin` | `GameDetailsModal` | Pending |
+| BUG-1 | Modal glow never works, for three reasons: colorthief 3 has no class and the error is swallowed; the image lacks `crossorigin`; and the colour is built as `rgb(r, g, b)88`, which isn't valid CSS. | `GameDetailsModal` | ✅ Proved with a fake matching colorthief's real exports; the CSS fault found by reading the code |
 | BUG-2 | The whole sidebar, including My Collection, disappears on an API error | `Sidebar` | Pending |
 | BUG-3 | The previous game's trailers, store links and similar games stay until new ones arrive | `useGameTrailers`, `useGameStores`, `useSimilarGames` | ✅ Proved |
-| BUG-4 | Trailers are hidden when a game has no screenshots | `GameDetailsModal` | Pending |
+| BUG-4 | Trailers are hidden when a game has no screenshots | `GameDetailsModal` | ✅ Proved |
 | BUG-5 | Similar-game clicks do nothing on the Collections page | `CollectionsPage` | Pending |
-| BUG-6 | The adult filter covers the grid only, not deep links or similar games | `useGames` | Pending |
+| BUG-6 | The adult filter covers the grid only, not deep links or similar games | `useGames`, `GameDetailsModal`, `SimilarGamesCarousel` | ✅ Proved |
 | BUG-7 | A failed merge upload is only logged, while the item looks saved. The item isn't lost: the next merge retries it. | both list slices | ✅ Proved |
 | BUG-8 | A failed add or remove shows the user nothing. The store does report the failure; the buttons ignore it. | `CollectionButton`, `FavoriteButton` | ✅ Proved |
 | BUG-9 | Merges running at once upload the same game twice, and duplicate cloud rows then show as duplicate cards. A magic-link sign-in looks able to trigger this: `App` merges on every auth event with a session, and Supabase's code sends both `INITIAL_SESSION` and `SIGNED_IN`. **A database unique constraint would block the duplicates, but the schema is unknown.** | both list slices, `App` | ✅ Proved in the store with the fake; not reproduced against real Supabase |
@@ -110,10 +110,15 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 | BUG-13 | Changing a filter after scrolling first requests page 2 of the new filter, aborts it, then requests page 1. A wasted request, which matters more with IGDB's 4 per second limit. | `useGames` | ✅ Proved |
 | BUG-14 | The adult filter hides innocent games: "Command & Conquer: Yuri's Revenge" is hidden because of the word "yuri". | `useGames` | ✅ Proved |
 | BUG-15 | With no genre cache, genres are requested twice. | `useGenres` | ✅ Proved |
-| BUG-16 | The video player's mute, play and fullscreen buttons have no names, so screen readers can't announce them. | `CustomVideoPlayer` | ✅ Proved |
+| BUG-16 | The video player's mute, play and fullscreen buttons and the sign-in modal's close button have no names, so screen readers can't announce them. | `CustomVideoPlayer`, `AuthModal` | ✅ Proved |
 | BUG-17 | Pressing Enter on the progress bar sets the video time to an invalid value, because the key handler reuses the mouse handler. | `CustomVideoPlayer` | ✅ Proved in jsdom |
 | BUG-18 | A broken image keeps its loading animation forever. It will matter more with IGDB, which removes replaced images after 30 days. | `ProgressiveImage` | ✅ Proved |
 | BUG-19 | Mouse-wheel scrolling on Recently Viewed may log an error and scroll the page too: it calls `preventDefault`, and React's wheel listeners are normally passive. jsdom can't show this. | `RecentlyViewed` | Pending; check by hand |
+| BUG-20 | Every email typo gets "Did you mean @gmail.com?", even `@hotmai.com` or `@yahoo.co`, because the suggestion ignores the typo table's right answer. | `AuthModal` | ✅ Proved |
+| BUG-21 | If the adult filter hides a whole page, the grid says "No games found" and stops, though more pages exist. The scroll trigger only renders when games are showing. | `GameGrid` | ✅ Proved |
+| BUG-22 | A similar game scored 0 shows a stray "0". | `SimilarGamesCarousel` | ✅ Proved |
+| BUG-23 | Escape closes the modal only when its backdrop has focus, not wherever focus is. | `GameDetailsModal` | ✅ Proved |
+| BUG-24 | An empty developer list shows a blank instead of "—". The same code handles publishers. | `GameDetailsModal` | ✅ Proved for developers |
 
 ## 7. Roadmap
 
