@@ -27,7 +27,7 @@ describe('as a guest', () => {
     expect(supabaseFake.queries()).toEqual([]);
   });
 
-  it.fails('BUG-10: keeps local favorites when a merge is requested with nobody signed in', async () => {
+  it('keeps local favorites when a merge is requested with nobody signed in (BUG-10, fixed)', async () => {
     const store = createTestStore({ favorites: { items: [makeGame(1)] } });
 
     await store.dispatch(fetchFavorites());
@@ -174,7 +174,17 @@ describe('merging local favorites into the cloud at sign-in', () => {
       expect(cloudIds()).toEqual([1]);
     });
 
-    it.fails('BUG-7: reports the failed upload instead of looking saved', async () => {
+    it('still shows the cloud games beside the local ones', async () => {
+      supabaseFake.seed('favorites', [makeRow(makeGame(2))]);
+      const store = createTestStore({ auth: signedIn, favorites: { items: [makeGame(1)] } });
+      supabaseFake.failNext('favorites', 'insert');
+
+      await store.dispatch(fetchFavorites());
+
+      expect(favoriteIds(store)).toEqual([2, 1]);
+    });
+
+    it('reports the failed upload instead of looking saved (BUG-7, fixed)', async () => {
       const store = createTestStore({ auth: signedIn, favorites: { items: [makeGame(1)] } });
       supabaseFake.failNext('favorites', 'insert');
 
@@ -184,7 +194,7 @@ describe('merging local favorites into the cloud at sign-in', () => {
     });
   });
 
-  it.fails('BUG-9: two merges at once do not upload a game twice', async () => {
+  it('two merges at once do not upload a game twice (BUG-9, fixed)', async () => {
     const store = createTestStore({ auth: signedIn, favorites: { items: [makeGame(1)] } });
 
     await Promise.all([store.dispatch(fetchFavorites()), store.dispatch(fetchFavorites())]);
@@ -192,7 +202,7 @@ describe('merging local favorites into the cloud at sign-in', () => {
     expect(cloudIds()).toEqual([1]);
   });
 
-  it.fails('BUG-9: duplicate cloud rows show as one game', async () => {
+  it('duplicate cloud rows show as one game (BUG-9, fixed)', async () => {
     const row = makeRow(makeGame(1));
     supabaseFake.seed('favorites', [row, row]);
     const store = createTestStore({ auth: signedIn });

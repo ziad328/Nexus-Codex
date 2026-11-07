@@ -121,13 +121,13 @@ describe('CollectionButton', () => {
     expect(screen.getByText('Add to list').parentElement?.parentElement).toHaveClass(className);
   });
 
-  it.fails('BUG-8: tells the user when saving fails', async () => {
+  it('tells the user when saving fails (BUG-8, fixed)', async () => {
     supabaseFake.failNext('collections', 'insert');
     renderWithProviders(<CollectionButton game={game} />, { preloadedState: { auth: signedIn } });
     openMenu();
 
     fireEvent.click(menuItem('Backlog'));
 
-    expect(await screen.findByRole('alert')).toBeInTheDocument();
+    expect(await screen.findByRole('alert')).toHaveTextContent("Couldn't save");
   });
 });

@@ -233,7 +233,17 @@ describe('merging local lists into the cloud at sign-in', () => {
       expect(cloudKeys()).toEqual(['playing:1']);
     });
 
-    it.fails('BUG-7: reports the failed upload instead of looking saved', async () => {
+    it('still shows the cloud games beside the local ones', async () => {
+      supabaseFake.seed('collections', [makeRow(makeGame(2), { collection_name: 'playing' })]);
+      const store = createTestStore({ auth: signedIn, collections: withLists({ playing: [makeGame(1)] }) });
+      supabaseFake.failNext('collections', 'insert');
+
+      await store.dispatch(fetchCollections());
+
+      expect(idsIn(store, 'playing')).toEqual([2, 1]);
+    });
+
+    it('reports the failed upload instead of looking saved (BUG-7, fixed)', async () => {
       const store = createTestStore({ auth: signedIn, collections: withLists({ playing: [makeGame(1)] }) });
       supabaseFake.failNext('collections', 'insert');
 
@@ -243,7 +253,7 @@ describe('merging local lists into the cloud at sign-in', () => {
     });
   });
 
-  it.fails('BUG-9: two merges at once do not upload a game twice', async () => {
+  it('two merges at once do not upload a game twice (BUG-9, fixed)', async () => {
     const store = createTestStore({ auth: signedIn, collections: withLists({ playing: [makeGame(1)] }) });
 
     await Promise.all([store.dispatch(fetchCollections()), store.dispatch(fetchCollections())]);
@@ -251,7 +261,7 @@ describe('merging local lists into the cloud at sign-in', () => {
     expect(cloudKeys()).toEqual(['playing:1']);
   });
 
-  it.fails('BUG-9: duplicate cloud rows show as one game', async () => {
+  it('duplicate cloud rows show as one game (BUG-9, fixed)', async () => {
     const row = makeRow(makeGame(1), { collection_name: 'playing' });
     supabaseFake.seed('collections', [row, row]);
     const store = createTestStore({ auth: signedIn });

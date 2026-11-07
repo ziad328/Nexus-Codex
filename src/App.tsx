@@ -1,5 +1,5 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
 import { HelmetProvider } from 'react-helmet-async';
 import { AlertCircle, X } from 'lucide-react';
@@ -31,15 +31,25 @@ function ScrollToTop() {
   return null;
 }
 
+interface Notice { title: string; message: string }
+
+const SYNC_FAILED: Notice = {
+  title: 'Sync Failed',
+  message: "Some saved games couldn't reach your account. They're kept on this device and will sync next time you sign in.",
+};
+
 function App() {
   const dispatch = useAppDispatch();
   const { isAuthModalOpen } = useSelector((state: RootState) => state.ui);
-  const [authError, setAuthError] = useState<string | null>(() => {
+  const [authError, setAuthError] = useState<Notice | null>(() => {
     const hash = window.location.hash;
     return hash.includes('error=access_denied') && hash.includes('error_code=otp_expired')
-      ? 'This magic link has expired. Please try signing in again.'
+      ? { title: 'Authentication Failed', message: 'This magic link has expired. Please try signing in again.' }
       : null;
   });
+  // The user whose guest games were last merged. Supabase sends INITIAL_SESSION and SIGNED_IN for one
+  // sign-in, and TOKEN_REFRESHED later; only a new user starts a merge.
+  const mergedFor = useRef<string | null>(null);
 
   useEffect(() => {
     if (!authError) return;
@@ -62,9 +72,16 @@ function App() {
       dispatch(setSession({ session, user: session?.user ?? null }));
       if (session) {
         dispatch(setAuthModalOpen(false));
-        dispatch(fetchFavorites());
-        dispatch(fetchCollections());
+        if (mergedFor.current === session.user.id) return;
+        mergedFor.current = session.user.id;
+        // A merge skipped because one is already running (condition) is not a failure.
+        const reportFailure = ({ meta }: { meta: { requestStatus: string; condition?: boolean } }) => {
+          if (meta.requestStatus === 'rejected' && !meta.condition) setAuthError(SYNC_FAILED);
+        };
+        dispatch(fetchFavorites()).then(reportFailure);
+        dispatch(fetchCollections()).then(reportFailure);
       } else if (event === 'SIGNED_OUT') {
+        mergedFor.current = null;
         dispatch(clearFavorites());
         dispatch(clearCollections());
       }
@@ -107,8 +124,8 @@ function App() {
                 <AlertCircle className="w-5 h-5 text-orange-400" />
               </div>
               <div className="pt-0.5">
-                <h4 className="text-orange-400 font-bold text-sm">Authentication Failed</h4>
-                <p className="text-orange-400/80 text-sm mt-1 leading-relaxed">{authError}</p>
+                <h4 className="text-orange-400 font-bold text-sm">{authError.title}</h4>
+                <p className="text-orange-400/80 text-sm mt-1 leading-relaxed">{authError.message}</p>
               </div>
               <button 
                 onClick={() => setAuthError(null)}

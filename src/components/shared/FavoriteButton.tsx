@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import type { FC } from 'react';
+import SaveFailedNotice from './SaveFailedNotice';
 import { Heart } from 'lucide-react';
 import useAppSelector from '../../hooks/useAppSelector';
 import useAppDispatch from '../../hooks/useAppDispatch';
@@ -15,12 +17,15 @@ const FavoriteButton: FC<Props> = ({ game, className = '' }) => {
   const isFavorited = useAppSelector((s) =>
     s.favorites.items.some((f) => f.id === game.id)
   );
+  const [failures, setFailures] = useState(0);
 
   return (
+    <>
+    {failures > 0 && <SaveFailedNotice key={failures} />}
     <button
       onClick={(e) => {
         e.stopPropagation();
-        dispatch(toggleFavoriteInDb(game));
+        dispatch(toggleFavoriteInDb(game)).unwrap().catch(() => setFailures((n) => n + 1));
       }}
       aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
       title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
@@ -34,6 +39,7 @@ const FavoriteButton: FC<Props> = ({ game, className = '' }) => {
         className={`w-4 h-4 transition-all duration-200 ${isFavorited ? 'fill-accent' : ''}`}
       />
     </button>
+    </>
   );
 };
 

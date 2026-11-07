@@ -59,12 +59,12 @@ describe('FavoriteButton', () => {
     expect(screen.getByRole('button', { name: 'Add to favorites' })).toBeInTheDocument();
   });
 
-  it.fails('BUG-8: tells the user when saving fails', async () => {
+  it('tells the user when saving fails (BUG-8, fixed)', async () => {
     supabaseFake.failNext('favorites', 'insert');
     renderWithProviders(<FavoriteButton game={game} />, { preloadedState: { auth: signedIn } });
 
     fireEvent.click(screen.getByRole('button', { name: 'Add to favorites' }));
 
-    expect(await screen.findByRole('alert')).toBeInTheDocument();
+    expect(await screen.findByRole('alert')).toHaveTextContent("Couldn't save");
   });
 });

@@ -193,7 +193,7 @@ describe('App', () => {
       await waitFor(() => expect(screen.queryByRole('heading', { name: 'Join the Codex' })).not.toBeInTheDocument());
     });
 
-    it.fails('BUG-9: one sign-in that sends two auth events starts one merge', async () => {
+    it('one sign-in that sends two auth events starts one merge (BUG-9, fixed)', async () => {
       const { store } = setup('/', withSavedGame());
       await settled(store);
 
@@ -207,7 +207,7 @@ describe('App', () => {
       expect(reads('collections')).toHaveLength(1);
     });
 
-    it.fails('BUG-9: one sign-in that sends two auth events saves each game once', async () => {
+    it('one sign-in that sends two auth events saves each game once (BUG-9, fixed)', async () => {
       const { store } = setup('/', withSavedGame());
       await settled(store);
 
@@ -221,7 +221,7 @@ describe('App', () => {
       expect(supabaseFake.rows('collections')).toHaveLength(1);
     });
 
-    it.fails('BUG-9: a token refresh does not start another merge', async () => {
+    it('a token refresh does not start another merge (BUG-9, fixed)', async () => {
       const { store } = setup();
       await settled(store);
       await emit('SIGNED_IN', session);
@@ -229,6 +229,28 @@ describe('App', () => {
       await emit('TOKEN_REFRESHED', session);
 
       expect(reads('favorites')).toHaveLength(1);
+    });
+
+    it('merges again after signing out and back in', async () => {
+      const { store } = setup();
+      await settled(store);
+      await emit('SIGNED_IN', session);
+      await emit('SIGNED_OUT', null);
+
+      await emit('SIGNED_IN', session);
+
+      await waitFor(() => expect(reads('favorites')).toHaveLength(2));
+    });
+
+    it('tells the user when saved games fail to upload, keeping them (BUG-7, fixed)', async () => {
+      const { store } = setup('/', withSavedGame());
+      await settled(store);
+      supabaseFake.failNext('favorites', 'insert');
+
+      await emit('SIGNED_IN', session);
+
+      expect(await screen.findByText('Sync Failed')).toBeInTheDocument();
+      expect(store.getState().favorites.items).toHaveLength(1);
     });
   });
 
