@@ -19,7 +19,6 @@ import PublisherPage from './pages/PublisherPage';
 import NotFoundPage from './pages/NotFoundPage';
 import SmoothScrollbar from './components/shared/SmoothScrollbar';
 import AuthModal from './components/auth/AuthModal';
-import PWAReloadPrompt from './components/shared/PWAReloadPrompt';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -94,7 +93,6 @@ function App() {
 <HelmetProvider>
   <MotionConfig reducedMotion="user">
     <div className="h-screen w-screen overflow-hidden bg-background">
-        <PWAReloadPrompt />
         <AuthModal isOpen={isAuthModalOpen} onClose={() => dispatch(setAuthModalOpen(false))} />
         <SmoothScrollbar className="h-full w-full main-scroll-container">
           <ScrollToTop />
