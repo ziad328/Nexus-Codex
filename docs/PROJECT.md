@@ -65,7 +65,7 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 | 1: Compare APIs | ✅ Done. IGDB chosen, with a Steam add-on later. |
 | 2: Test the app | ✅ Done: unit tests for every layer, Playwright smoke suite, lint clean. |
 | 3: Move to IGDB | ✅ Done and live. Saved games started fresh (owner's choice) instead of mapping RAWG ids. |
-| Steam add-on | ✅ Metacritic score and achievements in the details modal, through `/api/games/:id`. Trailers not built (see Steam facts). |
+| Steam add-on | ✅ Metacritic score and achievements in the details modal, through `/api/games/:id`. Steam trailers dropped (owner's choice); trailers stay YouTube from IGDB. |
 
 **Latest verification (2026-11-08):** 687 tests pass, and 2 expected failures pin ISSUE-5. `npx tsc -b --noEmit`, the build and `npm run lint` are clean. Coverage: 99% of lines and 96% of branches overall (`src/utils` shows 0% only because tests always use the fake Supabase). Smoke suite (`npm run test:e2e`): 19 of 19 pass at 1440 px and 375 px, plus offline with the real service worker. Every bigger fix was checked by breaking the code on purpose; the only miss is a guard `App` itself never triggers (see BUG-9 in section 9).
 
@@ -140,7 +140,6 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 ## 7. Roadmap
 
 1. ISSUE-5, once the owner decides.
-2. **Steam trailers** (optional): play Steam's HLS trailers with `hls.js`; needs the owner's OK for the new dependency.
 
 **Hand checks** (tests can't judge these; use a production build: `npm run build`, then `npm run preview`)
 
@@ -164,6 +163,7 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 | 2026-11-07 | **Playwright smoke suite** | jsdom can't see CSS, layout or a real service worker. |
 | 2026-11-07 | **Commit directly on `dev`** | Owner's instruction. The owner merges into `main`. |
 | 2026-11-07 | **Portrait cover cards** | IGDB has a cover for every game, but a wide image for only 24% of lesser-known ones. |
+| 2026-11-08 | **No Steam trailers** | Owner's choice. Steam now serves only HLS/DASH streams, which would need `hls.js`; IGDB's YouTube trailers are enough. |
 | 2026-11-08 | **Steam extras inside `/api/games/:id`** | One request for the modal, cached with the game. Steam gets 2.5 s; any failure or odd field drops the extras and the modal looks as before. The app id comes from the game's Steam store link. A Steam miss is cached with the game for up to a day. |
 | 2026-11-07 | **Trailers: thumbnail, then YouTube on click** | Nothing loads from YouTube until the visitor asks; `youtube-nocookie.com` player. |
 | 2026-11-07 | **Trailers play in a full-screen viewer** | Chrome drops clicks into a cross-origin iframe inside any rounded clip, and the modal is rounded. A bigger player is also nicer. |
