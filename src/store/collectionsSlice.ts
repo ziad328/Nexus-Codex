@@ -5,7 +5,12 @@ import type { RootState } from './index';
 
 interface CollectionsState {
   lists: Collection[];
+  // `${list}_${gameId}` keys known to be in the cloud. One missing from the cloud was removed on another device (ISSUE-5),
+  // so the merge drops it instead of uploading it again. Absent in lists saved before this existed.
+  synced?: string[];
 }
+
+const keyOf = (collectionName: CollectionName, gameId: number) => `${collectionName}_${gameId}`;
 
 const DEFAULT_COLLECTIONS: CollectionName[] = ['playing', 'beaten', 'backlog', 'wishlist'];
 
@@ -16,7 +21,12 @@ const initialState: CollectionsState = {
 // One merge at a time: two at once would both upload the same local games.
 let merging = false;
 
-export const fetchCollections = createAsyncThunk<Collection[] | null, void, { rejectValue: Collection[] }>(
+interface Merged {
+  lists: Collection[];
+  synced: string[];
+}
+
+export const fetchCollections = createAsyncThunk<Merged | null, void, { rejectValue: Merged }>(
   'collections/fetchCollections',
   async (_, { getState, rejectWithValue }) => {
     const state = getState() as RootState;
@@ -32,16 +42,18 @@ export const fetchCollections = createAsyncThunk<Collection[] | null, void, { re
       const cloudRecords = new Set<string>();
       // Duplicate cloud rows (two devices saving at once) show as one game.
       const cloudRows = cloudData.filter((item) => {
-        const key = `${item.collection_name}_${item.game_id}`;
+        const key = keyOf(item.collection_name, item.game_id);
         if (cloudRecords.has(key)) return false;
         cloudRecords.add(key);
         return true;
       });
 
       const itemsToUpload: (Omit<FavoriteGame, 'id'> & { user_id: string; game_id: number; collection_name: CollectionName })[] = [];
+      const synced = new Set(state.collections.synced);
       localLists.forEach(list => {
         list.games.forEach(game => {
-          if (!cloudRecords.has(`${list.name}_${game.id}`)) {
+          const key = keyOf(list.name, game.id);
+          if (!cloudRecords.has(key) && !synced.has(key)) {
             itemsToUpload.push({
               user_id: user.id,
               game_id: game.id,
@@ -92,8 +104,11 @@ export const fetchCollections = createAsyncThunk<Collection[] | null, void, { re
         }
       });
 
-      // A failed upload keeps the games on this device (the next merge retries them) and rejects, so the app can say so.
-      return uploadFailed ? rejectWithValue(lists) : lists;
+      // A failed upload keeps the games on this device, unsynced so the next merge retries them, and rejects, so the app can say so.
+      const syncedKeys = uploadFailed
+        ? [...cloudRecords]
+        : [...cloudRecords, ...itemsToUpload.map(item => keyOf(item.collection_name, item.game_id))];
+      return uploadFailed ? rejectWithValue({ lists, synced: syncedKeys }) : { lists, synced: syncedKeys };
     } finally {
       merging = false;
     }
@@ -155,23 +170,24 @@ const collectionsSlice = createSlice({
   name: 'collections',
   initialState,
   reducers: {
-    clearCollections(state) {
-      state.lists = DEFAULT_COLLECTIONS.map((name) => ({ name, games: [] }));
-    }
+    clearCollections: () => initialState,
   },
   extraReducers: (builder) => {
     builder
       .addCase(fetchCollections.fulfilled, (state, action) => {
-        if (action.payload) {
-          state.lists = action.payload;
-        }
+        if (action.payload) Object.assign(state, action.payload);
       })
       .addCase(fetchCollections.rejected, (state, action) => {
-        if (action.payload) state.lists = action.payload;
+        if (action.payload) Object.assign(state, action.payload);
       })
       .addCase(addToCollectionInDb.fulfilled, (state, action) => {
         if (!action.payload) return;
         const { collectionName, game } = action.payload;
+        const key = keyOf(collectionName, game.id);
+        // Saved while signed out: new, so the next merge uploads it. Saved while signed in: already in the cloud.
+        state.synced = 'localOnly' in action.payload
+          ? state.synced?.filter((k) => k !== key)
+          : [...(state.synced ?? []).filter((k) => k !== key), key];
         const collection = state.lists.find((l) => l.name === collectionName);
         if (collection && !collection.games.some((g) => g.id === game.id)) {
           collection.games.push(game);
@@ -180,6 +196,7 @@ const collectionsSlice = createSlice({
       .addCase(removeFromCollectionInDb.fulfilled, (state, action) => {
         if (!action.payload) return;
         const { collectionName, gameId } = action.payload;
+        if (!('localOnly' in action.payload)) state.synced = state.synced?.filter((k) => k !== keyOf(collectionName, gameId));
         const collection = state.lists.find((l) => l.name === collectionName);
         if (collection) {
           collection.games = collection.games.filter((g) => g.id !== gameId);

@@ -32,8 +32,9 @@ export const handleApi = async (request: Request, deps: Deps = realDeps()): Prom
     const gameMatch = path.match(/^\/api\/games\/([^/]+)$/);
     if (gameMatch) {
       const game = await getGame(deps, gameMatch[1]);
+      // A Steam failure is cached for an hour only, so the extras come back soon.
       return game
-        ? json(200, game, { 'Cache-Control': cacheFor(DAY) })
+        ? json(200, game.details, { 'Cache-Control': cacheFor(game.steamFailed ? HOUR : DAY) })
         : json(404, { error: 'Game not found' }, { 'Cache-Control': cacheFor(HOUR) });
     }
     if (path === '/api/genres') {
