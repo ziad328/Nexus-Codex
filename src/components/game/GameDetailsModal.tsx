@@ -12,6 +12,7 @@ import { Share2, Check, X, ExternalLink } from 'lucide-react';
 import SimilarGamesCarousel from './SimilarGamesCarousel';
 import YouTubeTrailer from './YouTubeTrailer';
 import ScreenshotGallery from './ScreenshotGallery';
+import SteamAchievements from './SteamAchievements';
 import SEO from '../shared/SEO';
 import type { FavoriteGame, Game } from '../../types';
 import useAppDispatch from '../../hooks/useAppDispatch';
@@ -228,6 +229,8 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
 
                   {/* Keyed by game, so the next game starts on its first screenshot. */}
                   <ScreenshotGallery key={game.id} screenshots={screenshots} />
+
+                  <SteamAchievements achievements={game.steam_achievements} />
                 </div>
 
                 <div className="space-y-4">
@@ -240,6 +243,21 @@ const GameDetailsModal: FC<Props> = ({ gameId, onClose, onSelectGame }) => {
                       <p className="text-zinc-500 text-xs font-semibold uppercase tracking-widest mb-1">Release Date</p>
                       <p className="text-zinc-100 text-sm font-medium">{game.released || '—'}</p>
                     </div>
+                    {game.steam_metacritic && (
+                      <div>
+                        <p className="text-zinc-500 text-xs font-semibold uppercase tracking-widest mb-1">Metacritic</p>
+                        <a
+                          href={game.steam_metacritic.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 text-sm font-medium text-zinc-300 hover:text-accent transition-colors"
+                        >
+                          <CriticScore score={game.steam_metacritic.score} />
+                          Read reviews
+                          <ExternalLink className="w-3.5 h-3.5" aria-hidden />
+                        </a>
+                      </div>
+                    )}
                     <div>
                       <p className="text-zinc-500 text-xs font-semibold uppercase tracking-widest mb-1">Developer</p>
                       <p className="text-zinc-100 text-sm font-medium flex flex-wrap gap-1">

@@ -52,6 +52,12 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 - Adult games carry the "Erotic" theme, which the proxy filters out of every answer.
 - The Twitch token lasts about 58 days; the proxy renews it.
 
+**Steam facts** (measured 2026-11-08 on 20 games; endpoints are undocumented and may change)
+- `store.steampowered.com/api/appdetails` (no key, ~0.4 s, one app per call) gives Metacritic for all 6 big games but only 6 of 14 lesser-known ones, and an achievement count with 10 highlighted names and icons for all 20.
+- Its trailers are DASH/HLS streams only. The old MP4 URLs still work for older uploads but 404 for new ones, so playable trailers would need `hls.js`.
+- Global unlock percentages work without a key but give only internal names; display names need a keyed endpoint.
+- No published rate limit; others report about 200 calls per 5 minutes per IP. The CDN caching of `/api/games/:id` keeps calls low.
+
 ## 4. Status
 
 | Phase | State |
@@ -59,8 +65,9 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 | 1: Compare APIs | ✅ Done. IGDB chosen, with a Steam add-on later. |
 | 2: Test the app | ✅ Done: unit tests for every layer, Playwright smoke suite, lint clean. |
 | 3: Move to IGDB | ✅ Done and live. Saved games started fresh (owner's choice) instead of mapping RAWG ids. |
+| Steam add-on | ✅ Metacritic score and achievements in the details modal, through `/api/games/:id`. Trailers not built (see Steam facts). |
 
-**Latest verification (2026-11-07):** 671 tests pass, and 2 expected failures pin ISSUE-5. `npx tsc -b --noEmit`, the build and `npm run lint` are clean. Coverage: 99% of lines and 96% of branches overall (`src/utils` shows 0% only because tests always use the fake Supabase). Smoke suite (`npm run test:e2e`): 19 of 19 pass at 1440 px and 375 px, plus offline with the real service worker. Every bigger fix was checked by breaking the code on purpose; the only miss is a guard `App` itself never triggers (see BUG-9 in section 9).
+**Latest verification (2026-11-08):** 687 tests pass, and 2 expected failures pin ISSUE-5. `npx tsc -b --noEmit`, the build and `npm run lint` are clean. Coverage: 99% of lines and 96% of branches overall (`src/utils` shows 0% only because tests always use the fake Supabase). Smoke suite (`npm run test:e2e`): 19 of 19 pass at 1440 px and 375 px, plus offline with the real service worker. Every bigger fix was checked by breaking the code on purpose; the only miss is a guard `App` itself never triggers (see BUG-9 in section 9).
 
 **Test skips**
 | Skipped | Why |
@@ -133,7 +140,7 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 ## 7. Roadmap
 
 1. ISSUE-5, once the owner decides.
-2. **Steam add-on:** achievements, Metacritic and playable trailers for Steam games. Undocumented endpoints, so it must fail silently back to IGDB.
+2. **Steam trailers** (optional): play Steam's HLS trailers with `hls.js`; needs the owner's OK for the new dependency.
 
 **Hand checks** (tests can't judge these; use a production build: `npm run build`, then `npm run preview`)
 
@@ -157,6 +164,7 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 | 2026-11-07 | **Playwright smoke suite** | jsdom can't see CSS, layout or a real service worker. |
 | 2026-11-07 | **Commit directly on `dev`** | Owner's instruction. The owner merges into `main`. |
 | 2026-11-07 | **Portrait cover cards** | IGDB has a cover for every game, but a wide image for only 24% of lesser-known ones. |
+| 2026-11-08 | **Steam extras inside `/api/games/:id`** | One request for the modal, cached with the game. Steam gets 2.5 s; any failure or odd field drops the extras and the modal looks as before. The app id comes from the game's Steam store link. A Steam miss is cached with the game for up to a day. |
 | 2026-11-07 | **Trailers: thumbnail, then YouTube on click** | Nothing loads from YouTube until the visitor asks; `youtube-nocookie.com` player. |
 | 2026-11-07 | **Trailers play in a full-screen viewer** | Chrome drops clicks into a cross-origin iframe inside any rounded clip, and the modal is rounded. A bigger player is also nicer. |
 | 2026-11-07 | **Genres: IGDB's 23 plus Action** | Action is a theme in IGDB but the most popular category; keeps `/genre/action` working. |

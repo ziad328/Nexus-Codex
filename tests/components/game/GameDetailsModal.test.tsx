@@ -27,6 +27,8 @@ const details = {
   stores: [{ id: 1, store: { id: 1, name: 'Steam', slug: 'steam', domain: 'steampowered.com' } }],
   website: 'https://portal.test',
   reddit_url: 'https://reddit.test/portal',
+  steam_metacritic: null,
+  steam_achievements: null,
 };
 
 const shot = { id: 5, image: 'https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc5.jpg', width: 1, height: 1 };
@@ -192,6 +194,58 @@ describe('gallery', () => {
     expect(screen.queryByText('Gallery')).not.toBeInTheDocument();
   });
 
+});
+
+describe('Steam extras', () => {
+  const icon = 'https://shared.akamai.steamstatic.com/community_assets/images/apps/620/a.jpg';
+
+  it("links Steam's Metacritic score, opening safely in a new tab", async () => {
+    await renderLoaded({ game: { metacritic: 80, steam_metacritic: { score: 95, url: 'https://www.metacritic.com/game/pc/portal' } } });
+
+    const link = screen.getByRole('link', { name: /95\s*Read reviews/ });
+    expect(link).toHaveAttribute('href', 'https://www.metacritic.com/game/pc/portal');
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+    expect(screen.getByText('80')).toBeInTheDocument();
+  });
+
+  it('shows the achievement count and a strip of highlighted icons, naming one on hover or tap', async () => {
+    await renderLoaded({ game: { steam_achievements: { total: 51, highlighted: [{ name: 'Wake Up Call', icon }, { name: 'You Monster', icon: `${icon}?2` }] } } });
+
+    const section = screen.getByRole('region', { name: /Achievements/ });
+    expect(within(section).getByText('51 on Steam')).toBeInTheDocument();
+    const wakeUp = within(section).getByRole('button', { name: 'Wake Up Call' });
+    expect(wakeUp.querySelector('img')).toHaveAttribute('src', icon);
+    expect(within(section).queryByText('Wake Up Call')).not.toBeInTheDocument();
+
+    fireEvent.mouseEnter(wakeUp);
+    expect(within(section).getByText('Wake Up Call')).toBeInTheDocument();
+
+    fireEvent.focus(within(section).getByRole('button', { name: 'You Monster' }));
+    expect(within(section).getByText('You Monster')).toBeInTheDocument();
+    expect(within(section).queryByText('Wake Up Call')).not.toBeInTheDocument();
+
+    // A Safari tap clicks without focusing.
+    fireEvent.click(wakeUp);
+    expect(within(section).getByText('Wake Up Call')).toBeInTheDocument();
+  });
+
+  it('shows just the count when Steam highlights none', async () => {
+    await renderLoaded({ game: { steam_achievements: { total: 3, highlighted: [] } } });
+
+    expect(screen.getByText('3 on Steam')).toBeInTheDocument();
+    expect(screen.queryByRole('listitem')).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ['null', {}],
+    ['missing, as from an older answer', { steam_metacritic: undefined, steam_achievements: undefined }],
+  ])('looks as before when the extras are %s', async (_, game) => {
+    await renderLoaded({ game });
+
+    expect(screen.queryByText('Metacritic')).not.toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: /Achievements/ })).not.toBeInTheDocument();
+  });
 });
 
 describe('where to buy', () => {

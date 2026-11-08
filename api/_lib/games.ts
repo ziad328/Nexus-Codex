@@ -2,6 +2,8 @@
 // The browser never sends query text; every value is checked or looked up in a fixed list first.
 import { ACTION_GENRE, IGDB_EROTIC_THEME, PARENT_PLATFORMS, STORES, TAGS, WEBSITE_OFFICIAL, WEBSITE_SUBREDDIT } from './catalog.js';
 import { igdb } from './igdb.js';
+import { getSteamExtras, steamAppId } from './steam.js';
+import type { SteamExtras } from './steam.js';
 import type { Deps } from './igdb.js';
 
 export const PAGE_SIZE = 20;
@@ -27,7 +29,7 @@ export interface GameSummary {
 
 export interface GamePage { count: number; next: string | null; results: GameSummary[] }
 
-export interface GameDetails extends GameSummary {
+export interface GameDetails extends GameSummary, SteamExtras {
   description_raw: string;
   released: string | null;
   developers: { id: number; name: string; slug: string }[];
@@ -199,6 +201,7 @@ export const getGame = async (deps: Deps, idText: string): Promise<GameDetails |
       ?? game.external_games?.find((entry) => entry.external_game_source === store.source && entry.url)?.url;
     return url ? [{ id: store.id, store_id: store.id, url }] : [];
   });
+  const steam = await getSteamExtras(deps, steamAppId(storeLinks.find((link) => link.store_id === 1)?.url));
 
   return {
     ...toSummary(game),
@@ -218,6 +221,7 @@ export const getGame = async (deps: Deps, idText: string): Promise<GameDetails |
     })),
     trailers: (game.videos ?? []).map((video) => ({ id: video.id, name: video.name ?? 'Trailer', youtube_id: video.video_id })),
     similar: (game.similar_games ?? []).filter((other) => !other.themes?.includes(IGDB_EROTIC_THEME)).map(toSummary),
+    ...steam,
   };
 };
 

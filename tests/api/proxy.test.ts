@@ -5,9 +5,14 @@ import { handleApi } from '../../api/_lib/router';
 
 interface Call { url: string; body: string; token?: string }
 
-/** A fake Twitch and IGDB. `answer` decides each IGDB response; the clock only moves when the code sleeps. */
-const fakeUpstream = (answer: (endpoint: string, body: string) => unknown = () => []) => {
+type SteamAnswer = (url: string, init?: RequestInit) => Response | Promise<Response>;
+const steamDown: SteamAnswer = () => { throw new TypeError('Steam unreachable'); };
+
+/** A fake Twitch, IGDB and Steam store. `answer` decides each IGDB response, `steam` each Steam one (down by default);
+ * the clock only moves when the code sleeps. */
+const fakeUpstream = (answer: (endpoint: string, body: string) => unknown = () => [], steam: SteamAnswer = steamDown) => {
   const calls: Call[] = [];
+  const steamCalls: string[] = [];
   const tokenRequests: string[] = [];
   let clock = 1_000_000;
   let tokenCount = 0;
@@ -23,6 +28,10 @@ const fakeUpstream = (answer: (endpoint: string, body: string) => unknown = () =
         tokenCount++;
         return Response.json({ access_token: `token-${tokenCount}`, expires_in: 60 * 86_400 });
       }
+      if (url.startsWith('https://store.steampowered.com/')) {
+        steamCalls.push(url);
+        return steam(url, init);
+      }
       const body = String(init?.body);
       const token = (init?.headers as Record<string, string>).Authorization;
       calls.push({ url, body, token });
@@ -31,7 +40,7 @@ const fakeUpstream = (answer: (endpoint: string, body: string) => unknown = () =
       return Response.json(answer(url.replace('https://api.igdb.com/v4/', ''), body));
     },
   };
-  return { deps, calls, tokenRequests, failNext: (...codes: number[]) => statuses.push(...codes), tick: (ms: number) => { clock += ms; }, clockAt: () => clock };
+  return { deps, calls, steamCalls, tokenRequests, failNext: (...codes: number[]) => statuses.push(...codes), tick: (ms: number) => { clock += ms; }, clockAt: () => clock };
 };
 
 const get = (path: string, deps: Deps) => handleApi(new Request(`http://localhost${path}`), deps);
@@ -364,6 +373,83 @@ describe('GET /api/games/:id', () => {
 
     expect(res.status).toBe(400);
     expect(calls).toEqual([]);
+  });
+});
+
+describe('Steam extras on GET /api/games/:id', () => {
+  const steamGame = (link = 'https://store.steampowered.com/app/620/Portal_2/') =>
+    igdbGame(7, { websites: [{ id: 3, type: 13, url: link }] });
+  const portal2 = {
+    success: true,
+    data: {
+      metacritic: { score: 95, url: 'https://www.metacritic.com/game/pc/portal-2' },
+      achievements: {
+        total: 51,
+        highlighted: [
+          { name: 'Wake Up Call', path: 'https://shared.akamai.steamstatic.com/community_assets/images/apps/620/a.jpg' },
+          { name: 'Bad icon', path: 'javascript:alert(1)' },
+          { name: '', path: 'https://shared.akamai.steamstatic.com/b.jpg' },
+        ],
+      },
+    },
+  };
+  const none = { steam_metacritic: null, steam_achievements: null };
+
+  const details = async (steam: SteamAnswer, game: object = steamGame()) => {
+    const upstream = fakeUpstream(() => [game], steam);
+    const res = await get('/api/games/7', upstream.deps);
+    return { res, body: await res.json(), steamCalls: upstream.steamCalls };
+  };
+
+  it("adds Steam's Metacritic score and checked achievements, asking Steam once with a timeout", async () => {
+    let signal: AbortSignal | null | undefined;
+    const { res, body, steamCalls } = await details((_, init) => {
+      signal = init?.signal;
+      return Response.json({ 620: portal2 });
+    });
+
+    expect(res.status).toBe(200);
+    expect(steamCalls).toEqual(['https://store.steampowered.com/api/appdetails?appids=620&l=english']);
+    expect(signal).toBeInstanceOf(AbortSignal);
+    expect(body.steam_metacritic).toEqual({ score: 95, url: 'https://www.metacritic.com/game/pc/portal-2' });
+    expect(body.steam_achievements).toEqual({
+      total: 51,
+      highlighted: [{ name: 'Wake Up Call', icon: 'https://shared.akamai.steamstatic.com/community_assets/images/apps/620/a.jpg' }],
+    });
+  });
+
+  it('keeps achievements when Steam has no Metacritic score, and drops a score with a strange link', async () => {
+    const { body } = await details(() => Response.json({
+      620: { success: true, data: { metacritic: { score: 80, url: 'https://evil.test/' }, achievements: { total: 3 } } },
+    }));
+
+    expect(body.steam_metacritic).toBeNull();
+    expect(body.steam_achievements).toEqual({ total: 3, highlighted: [] });
+  });
+
+  it.each([
+    ['is unreachable', steamDown],
+    ['answers an error', () => new Response('busy', { status: 429 })],
+    ['does not know the app', () => Response.json({ 620: { success: false } })],
+    ['answers something else', () => Response.json([1, 2])],
+    ['answers bad JSON', () => new Response('<html>')],
+    ['times out', () => { throw new DOMException('timed out', 'TimeoutError'); }],
+  ])('still answers the game, without extras, when Steam %s', async (_, steam) => {
+    const { res, body } = await details(steam as SteamAnswer);
+
+    expect(res.status).toBe(200);
+    expect(body).toMatchObject({ name: 'Game 7', ...none });
+  });
+
+  it.each([
+    ['has no Steam link', igdbGame(7)],
+    ['has a link that is not an app page', steamGame('https://store.steampowered.com/bundle/620')],
+    ['has a link on another site', steamGame('https://store.steampowered.com.evil.test/app/620')],
+  ])('asks Steam nothing when the game %s', async (_, game) => {
+    const { body, steamCalls } = await details(() => Response.json({ 620: portal2 }), game);
+
+    expect(steamCalls).toEqual([]);
+    expect(body).toMatchObject(none);
   });
 });
 
