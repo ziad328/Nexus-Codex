@@ -306,7 +306,8 @@ describe('GET /api/games/:id', () => {
   });
 
   const details = async (id: string, games: object[] = [full]) => {
-    const upstream = fakeUpstream(() => games);
+    // Steam answers, but has nothing for this app; the Steam extras have their own tests below.
+    const upstream = fakeUpstream(() => games, () => Response.json({ 400: { success: false } }));
     const res = await get(`/api/games/${id}`, upstream.deps);
     return { res, body: await res.json(), calls: upstream.calls };
   };
@@ -409,6 +410,7 @@ describe('Steam extras on GET /api/games/:id', () => {
     });
 
     expect(res.status).toBe(200);
+    expect(res.headers.get('Cache-Control')).toContain('s-maxage=86400');
     expect(steamCalls).toEqual(['https://store.steampowered.com/api/appdetails?appids=620&l=english']);
     expect(signal).toBeInstanceOf(AbortSignal);
     expect(body.steam_metacritic).toEqual({ score: 95, url: 'https://www.metacritic.com/game/pc/portal-2' });
@@ -428,17 +430,18 @@ describe('Steam extras on GET /api/games/:id', () => {
   });
 
   it.each([
-    ['is unreachable', steamDown],
-    ['answers an error', () => new Response('busy', { status: 429 })],
-    ['does not know the app', () => Response.json({ 620: { success: false } })],
-    ['answers something else', () => Response.json([1, 2])],
-    ['answers bad JSON', () => new Response('<html>')],
-    ['times out', () => { throw new DOMException('timed out', 'TimeoutError'); }],
-  ])('still answers the game, without extras, when Steam %s', async (_, steam) => {
+    ['is unreachable', steamDown, 'an hour'],
+    ['answers an error', () => new Response('busy', { status: 429 }), 'an hour'],
+    ['answers bad JSON', () => new Response('<html>'), 'an hour'],
+    ['times out', () => { throw new DOMException('timed out', 'TimeoutError'); }, 'an hour'],
+    ['does not know the app', () => Response.json({ 620: { success: false } }), 'a day'],
+    ['answers something else', () => Response.json([1, 2]), 'a day'],
+  ])('still answers the game, without extras, when Steam %s, cached for %s', async (_, steam, cached) => {
     const { res, body } = await details(steam as SteamAnswer);
 
     expect(res.status).toBe(200);
     expect(body).toMatchObject({ name: 'Game 7', ...none });
+    expect(res.headers.get('Cache-Control')).toContain(cached === 'a day' ? 's-maxage=86400' : 's-maxage=3600,');
   });
 
   it.each([

@@ -164,7 +164,7 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 | 2026-11-07 | **Commit directly on `dev`** | Owner's instruction. The owner merges into `main`. |
 | 2026-11-07 | **Portrait cover cards** | IGDB has a cover for every game, but a wide image for only 24% of lesser-known ones. |
 | 2026-11-08 | **No Steam trailers** | Owner's choice. Steam now serves only HLS/DASH streams, which would need `hls.js`; IGDB's YouTube trailers are enough. |
-| 2026-11-08 | **Steam extras inside `/api/games/:id`** | One request for the modal, cached with the game. Steam gets 2.5 s; any failure or odd field drops the extras and the modal looks as before. The app id comes from the game's Steam store link. A Steam miss is cached with the game for up to a day. |
+| 2026-11-08 | **Steam extras inside `/api/games/:id`** | One request for the modal, cached with the game. Steam gets 2.5 s; any failure or odd field drops the extras and the modal looks as before. The app id comes from the game's Steam store link. When Steam fails, the game is cached for an hour instead of a day, so the extras come back soon. |
 | 2026-11-07 | **Trailers: thumbnail, then YouTube on click** | Nothing loads from YouTube until the visitor asks; `youtube-nocookie.com` player. |
 | 2026-11-07 | **Trailers play in a full-screen viewer** | Chrome drops clicks into a cross-origin iframe inside any rounded clip, and the modal is rounded. A bigger player is also nicer. |
 | 2026-11-07 | **Genres: IGDB's 23 plus Action** | Action is a theme in IGDB but the most popular category; keeps `/genre/action` working. |

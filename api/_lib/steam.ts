@@ -8,7 +8,7 @@ export interface SteamExtras {
   steam_achievements: { total: number; highlighted: { name: string; icon: string }[] } | null;
 }
 
-const NONE: SteamExtras = { steam_metacritic: null, steam_achievements: null };
+export const NO_STEAM: SteamExtras = { steam_metacritic: null, steam_achievements: null };
 const TIMEOUT_MS = 2500;
 const APP_LINK = /^https:\/\/store\.steampowered\.com\/app\/(\d{1,10})(?:[/?#]|$)/;
 const METACRITIC = /^https:\/\/www\.metacritic\.com\//;
@@ -25,16 +25,17 @@ interface AppDetails {
   };
 }
 
-/** Steam's Metacritic score and achievements for one app; every field is checked before it reaches the app. */
-export const getSteamExtras = async (deps: Deps, appId: string | null): Promise<SteamExtras> => {
-  if (!appId) return NONE;
+/** Steam's Metacritic score and achievements for one app; every field is checked before it reaches the app.
+ * Null when Steam failed (unreachable, slow, an error or not JSON), so the caller can cache that briefly. */
+export const getSteamExtras = async (deps: Deps, appId: string | null): Promise<SteamExtras | null> => {
+  if (!appId) return NO_STEAM;
   try {
     const res = await deps.fetch(`https://store.steampowered.com/api/appdetails?appids=${appId}&l=english`, {
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
-    if (!res.ok) return NONE;
+    if (!res.ok) return null;
     const entry = ((await res.json()) as Record<string, AppDetails>)[appId];
-    if (!entry?.success || !entry.data) return NONE;
+    if (!entry?.success || !entry.data) return NO_STEAM;
     const { metacritic, achievements } = entry.data;
 
     const score = metacritic?.score;
@@ -54,6 +55,6 @@ export const getSteamExtras = async (deps: Deps, appId: string | null): Promise<
         : null,
     };
   } catch {
-    return NONE;
+    return null;
   }
 };

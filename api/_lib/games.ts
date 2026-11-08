@@ -2,7 +2,7 @@
 // The browser never sends query text; every value is checked or looked up in a fixed list first.
 import { ACTION_GENRE, IGDB_EROTIC_THEME, PARENT_PLATFORMS, STORES, TAGS, WEBSITE_OFFICIAL, WEBSITE_SUBREDDIT } from './catalog.js';
 import { igdb } from './igdb.js';
-import { getSteamExtras, steamAppId } from './steam.js';
+import { getSteamExtras, NO_STEAM, steamAppId } from './steam.js';
 import type { SteamExtras } from './steam.js';
 import type { Deps } from './igdb.js';
 
@@ -182,8 +182,9 @@ const DETAIL_FIELDS = [
   'similar_games.platforms', 'similar_games.themes',
 ].join(',');
 
-/** Everything the details modal shows, in one IGDB request. Null when the game doesn't exist or is adult. */
-export const getGame = async (deps: Deps, idText: string): Promise<GameDetails | null> => {
+/** Everything the details modal shows, in one IGDB request plus one to Steam. Null when the game doesn't exist or is
+ * adult. `steamFailed` says the Steam extras are missing only because Steam failed this time. */
+export const getGame = async (deps: Deps, idText: string): Promise<{ details: GameDetails; steamFailed: boolean } | null> => {
   const id = positiveInt(idText, 'game id', 999_999_999)!;
   const [game] = await igdb<IgdbGame[]>(
     deps, 'games', `fields ${DETAIL_FIELDS}; where id = ${id} & themes != (${IGDB_EROTIC_THEME}); limit 1;`,
@@ -203,7 +204,7 @@ export const getGame = async (deps: Deps, idText: string): Promise<GameDetails |
   });
   const steam = await getSteamExtras(deps, steamAppId(storeLinks.find((link) => link.store_id === 1)?.url));
 
-  return {
+  const details: GameDetails = {
     ...toSummary(game),
     description_raw: [game.summary, game.storyline].filter(Boolean).join('\n\n'),
     released: game.first_release_date ? new Date(game.first_release_date * 1000).toISOString().slice(0, 10) : null,
@@ -221,8 +222,9 @@ export const getGame = async (deps: Deps, idText: string): Promise<GameDetails |
     })),
     trailers: (game.videos ?? []).map((video) => ({ id: video.id, name: video.name ?? 'Trailer', youtube_id: video.video_id })),
     similar: (game.similar_games ?? []).filter((other) => !other.themes?.includes(IGDB_EROTIC_THEME)).map(toSummary),
-    ...steam,
+    ...(steam ?? NO_STEAM),
   };
+  return { details, steamFailed: steam === null };
 };
 
 /** IGDB's genres, with Action first, in the same shape as every list. */
