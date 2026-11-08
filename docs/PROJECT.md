@@ -1,8 +1,8 @@
 # Nexus Codex: Project Overview
 
-The one living document for this project: what it's for, what it must do, how it's built, where it stands and what comes next. Update it whenever one of those changes. Day-to-day rules are in [../CLAUDE.md](../CLAUDE.md). The API research is in [rawg-vs-igdb.md](rawg-vs-igdb.md).
+The one living document for this project: what it's for, what it must do, how it's built, where it stands and what comes next. Update it whenever one of those changes. Day-to-day rules are in [../CLAUDE.md](../CLAUDE.md). Older history is in git.
 
-_Last updated: 2026-11-07 (service worker updates itself (BUG-35). Before that: trailers play in a full-screen viewer, so YouTube's controls work (BUG-34); gallery screenshots enlarge on click. Before that: data fixes: one merge per sign-in, failed saves and uploads shown to the user. Before that: adult name filter trimmed, Recently Viewed wheel fixed, infinite scroll survives an emptied page. Before that: small fixes: glow, button names, broken images, typo hint, stray 0, Escape, empty lists. Before that: one `?game=` deep link on every page, Recently Viewed records every opened game, 404 page. Before that: genre fixes: one shared request, sidebar survives errors, genre titles never stuck on Loading. Before that: trailer picker shows five, then "Show all". Before that: screenshot gallery with arrows, thumbnails, keys and swipe. Before that: RAWG code removed, README rewritten, IGDB credited. Before that: offline rules for IGDB. Before that: YouTube trailers, click to load. Before that: portrait cover cards. Before that: app moved onto the IGDB proxy; saved games start fresh. Before that: IGDB proxy added, not yet used by the app. Before that: BUG-25 fixed: phones can sign in and out. Before that: coverage report and hand-check list added; database check results recorded. Before that: lint errors fixed without disabling rules, which also fixed BUG-13; Playwright smoke suite, BUG-19 proved; page and `App` tests, BUG-5 proved, BUG-27 to BUG-33, two timing faults in older tests fixed; layout tests, BUG-2 proved, BUG-25 and BUG-26; auth and game component tests, BUG-1, BUG-4 and BUG-6 proved, BUG-20 to BUG-24; shared component tests, BUG-8 proved, BUG-16 to BUG-19; service and hook tests, BUG-3 proved, BUG-11 to BUG-15; store tests, BUG-9 and BUG-10; Phase 2 started with test setup, `CLAUDE.md` and this document)._
+_Last updated: 2026-11-08 (docs tidied: the RAWG-vs-IGDB research and the Phase 2 test report were folded in here and removed. Before that: the IGDB move, the gallery, the trailer viewer and BUG-1 to BUG-35 fixed, all on 2026-11-07)._
 
 ---
 
@@ -16,16 +16,16 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 
 **Must hold at all times**
 1. **User data is safe:** favorites and lists are never lost, duplicated or shown as the wrong game.
-2. **No secret in the browser bundle.** The IGDB keys live only in the proxy; a scan of the build checks it.
+2. **No secret in the browser bundle.** The IGDB keys live only in the proxy.
 3. **Works at 1440 px and 375 px**, with no sideways scroll.
 4. **Offline:** saved lists and already-seen data still show; everything else gets a clear message.
 5. **Quality bar:** tests, `npx tsc -b --noEmit`, `npm run build` and `npm run lint` all pass.
 
 **Features**
 - **Discovery:** paged grid with infinite scroll, genre sidebar, platform, tag and store filters, debounced search, developer and publisher pages, grid/list toggle.
-- **Game details modal:** description, release date, developers, publishers, a screenshot gallery (arrows, counter, thumbnails, arrow keys, swipe, click to enlarge), trailers in a full-screen player, store links, achievements, website and Reddit links, similar games, glow from the cover, `?game=` deep links on every page, Share.
+- **Game details modal:** description, release date, developers, publishers, a screenshot gallery (arrows, counter, thumbnails, arrow keys, swipe, click to enlarge), trailers in a full-screen player, store links, website and Reddit links, similar games, glow from the cover, `?game=` deep links on every page, Share.
 - **Library:** favorites and four lists (Playing Now, Backlog, Beaten, Wishlist), guest lists merged to the cloud on sign-in, Recently Viewed (last 10, every game opened in the modal).
-- **Sign-in:** magic link with email validation and typo checks, expired-link message.
+- **Sign-in:** magic link with email validation and typo hints, expired-link message.
 - **App:** adult-content filter, not-found page, PWA that updates itself, offline and error states, SEO tags.
 
 ## 3. Architecture
@@ -37,150 +37,143 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 | State | Redux Toolkit. Redux Persist saves `favorites`, `collections`, and from `ui` only `viewMode` and `recentlyViewed`. |
 | Game data | IGDB, through our own GET-only proxy in `api/` (Vercel functions, also served by `npm run dev`). The browser holds no key. |
 | Accounts and lists | Supabase: magic-link auth, `favorites` and `collections` tables. The schema isn't in the repo. |
-| PWA | `vite-plugin-pwa` (Workbox): images cache-first, API network-first |
+| PWA | `vite-plugin-pwa` (Workbox), `autoUpdate`: IGDB images cache-first, `/api` network-first with a 5 s timeout |
 | Forms | Formik + Yup |
-| Tests | Vitest 5, React Testing Library, jsdom; Playwright smoke suite (Chromium, production build, all outside traffic stubbed or blocked) |
+| Tests | Vitest, React Testing Library, jsdom; Playwright smoke suite (Chromium, production build, all outside traffic stubbed or blocked) |
 | Hosting | Vercel, deployed from `main` |
 
 **Environment values:** `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` (public by design), and for the proxy only `TWITCH_CLIENT_ID` and `TWITCH_CLIENT_SECRET` (never with a `VITE_` prefix). All go in `.env.local` locally and in Vercel for the live site.
 
+**IGDB facts that shaped the code** (measured 2026-11-07 on 100 games)
+- Every game has a portrait cover; only 24% of lesser-known games have a wide image, hence cover cards.
+- Trailers are YouTube ids only. Critic scores exist for 98% of popular games but 32% of lesser-known ones.
+- There are no achievements. "Action" is a theme in IGDB, not a genre, so the proxy adds it to the genre list.
+- Company filters need the company's id; filtering by slug times out, so the proxy looks the slug up first.
+- Adult games carry the "Erotic" theme, which the proxy filters out of every answer.
+- The Twitch token lasts about 58 days; the proxy renews it.
+
 ## 4. Status
 
-| Phase | State | Summary |
-|:--|:--|:--|
-| 1: Compare APIs | ✅ Done | [rawg-vs-igdb.md](rawg-vs-igdb.md). Chosen: IGDB, with a Steam add-on later. |
-| 2: Test the current app | ✅ Tasks done, for the owner to review | See the list below |
-| 3: Migrate | 🟡 In progress (owner's go-ahead 2026-11-07) | See the list below |
+| Phase | State |
+|:--|:--|
+| 1: Compare APIs | ✅ Done. IGDB chosen, with a Steam add-on later. |
+| 2: Test the app | ✅ Done: unit tests for every layer, Playwright smoke suite, lint clean. |
+| 3: Move to IGDB | ✅ Done and live. Saved games started fresh (owner's choice) instead of mapping RAWG ids. |
 
-**Phase 2 tasks**
-- [x] Test setup, `CLAUDE.md`, this document
-- [x] Store
-- [x] Services
-- [x] Hooks
-- [x] Shared components
-- [x] Auth and game components
-- [x] Layout
-- [x] Pages and `App`
-- [x] Playwright smoke suite
-- [x] Fix existing lint errors
-- [x] Coverage report and hand-check list: [test-report.md](test-report.md). The hand checks themselves aren't done.
-
-**Phase 3 tasks** (each ends with the owner's review and its own commit)
-- [x] Twitch app and keys in `.env.local`; probe of real IGDB data ([results](rawg-vs-igdb.md#2-feature-by-feature))
-- [x] Proxy: `/api/games`, `/api/games/:id`, `/api/genres` on Vercel, with token refresh, validation, caching and tests; runs under `npm run dev` too
-- [x] App on the proxy: hooks, filters (platform, tag, store lists), RAWG key removed from the bundle. Saved games start fresh (owner's choice): old saves are cleared from each browser once, and the owner wipes the two tables.
-- [x] Portrait cover cards: grid, list, loading placeholders, similar games and Recently Viewed; two per row on phones, the heart always visible on touch screens
-- [x] Game details: click-to-load YouTube trailers, store links, similar games, no achievements
-- [x] Offline rules for the new API and images: `/api` network-first with a 5 s timeout, IGDB images cache-first, both kept only as full answers; checked offline with the real service worker
-- [ ] Saved games: RAWG ids to IGDB ids (owner backs up and runs the SQL)
-- [x] Remove RAWG, rewrite README and docs
-
-**Latest verification (2026-11-07):** 671 tests pass and 2 expected failures mark known problems. `npx tsc -b --noEmit`, the build and `npm run lint` are all clean, with no lint warnings. Coverage: `src/store` 99% of lines and 92% of branches; `src/hooks`, `src/services` and `src/components/layout` 100% of both; `src/components/shared` 98% and 93%; `src/components/auth` and `game` 100% and 93%; `src/pages` 100% of lines and 95% of branches. Of 403 deliberate breakages of this code, 396 were caught. The other seven: the two glow lines rewritten in `GameDetailsModal` can't run because of BUG-1; removing `video.muted = isMuted` changes nothing, as it only repeats the default; an empty-value guard in `AuthModal`'s typo check has no visible effect; `Sidebar`'s `if (error)` is BUG-2 itself, pinned by an expected failure; and two things jsdom can't show, which need a hand check: `CollectionsPage` attaching scrollbars to the page body, and `App`'s `reducedMotion="user"`. Smoke suite (`npm run test:e2e`): 19 pass, with no expected failures left at 1440 px and 375 px, plus offline with the real service worker. All 18 deliberate breakages of the built app were caught, including a trial fix for each of the three bugs. One first attempt, widening the modal, broke nothing because its flex parent shrinks it, so it was replaced by one that really overflows. Live site: still the old RAWG version, with no game data, until `main` is updated.
+**Latest verification (2026-11-07):** 671 tests pass, and 2 expected failures pin ISSUE-5. `npx tsc -b --noEmit`, the build and `npm run lint` are clean. Coverage: 99% of lines and 96% of branches overall (`src/utils` shows 0% only because tests always use the fake Supabase). Smoke suite (`npm run test:e2e`): 19 of 19 pass at 1440 px and 375 px, plus offline with the real service worker. Every bigger fix was checked by breaking the code on purpose; the only miss is a guard `App` itself never triggers (see BUG-9 in section 9).
 
 **Test skips**
 | Skipped | Why |
 |:--|:--|
 | `useAppDispatch`, `useAppSelector` | Thin wrappers |
-| `main.tsx` | Start-up only; the smoke suite covers it |
+| `main.tsx` | Start-up and service-worker registration only; the smoke suite covers it |
 | `api/games/*.ts`, `api/genres.ts` | One-line wrappers around the tested router |
-| `localApi` in `vite.config.ts` | Thin adapter; checked by hand against live IGDB. The smoke suite covers it once the app uses the proxy. |
+| `localApi` in `vite.config.ts` | Thin adapter; the smoke suite and `npm run dev` use it |
 | `types/`, `vite-env.d.ts` | No runtime code |
 
 ## 5. Action needed from the owner
 
-1. **Finish the Row Level Security check.** The read-only SQL in [rawg-vs-igdb.md, section 5](rawg-vs-igdb.md#5-report-only-items) came back safe on 2026-11-07. One real test remains: sign in as two different users and confirm neither sees the other's rows.
-2. **Before Phase 3:** create the Twitch app, so a short script can test real IGDB data. Exact steps come at that point.
+1. **Two-user privacy test.** Save a game as user A, then sign in as user B in a private window: B must not see it. The read-only check below came back safe on 2026-11-07 (RLS on, `auth.uid() = user_id` policies for select, insert and delete, unique constraints, no duplicate rows); only the real two-user test remains.
+   ```sql
+   select relname, relrowsecurity from pg_class
+   where oid in ('public.collections'::regclass, 'public.favorites'::regclass);
+   select tablename, policyname, cmd, qual, with_check from pg_policies
+   where tablename in ('collections', 'favorites');
+   ```
+2. **Decide ISSUE-5** (below).
+3. **Confirm BUG-35 on the live site** after the next deploy: a browser that had the previous version should switch to the new one on its own.
 
 ## 6. Open issues and known limits
 
 | # | Issue | Impact | Plan |
 |:--|:--|:--|:--|
-| 4 | `collections` and `favorites` are read with no user filter, so Row Level Security alone keeps lists private. The owner's SQL (2026-11-07) shows it on, with `auth.uid() = user_id` policies for select, insert and delete. | Lists look private; not yet tested with two real users | Owner runs the two-user test |
-| 5 | A game deleted on one device comes back from another at sign-in. Confirmed by `it.fails('ISSUE-5…')` in both slice tests. | Deletions don't stick across devices | Owner to decide; needs deletion records or merging guest items only |
+| 4 | `collections` and `favorites` are read with no user filter, so Row Level Security alone keeps lists private. | Lists look private; not yet tested with two real users | Owner runs the two-user test |
+| 5 | A game deleted on one device comes back from another at sign-in, because the merge uploads every local game missing from the cloud. Pinned by `it.fails('ISSUE-5…')` in both slice tests. | Deletions don't stick across devices | Recommended: a `deleted_at` column on both tables; removing sets it, the merge skips such games, re-adding clears it. Fits "never delete rows". Simpler option: upload only games saved while signed out. Owner decides and runs the SQL. |
 
-**Known bugs** (each gets an `it.fails` test as Phase 2 reaches it, and none is fixed without the owner's OK. "Pending" means found by reading the code and not yet proved by a test.)
+**Known bugs:** none open. New ones get an `it.fails('BUG-n: …')` test and a row here.
 
-| Bug | What happens | Where | Test |
+| Bug | What happened | Where | Status |
 |:--|:--|:--|:--|
-| BUG-1 | Modal glow never works. Three causes: colorthief 3 has no class and the error is swallowed; the colour is built as `rgb(r, g, b)88`, which isn't valid CSS; and the image lacked `crossorigin`, now fixed for the offline cache. | `GameDetailsModal` | ✅ Fixed; see section 9 |
-| BUG-2 | The whole sidebar, including My Collection, disappears on an API error | `Sidebar` | ✅ Fixed; see section 9 |
-| BUG-3 | The previous game's trailers, store links and similar games stay until new ones arrive | `useGameTrailers`, `useGameStores`, `useSimilarGames` | ✅ Fixed; see section 9 |
-| BUG-4 | Trailers are hidden when a game has no screenshots | `GameDetailsModal` | ✅ Fixed; see section 9 |
-| BUG-5 | Similar-game clicks do nothing on the Collections page | `CollectionsPage` | ✅ Fixed; see section 9 |
-| BUG-6 | The adult filter covers the grid only, not deep links or similar games | `useGames`, `GameDetailsModal`, `SimilarGamesCarousel` | ✅ Fixed; see section 9 |
-| BUG-7 | A failed merge upload is only logged, while the item looks saved. The item isn't lost: the next merge retries it. | both list slices | ✅ Fixed; see section 9 |
-| BUG-8 | A failed add or remove shows the user nothing. The store does report the failure; the buttons ignore it. | `CollectionButton`, `FavoriteButton` | ✅ Fixed; see section 9 |
-| BUG-9 | Merges running at once upload the same game twice, and duplicate cloud rows then show as duplicate cards. A magic-link sign-in looks able to trigger this: `App` merges on every auth event with a session, and Supabase's code sends both `INITIAL_SESSION` and `SIGNED_IN`. **The real database blocks this:** the owner's SQL (2026-11-07) shows unique constraints on both tables and no duplicate rows. The real cost is repeated merges, and a rejected upload that is only logged (BUG-7). The test fake has no unique constraints, so it shows duplicates the real database wouldn't. | both list slices, `App` | ✅ Fixed; see section 9 |
-| BUG-10 | `fetchFavorites` with nobody signed in wipes local favorites, while `fetchCollections` keeps its lists. `App` never calls it that way today, so it can't happen yet. | `favoritesSlice` | ✅ Fixed; see section 9 |
-| BUG-11 | On a non-RAWG URL, the crop helper returns a broken address (`httpscrop/600/400/://images…`). Harmless today, but **every IGDB image would break**. | `image-url` | ✅ Fixed; see section 9 |
-| BUG-12 | After one failed request, the error stays even when a later request succeeds. Sections that hide on error stay hidden for later games until the modal closes. | `useData`, `useGameTrailers`, `useGameStores`, `useSimilarGames` | ✅ Fixed; see section 9 |
-| BUG-13 | Changing a filter after scrolling first requested page 2 of the new filter, aborted it, then requested page 1. | `useGames` | ✅ Fixed by the lint work; see section 9 |
-| BUG-14 | The adult filter hides innocent games: "Command & Conquer: Yuri's Revenge" is hidden because of the word "yuri". | `useGames` | ✅ Fixed; see section 9 |
-| BUG-15 | With no genre cache, genres are requested twice. | `useGenres` | ✅ Fixed; see section 9 |
-| BUG-16 | The video player's mute, play and fullscreen buttons and the sign-in modal's close button have no names, so screen readers can't announce them. | `CustomVideoPlayer`, `AuthModal` | ✅ Fixed; see section 9 |
-| BUG-17 | Pressing Enter on the progress bar sets the video time to an invalid value, because the key handler reuses the mouse handler. | `CustomVideoPlayer` | ✅ Fixed; see section 9 |
-| BUG-18 | A broken image keeps its loading animation forever. It will matter more with IGDB, which removes replaced images after 30 days. | `ProgressiveImage` | ✅ Fixed; see section 9 |
-| BUG-19 | Mouse-wheel scrolling on Recently Viewed logs "Unable to preventDefault inside passive event listener", because React's wheel listeners are passive. Whether the page scrolls too isn't tested. | `RecentlyViewed` | ✅ Fixed; see section 9 |
-| BUG-20 | Every email typo gets "Did you mean @gmail.com?", even `@hotmai.com` or `@yahoo.co`, because the suggestion ignores the typo table's right answer. | `AuthModal` | ✅ Fixed; see section 9 |
-| BUG-21 | If the adult filter hides a whole page, the grid says "No games found" and stops, though more pages exist. The scroll trigger only renders when games are showing. | `GameGrid` | ✅ Fixed; see section 9 |
-| BUG-22 | A similar game scored 0 shows a stray "0". | `SimilarGamesCarousel` | ✅ Fixed; see section 9 |
-| BUG-23 | Escape closes the modal only when its backdrop has focus, not wherever focus is. | `GameDetailsModal` | ✅ Fixed; see section 9 |
-| BUG-24 | An empty developer list shows a blank instead of "—". The same code handles publishers. | `GameDetailsModal` | ✅ Fixed; see section 9 |
-| BUG-25 | Phones couldn't reach sign-in or sign-out. The whole account area is `hidden md:flex`, and the mobile menu has no replacement. A signed-out phone user can only sign in from the banner on `/collection`, which appears once they've saved a game. A signed-in phone user can't sign out at all. | `Navbar` | ✅ Fixed; see section 9 |
-| BUG-26 | `Layout` mounts two `Sidebar`s at once (mobile and desktop, one hidden by CSS), each asking for genres, so every page load makes at least two requests. `HomePage` asks as well, making three. | `Layout`, `HomePage` | ✅ Fixed; see section 9 |
-| BUG-27 | A genre page's title stays on "Loading..." forever if the genre names fail to load or the genre doesn't exist. The browser tab title says it too. | `HomePage` | ✅ Fixed; see section 9 |
-| BUG-28 | Recently Viewed only records games opened from `HomePage`'s grid or modal, not from a deep link or the Developer, Publisher or Collections pages. The owner may consider some of this intended. | `HomePage`, `DeveloperPage`, `PublisherPage`, `CollectionsPage` | ✅ Fixed; see section 9 |
-| BUG-29 | Opening a game from Recently Viewed doesn't set `?gameId=` and doesn't move the game to the front. | `HomePage` | ✅ Fixed; see section 9 |
-| BUG-30 | The Collections page has no deep link: `?gameId=` is ignored, and opening a game doesn't set the URL. The Share button is unaffected, because it always links to the home page. | `CollectionsPage` | ✅ Fixed; see section 9 |
-| BUG-31 | An unknown URL shows a blank screen with no navbar and no way back. There is no catch-all route. | `App` | ✅ Fixed; see section 9 |
-| BUG-32 | The expired-link message's dismiss button has no name, so screen readers can't announce it. | `App` | ✅ Fixed; see section 9 |
-| BUG-33 | **On a first visit, with no genres saved in the browser, only the first `useGenres` to get a response shows them.** The others find the list already saved, treat it as unchanged and never update. In order of requests, that leaves the visible desktop sidebar empty and a genre page's title on "Loading..." until a reload. | `useGenres` | ✅ Fixed; see section 9 |
-| BUG-35 | After a deploy, visitors stayed on the old app until they cleared site data; "Reload & Update" did nothing. | `vite.config.ts`, `PWAReloadPrompt` | ✅ Fixed; see section 9 |
-| BUG-34 | Trailers couldn't be controlled: clicks never reached the YouTube player inside the modal's rounded corners. | `YouTubeTrailer`, `GameDetailsModal` | ✅ Fixed; see section 9 |
+| BUG-1 | Modal glow never worked: colorthief 3 used as a class, and an invalid colour string. | `GameDetailsModal` | ✅ Fixed |
+| BUG-2 | The whole sidebar, including My Collection, disappeared on an API error. | `Sidebar` | ✅ Fixed |
+| BUG-3 | The previous game's trailers, store links and similar games stayed until new ones arrived. | old hooks | ✅ Fixed |
+| BUG-4 | Trailers were hidden when a game had no screenshots. | `GameDetailsModal` | ✅ Fixed |
+| BUG-5 | Similar-game clicks did nothing on the Collections page. | `CollectionsPage` | ✅ Fixed |
+| BUG-6 | The adult filter covered the grid only, not deep links or similar games. | proxy | ✅ Fixed |
+| BUG-7 | A failed merge upload was only logged, while the game looked saved. | both list slices | ✅ Fixed |
+| BUG-8 | A failed add or remove showed the user nothing. | `CollectionButton`, `FavoriteButton` | ✅ Fixed |
+| BUG-9 | Merges started on every auth event and could run at once, uploading a game twice. | both list slices, `App` | ✅ Fixed (fake Supabase only; the real tables have unique constraints) |
+| BUG-10 | `fetchFavorites` with nobody signed in wiped local favorites. | `favoritesSlice` | ✅ Fixed |
+| BUG-11 | The image crop helper broke non-RAWG URLs. | removed | ✅ Fixed |
+| BUG-12 | One failed request left its error showing after later successes. | old hooks | ✅ Fixed |
+| BUG-13 | Changing a filter after scrolling requested page 2 of the new filter first. | `useGames` | ✅ Fixed |
+| BUG-14 | The adult name filter hid innocent games such as "Yuri's Revenge". | `useGames` | ✅ Fixed |
+| BUG-15 | With no genre cache, genres were requested twice. | `useGenres` | ✅ Fixed |
+| BUG-16 | Unnamed buttons: the old video player's controls and the sign-in close button. | `AuthModal` | ✅ Fixed |
+| BUG-17 | Enter on the old video player's progress bar set an invalid time. | removed | ✅ Fixed |
+| BUG-18 | A broken image kept its loading shimmer forever. | `ProgressiveImage` | ✅ Fixed |
+| BUG-19 | Wheel-scrolling Recently Viewed logged a passive-listener error. | `RecentlyViewed` | ✅ Fixed |
+| BUG-20 | Every email typo got "Did you mean @gmail.com?". | `AuthModal` | ✅ Fixed |
+| BUG-21 | A page emptied by the adult filter ended infinite scroll. | `GameGrid` | ✅ Fixed |
+| BUG-22 | A similar game scored 0 showed a stray "0". | `SimilarGamesCarousel` | ✅ Fixed |
+| BUG-23 | Escape closed the modal only when its backdrop had focus. | `GameDetailsModal` | ✅ Fixed |
+| BUG-24 | An empty developer or publisher list showed a blank instead of "—". | `GameDetailsModal` | ✅ Fixed |
+| BUG-25 | Phones couldn't reach sign-in or sign-out. | `Navbar` | ✅ Fixed |
+| BUG-26 | Every page load asked for genres two or three times. | `Layout`, `HomePage` | ✅ Fixed |
+| BUG-27 | A genre title stuck on "Loading..." when names failed or the genre didn't exist. | `HomePage` | ✅ Fixed |
+| BUG-28 | Recently Viewed only recorded games opened from the home grid. | pages | ✅ Fixed |
+| BUG-29 | Opening from Recently Viewed didn't set the URL or move the game to the front. | `HomePage` | ✅ Fixed |
+| BUG-30 | The Collections page had no `?game=` deep link. | `CollectionsPage` | ✅ Fixed |
+| BUG-31 | An unknown URL showed a blank screen. | `App` | ✅ Fixed |
+| BUG-32 | The expired-link message's dismiss button had no name. | `App` | ✅ Fixed |
+| BUG-33 | On a first visit only one `useGenres` user got genres, leaving the desktop sidebar empty. | `useGenres` | ✅ Fixed |
+| BUG-34 | Trailers couldn't be controlled: clicks never reached the YouTube player inside the modal's rounded corners. | `YouTubeTrailer` | ✅ Fixed |
+| BUG-35 | After a deploy, visitors stayed on the old app until they cleared site data; "Reload & Update" did nothing. | `vite.config.ts` | ✅ Fixed; to confirm live |
 
 ## 7. Roadmap
 
-**Phase 2: test the current app.** Tasks in section 4, then a coverage report and the list of what tests can't judge (motion, layout, real PWA), with how each is checked by hand.
+1. ISSUE-5, once the owner decides.
+2. **Steam add-on:** achievements, Metacritic and playable trailers for Steam games. Undocumented endpoints, so it must fail silently back to IGDB.
 
-**Phase 3: move to IGDB** (only after the owner approves)
-1. Test real IGDB data with a short script.
-2. Add a Vercel proxy with GET routes and a typed API layer, so components don't depend on IGDB's format.
-3. Move each feature, one task at a time, keeping Phase 2 tests passing.
-4. Migrate saved ids, after a backup and the owner's review. The owner runs the SQL.
-5. Remove RAWG code and config, and list what was removed.
-6. Check sign-in, guest merge, offline and a deep link on a production build at 1440 px and 375 px.
-7. Rewrite the README, overview, `CLAUDE.md` and this document to match the real stack.
+**Hand checks** (tests can't judge these; use a production build: `npm run build`, then `npm run preview`)
 
-**After IGDB works:** Steam add-on for achievements, Metacritic and trailers on Steam games.
+| Check | How | Pass looks like |
+|:--|:--|:--|
+| Two-user privacy | See section 5 | B never sees A's games |
+| Real magic link | Sign in with your own email on the live site | Email arrives, the link signs you in, guest games merge once |
+| Self-updating PWA | Install it, deploy a change, reopen it | The new version loads by itself (BUG-35) |
+| Motion and reduced motion | Scroll, open and close modals, then repeat with the system's reduce-motion setting | Smooth; reduced when asked; nothing breaks |
+| Other browsers and a real phone | Main flows in Safari and Firefox, and on a phone (swipe the gallery and Recently Viewed) | Same behaviour; the smoke suite is Chromium only |
+| Screen reader | Search, a card, the modal, the viewer and sign-in with NVDA or VoiceOver | Everything is announced and reachable |
+| Share previews | Paste a `?game=` link into a chat app | Shows the game's title and image |
 
 ## 8. Key decisions
 
 | Date | Decision | Why |
 |:--|:--|:--|
-| 2026-11-07 | **IGDB as the main API** | RAWG is unreachable. IGDB is free and documented, and has the data for the app's filters (store filter still to test). No alternative beat it ([comparison](rawg-vs-igdb.md#other-apis-checked)). |
-| 2026-11-07 | **Steam add-on, after IGDB works** | Restores achievements, Metacritic and playable trailers for Steam games. Undocumented endpoints, so it must fail silently back to IGDB. |
+| 2026-11-07 | **IGDB as the main API** | RAWG is unreachable. IGDB is free, documented, and has the data for the app's filters. No alternative checked (MobyGames, TheGamesDB, GameBrain, Steam alone) beat it. |
 | 2026-11-07 | **GET-only proxy with fixed routes** | Keeps secrets off the browser and allows CDN and offline caching. Never forwards raw query text. |
-| 2026-11-07 | **Match old saved games through Wikidata**, then slug and name | Wikidata links RAWG and IGDB for about 59,000 games. A RAWG id must never be read as an IGDB id. |
-| 2026-11-07 | **Small Playwright suite in Phase 2** | jsdom can't see CSS, layout or a real service worker. |
-| 2026-11-07 | **Fix lint last in Phase 2** | Some fixes can change behaviour, so tests come first. |
-| 2026-11-07 | **Commit directly on `dev`** | Owner's instruction. |
+| 2026-11-07 | **Saved games start fresh** | Owner's choice over mapping RAWG ids to IGDB ids. A RAWG id must never be read as an IGDB id. |
+| 2026-11-07 | **Playwright smoke suite** | jsdom can't see CSS, layout or a real service worker. |
+| 2026-11-07 | **Commit directly on `dev`** | Owner's instruction. The owner merges into `main`. |
 | 2026-11-07 | **Portrait cover cards** | IGDB has a cover for every game, but a wide image for only 24% of lesser-known ones. |
-| 2026-11-07 | **Trailers: thumbnail, then YouTube on click** | IGDB has YouTube ids only. Nothing loads from YouTube until the visitor asks; `youtube-nocookie.com` player. |
+| 2026-11-07 | **Trailers: thumbnail, then YouTube on click** | Nothing loads from YouTube until the visitor asks; `youtube-nocookie.com` player. |
 | 2026-11-07 | **Trailers play in a full-screen viewer** | Chrome drops clicks into a cross-origin iframe inside any rounded clip, and the modal is rounded. A bigger player is also nicer. |
 | 2026-11-07 | **Genres: IGDB's 23 plus Action** | Action is a theme in IGDB but the most popular category; keeps `/genre/action` working. |
+| 2026-11-07 | **Service worker updates itself** | The update prompt left visitors stuck on the old app (BUG-35). |
 
 ## 9. Fix history
 
 | Date | Fixed | How |
 |:--|:--|:--|
 | 2026-11-07 | BUG-4, BUG-17 | Trailers moved to their own section with YouTube's player; the old video player and its bug are gone. |
-| 2026-11-07 | BUG-3, BUG-6, BUG-11, BUG-12 | Moving onto the proxy: one details request replaces five hooks (BUG-3, BUG-12), the proxy filters adult games everywhere (BUG-6), and the crop helper only touches RAWG URLs (BUG-11). |
-| 2026-11-07 | BUG-25 | Phones get the account at the top of the slide-out menu: a labelled Sign In card for guests, or the email and a Sign Out button (`MobileAccount`). The phone header keeps its original menu, logo and search, so it stays uncluttered down to 320 px. From 768 px the navbar shows the account as before. |
-| 2026-11-07 | BUG-13, a side effect of the lint fixes | `useGames` now resets while rendering, not in an effect after the request has started. The owner reviews this with the lint task. |
-| 2026-11-07 | BUG-2, BUG-15, BUG-26, BUG-27, BUG-33 | `useGenres` shares one request per page load between both sidebars and the home page, so every user gets the genres (33) and they're asked for once (15, 26); a failed request is forgotten so the next user retries. The per-hook abort on unmount went with it: the shared request isn't cancelled, which costs nothing for one small list. The sidebar keeps My Collection and All Games on an error and says "Genres couldn't load." (2). A genre title falls back to the address when the names fail to load and says "Unknown Genre" for a slug that isn't one (27). |
-| 2026-11-07 | BUG-5, BUG-28, BUG-29, BUG-30, BUG-31 | One `useGameParam` hook keeps the open game in `?game=` on all four pages, so Collections deep-links and moves on to similar games (5, 30) and Recently Viewed sets the URL (29). The modal itself adds each loaded game to Recently Viewed, so games opened from any page, a link or Recently Viewed are recorded and moved to the front (28, 29). Unknown URLs get a not-found page inside the layout with a link home (31). |
-| 2026-11-07 | BUG-1, BUG-16, BUG-18, BUG-20, BUG-22, BUG-23, BUG-24, BUG-32 | Glow: colorthief 3's `getColor()` and a valid `rgba(…, 0.53)` colour, checked live (1). Names: the sign-in X is "Close sign-in" (the success screen already has a "Close" button) and the expired-link toast's X is "Dismiss" (16, 32). A broken image ends its shimmer and stays hidden (18). The typo hint names the domain the typo table means (20). `CriticScore` handles a 0 or missing score, so no stray "0" (22). Escape closes the modal from anywhere, once (23). Empty developer and publisher lists show "—" (24). |
-| 2026-11-07 | BUG-14, BUG-19, BUG-21 | The name filter in `useGames` keeps only words with no innocent meaning, since the proxy already drops IGDB's erotic theme; Yuri's Revenge and Day of the Tentacle now show. The tag list went too: the proxy sends no tags (14). Recently Viewed adds its wheel listener by hand as non-passive, so it can stop the page scrolling; checked in Chromium by the smoke suite (19). The scroll trigger stays while more pages exist, so a page the filter emptied no longer ends the grid (21). |
-| 2026-11-07 | BUG-7, BUG-8, BUG-9, BUG-10 | A merge with nobody signed in leaves local favorites alone (10). A failed upload rejects the merge but still shows cloud and local games, and the app shows "Sync Failed"; the games stay on the device and the next merge retries them (7). The favorite and list buttons show "Couldn't save…" for four seconds when a save fails (8). Only one merge per slice runs at a time, duplicate cloud rows show once, and `App` merges once per signed-in user, not again for SIGNED_IN after INITIAL_SESSION or on a token refresh (9). One untestable guard: `App` ignores a merge skipped because one is running, which `App` itself never causes. |
-| 2026-11-07 | BUG-34 | Trailers play in a full-screen viewer (`Lightbox`, on the page body) instead of inside the modal. Found by the owner and narrowed down live in Chromium: any rounded clip around the YouTube iframe (the modal's rounded `overflow-hidden`, the trailer frame's own, a `clip-path`, or a radius on the iframe) stopped clicks from reaching the player. The same viewer enlarges gallery screenshots at IGDB's 1080p size. Escape closes the viewer, not the modal behind it. |
-| 2026-11-07 | BUG-35 | The service worker uses `autoUpdate`: a new version installs, takes over (`skipWaiting`, `clientsClaim`) and reloads the page once. The old `prompt` mode left visitors on the old app until they cleared site data: the waiting version never activated while a tab was open, and the button didn't reload when another tab had found the update. The prompt component went with it. Visitors stuck on the old app should recover on their next visit once this deploys; not yet confirmed on the live site. |
+| 2026-11-07 | BUG-3, BUG-6, BUG-11, BUG-12 | Moving onto the proxy: one details request replaces five hooks (3, 12), the proxy filters adult games everywhere (6), and the crop helper only touches RAWG URLs (11). |
+| 2026-11-07 | BUG-25 | Phones get the account at the top of the slide-out menu (`MobileAccount`). |
+| 2026-11-07 | BUG-13 | `useGames` resets while rendering, not in an effect after the request has started. |
+| 2026-11-07 | BUG-2, BUG-15, BUG-26, BUG-27, BUG-33 | `useGenres` shares one request per page load, so every user gets the genres (33) and they're asked for once (15, 26); a failed request is retried by the next user. The shared request isn't cancelled on unmount. The sidebar keeps My Collection and All Games on an error and says "Genres couldn't load." (2). A genre title falls back to the address, or says "Unknown Genre" (27). |
+| 2026-11-07 | BUG-5, BUG-28, BUG-29, BUG-30, BUG-31 | `useGameParam` keeps the open game in `?game=` on every page (5, 29, 30). The modal adds each loaded game to Recently Viewed, moving it to the front (28, 29). Unknown URLs get a not-found page (31). |
+| 2026-11-07 | BUG-1, BUG-16, BUG-18, BUG-20, BUG-22, BUG-23, BUG-24, BUG-32 | Glow from colorthief 3's `getColor()` as `rgba(…, 0.53)` (1). Named buttons: "Close sign-in", "Dismiss" (16, 32). A broken image ends its shimmer (18). The typo hint names the intended domain (20). `CriticScore` handles 0 (22). Escape closes the modal from anywhere (23). Empty lists show "—" (24). |
+| 2026-11-07 | BUG-14, BUG-19, BUG-21 | The name filter keeps only words with no innocent meaning, and the unused tag check went (14). Recently Viewed's wheel listener is non-passive (19). The scroll trigger stays while more pages exist (21). |
+| 2026-11-07 | BUG-7, BUG-8, BUG-9, BUG-10 | A merge with nobody signed in changes nothing (10). A failed upload rejects the merge, keeps the games and shows "Sync Failed"; the next merge retries (7). Buttons say "Couldn't save…" on failure (8). One merge at a time, duplicate cloud rows show once, and `App` merges once per signed-in user (9). One untestable guard: `App` ignores a merge skipped because one is running. |
+| 2026-11-07 | BUG-34 | Trailers play in a full-screen `Lightbox` on the page body, outside every rounded clip; the same viewer enlarges screenshots at IGDB's 1080p size. Escape closes the viewer only. |
+| 2026-11-07 | BUG-35 | `autoUpdate`: a new service worker installs, takes over and reloads the page once. The update prompt was removed. Not yet confirmed on the live site. |

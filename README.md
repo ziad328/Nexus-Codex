@@ -22,7 +22,7 @@ Nexus Codex is a game discovery and library app. Browse hundreds of thousands of
 - **Game details:** description, release date, developers and publishers, screenshots, YouTube trailers that load only when played, store and official links, and similar games. Every game has a shareable `?game=` link.
 - **Library:** favorites and four lists (Playing Now, Backlog, Beaten, Wishlist). Lists work as a guest and merge into your account when you sign in. Recently Viewed keeps your last 10.
 - **Sign-in:** passwordless magic links through Supabase, with email typo checks.
-- **Offline:** installable as a PWA. Saved lists, and games and images already seen, still show without a connection.
+- **Offline:** installable as a PWA that updates itself. Saved lists, and games and images already seen, still show without a connection.
 
 ## 🛠️ Tech stack
 
