@@ -5,6 +5,9 @@ import type { RootState } from './index';
 
 interface FavoritesState {
   items: FavoriteGame[];
+  // Games known to be in the cloud. One missing from the cloud was removed on another device (ISSUE-5),
+  // so the merge drops it instead of uploading it again. Absent in lists saved before this existed.
+  synced?: number[];
 }
 
 const initialState: FavoritesState = {
@@ -14,7 +17,12 @@ const initialState: FavoritesState = {
 // One merge at a time: two at once would both upload the same local games.
 let merging = false;
 
-export const fetchFavorites = createAsyncThunk<FavoriteGame[] | null, void, { rejectValue: FavoriteGame[] }>(
+interface Merged {
+  items: FavoriteGame[];
+  synced: number[];
+}
+
+export const fetchFavorites = createAsyncThunk<Merged | null, void, { rejectValue: Merged }>(
   'favorites/fetchFavorites',
   async (_, { getState, rejectWithValue }) => {
     const state = getState() as RootState;
@@ -32,7 +40,8 @@ export const fetchFavorites = createAsyncThunk<FavoriteGame[] | null, void, { re
       const cloudRows = cloudData.filter((item, i) => cloudData.findIndex(other => other.game_id === item.game_id) === i);
       const cloudGameIds = new Set(cloudRows.map(item => item.game_id));
 
-      const itemsToUpload = localItems.filter(game => !cloudGameIds.has(game.id));
+      const synced = new Set(state.favorites.synced);
+      const itemsToUpload = localItems.filter(game => !cloudGameIds.has(game.id) && !synced.has(game.id));
       let uploadFailed = false;
 
       if (itemsToUpload.length > 0) {
@@ -59,9 +68,10 @@ export const fetchFavorites = createAsyncThunk<FavoriteGame[] | null, void, { re
         parent_platforms: item.parent_platforms,
       })) as FavoriteGame[];
 
-      const merged = [...formattedCloudData, ...itemsToUpload];
-      // A failed upload keeps the games on this device (the next merge retries them) and rejects, so the app can say so.
-      return uploadFailed ? rejectWithValue(merged) : merged;
+      const items = [...formattedCloudData, ...itemsToUpload];
+      // A failed upload keeps the games on this device, unsynced so the next merge retries them, and rejects, so the app can say so.
+      const syncedIds = (uploadFailed ? formattedCloudData : items).map(game => game.id);
+      return uploadFailed ? rejectWithValue({ items, synced: syncedIds }) : { items, synced: syncedIds };
     } finally {
       merging = false;
     }
@@ -112,23 +122,23 @@ const favoritesSlice = createSlice({
   name: 'favorites',
   initialState,
   reducers: {
-    clearFavorites(state) {
-      state.items = [];
-    }
+    clearFavorites: () => initialState,
   },
   extraReducers: (builder) => {
     builder
       .addCase(fetchFavorites.fulfilled, (state, action) => {
-        if (action.payload) state.items = action.payload;
+        if (action.payload) Object.assign(state, action.payload);
       })
       .addCase(fetchFavorites.rejected, (state, action) => {
-        if (action.payload) state.items = action.payload;
+        if (action.payload) Object.assign(state, action.payload);
       })
       .addCase(toggleFavoriteInDb.fulfilled, (state, action) => {
         if (!action.payload) return;
         
         if ('localOnly' in action.payload) {
           const game = action.payload.game;
+          // A game saved while signed out is new, so the next merge uploads it.
+          state.synced = state.synced?.filter(id => id !== game.id);
           const exists = state.items.some(g => g.id === game.id);
           if (exists) {
             state.items = state.items.filter(g => g.id !== game.id);
@@ -138,10 +148,13 @@ const favoritesSlice = createSlice({
           return;
         }
 
+        const { game } = action.payload;
         if (action.payload.action === 'removed') {
-          state.items = state.items.filter(g => g.id !== action.payload.game.id);
+          state.items = state.items.filter(g => g.id !== game.id);
+          state.synced = state.synced?.filter(id => id !== game.id);
         } else {
-          state.items.push(action.payload.game);
+          state.items.push(game);
+          state.synced = [...(state.synced ?? []), game.id];
         }
       });
   }

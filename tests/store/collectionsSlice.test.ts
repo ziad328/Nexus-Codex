@@ -271,7 +271,7 @@ describe('merging local lists into the cloud at sign-in', () => {
     expect(idsIn(store, 'playing')).toEqual([1]);
   });
 
-  it.fails('ISSUE-5: a game deleted on another device stays deleted', async () => {
+  it('a game deleted on another device stays deleted (ISSUE-5, fixed)', async () => {
     const store = createTestStore({ auth: signedIn, collections: withLists({ playing: [makeGame(1)] }) });
     await store.dispatch(fetchCollections());
 
@@ -279,5 +279,45 @@ describe('merging local lists into the cloud at sign-in', () => {
     await store.dispatch(fetchCollections());
 
     expect(cloudKeys()).toEqual([]);
+    expect(idsIn(store, 'playing')).toEqual([]);
+  });
+
+  it('a game added while signed in, then deleted on another device, stays deleted', async () => {
+    const store = createTestStore({ auth: signedIn });
+    await store.dispatch(addToCollectionInDb({ collectionName: 'playing', game: makeGame(1) }));
+
+    supabaseFake.seed('collections', []);
+    await store.dispatch(fetchCollections());
+
+    expect(cloudKeys()).toEqual([]);
+    expect(idsIn(store, 'playing')).toEqual([]);
+  });
+
+  it('a deletion from one list leaves the same game in another list', async () => {
+    const game = makeGame(1);
+    const store = createTestStore({ auth: signedIn, collections: withLists({ playing: [game], wishlist: [game] }) });
+    await store.dispatch(fetchCollections());
+
+    supabaseFake.seed('collections', [makeRow(game, { collection_name: 'wishlist' })]);
+    await store.dispatch(fetchCollections());
+
+    expect(cloudKeys()).toEqual(['wishlist:1']);
+    expect(idsIn(store, 'playing')).toEqual([]);
+    expect(idsIn(store, 'wishlist')).toEqual([1]);
+  });
+
+  it('still uploads a game added as a guest after an earlier sync', async () => {
+    const store = createTestStore({ auth: signedIn, collections: withLists({ playing: [makeGame(1)] }) });
+    await store.dispatch(fetchCollections());
+    supabaseFake.seed('collections', []);
+
+    const guest = createTestStore({ collections: store.getState().collections });
+    await guest.dispatch(removeFromCollectionInDb({ collectionName: 'playing', gameId: 1 }));
+    await guest.dispatch(addToCollectionInDb({ collectionName: 'playing', game: makeGame(1) }));
+    const again = createTestStore({ auth: signedIn, collections: guest.getState().collections });
+    await again.dispatch(fetchCollections());
+
+    expect(cloudKeys()).toEqual(['playing:1']);
+    expect(idsIn(again, 'playing')).toEqual([1]);
   });
 });

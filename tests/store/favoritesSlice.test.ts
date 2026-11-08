@@ -212,7 +212,7 @@ describe('merging local favorites into the cloud at sign-in', () => {
     expect(favoriteIds(store)).toEqual([1]);
   });
 
-  it.fails('ISSUE-5: a game deleted on another device stays deleted', async () => {
+  it('a game deleted on another device stays deleted (ISSUE-5, fixed)', async () => {
     const store = createTestStore({ auth: signedIn, favorites: { items: [makeGame(1)] } });
     await store.dispatch(fetchFavorites());
 
@@ -220,5 +220,46 @@ describe('merging local favorites into the cloud at sign-in', () => {
     await store.dispatch(fetchFavorites());
 
     expect(cloudIds()).toEqual([]);
+    expect(favoriteIds(store)).toEqual([]);
+  });
+
+  it('a game saved while signed in, then deleted on another device, stays deleted', async () => {
+    const store = createTestStore({ auth: signedIn });
+    await store.dispatch(toggleFavoriteInDb(makeGame(1)));
+
+    supabaseFake.seed('favorites', []);
+    await store.dispatch(fetchFavorites());
+
+    expect(cloudIds()).toEqual([]);
+    expect(favoriteIds(store)).toEqual([]);
+  });
+
+  it('still uploads a game saved as a guest after an earlier sync', async () => {
+    const store = createTestStore({ auth: signedIn, favorites: { items: [makeGame(1)] } });
+    await store.dispatch(fetchFavorites());
+    supabaseFake.seed('favorites', []);
+
+    const guest = createTestStore({ favorites: store.getState().favorites });
+    await guest.dispatch(toggleFavoriteInDb(makeGame(1)));
+    await guest.dispatch(toggleFavoriteInDb(makeGame(1)));
+    const again = createTestStore({ auth: signedIn, favorites: guest.getState().favorites });
+    await again.dispatch(fetchFavorites());
+
+    expect(cloudIds()).toEqual([1]);
+    expect(favoriteIds(again)).toEqual([1]);
+  });
+
+  it('keeps retrying a failed upload instead of treating it as deleted', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const store = createTestStore({ auth: signedIn, favorites: { items: [makeGame(1)] } });
+    supabaseFake.failNext('favorites', 'insert');
+    await store.dispatch(fetchFavorites());
+    supabaseFake.failNext('favorites', 'insert');
+    await store.dispatch(fetchFavorites());
+
+    await store.dispatch(fetchFavorites());
+
+    expect(cloudIds()).toEqual([1]);
+    vi.restoreAllMocks();
   });
 });

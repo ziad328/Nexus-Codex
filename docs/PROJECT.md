@@ -67,7 +67,7 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 | 3: Move to IGDB | ✅ Done and live. Saved games started fresh (owner's choice) instead of mapping RAWG ids. |
 | Steam add-on | ✅ Metacritic score and achievements in the details modal, through `/api/games/:id`. Steam trailers dropped (owner's choice); trailers stay YouTube from IGDB. |
 
-**Latest verification (2026-11-08):** 687 tests pass, and 2 expected failures pin ISSUE-5. `npx tsc -b --noEmit`, the build and `npm run lint` are clean. Coverage: 99% of lines and 96% of branches overall (`src/utils` shows 0% only because tests always use the fake Supabase). Smoke suite (`npm run test:e2e`): 19 of 19 pass at 1440 px and 375 px, plus offline with the real service worker. Every bigger fix was checked by breaking the code on purpose; the only miss is a guard `App` itself never triggers (see BUG-9 in section 9).
+**Latest verification (2026-11-08):** 695 tests pass. `npx tsc -b --noEmit`, the build and `npm run lint` are clean. Coverage: 99% of lines and 96% of branches overall (`src/utils` shows 0% only because tests always use the fake Supabase). Smoke suite (`npm run test:e2e`): 19 of 19 pass at 1440 px and 375 px, plus offline with the real service worker. Every bigger fix was checked by breaking the code on purpose; the only miss is a guard `App` itself never triggers (see BUG-9 in section 9).
 
 **Test skips**
 | Skipped | Why |
@@ -87,15 +87,13 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
    select tablename, policyname, cmd, qual, with_check from pg_policies
    where tablename in ('collections', 'favorites');
    ```
-2. **Decide ISSUE-5** (below).
-3. **Confirm BUG-35 on the live site** after the next deploy: a browser that had the previous version should switch to the new one on its own.
+2. **Confirm BUG-35 on the live site** after the next deploy: a browser that had the previous version should switch to the new one on its own.
 
 ## 6. Open issues and known limits
 
 | # | Issue | Impact | Plan |
 |:--|:--|:--|:--|
 | 4 | `collections` and `favorites` are read with no user filter, so Row Level Security alone keeps lists private. | Lists look private; not yet tested with two real users | Owner runs the two-user test |
-| 5 | A game deleted on one device comes back from another at sign-in, because the merge uploads every local game missing from the cloud. Pinned by `it.fails('ISSUE-5…')` in both slice tests. | Deletions don't stick across devices | Recommended: a `deleted_at` column on both tables; removing sets it, the merge skips such games, re-adding clears it. Fits "never delete rows". Simpler option: upload only games saved while signed out. Owner decides and runs the SQL. |
 
 **Known bugs:** none open. New ones get an `it.fails('BUG-n: …')` test and a row here.
 
@@ -139,7 +137,7 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 
 ## 7. Roadmap
 
-1. ISSUE-5, once the owner decides.
+Nothing planned.
 
 **Hand checks** (tests can't judge these; use a production build: `npm run build`, then `npm run preview`)
 
@@ -163,6 +161,7 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 | 2026-11-07 | **Playwright smoke suite** | jsdom can't see CSS, layout or a real service worker. |
 | 2026-11-07 | **Commit directly on `dev`** | Owner's instruction. The owner merges into `main`. |
 | 2026-11-07 | **Portrait cover cards** | IGDB has a cover for every game, but a wide image for only 24% of lesser-known ones. |
+| 2026-11-08 | **Sign-in merge uploads only unsynced games (ISSUE-5)** | Owner's choice over a `deleted_at` column: no SQL or schema change. Each list slice keeps `synced`, the games known to be in the cloud; one missing from the cloud was removed elsewhere and is dropped, not uploaded again. Lists saved before this have no `synced`, so their games upload once, as before. |
 | 2026-11-08 | **No Steam trailers** | Owner's choice. Steam now serves only HLS/DASH streams, which would need `hls.js`; IGDB's YouTube trailers are enough. |
 | 2026-11-08 | **Steam extras inside `/api/games/:id`** | One request for the modal, cached with the game. Steam gets 2.5 s; any failure or odd field drops the extras and the modal looks as before. The app id comes from the game's Steam store link. When Steam fails, the game is cached for an hour instead of a day, so the extras come back soon. |
 | 2026-11-07 | **Trailers: thumbnail, then YouTube on click** | Nothing loads from YouTube until the visitor asks; `youtube-nocookie.com` player. |
@@ -174,6 +173,7 @@ Live: https://nexus-codex-lib.vercel.app. Repo: https://github.com/ziad328/Nexus
 
 | Date | Fixed | How |
 |:--|:--|:--|
+| 2026-11-08 | ISSUE-5 | The merge skips games in `synced`; signed-in saves add to it, guest saves and removals take a game out, sign-out clears it. |
 | 2026-11-07 | BUG-4, BUG-17 | Trailers moved to their own section with YouTube's player; the old video player and its bug are gone. |
 | 2026-11-07 | BUG-3, BUG-6, BUG-11, BUG-12 | Moving onto the proxy: one details request replaces five hooks (3, 12), the proxy filters adult games everywhere (6), and the crop helper only touches RAWG URLs (11). |
 | 2026-11-07 | BUG-25 | Phones get the account at the top of the slide-out menu (`MobileAccount`). |
